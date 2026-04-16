@@ -1,5 +1,8 @@
 import type { Metadata } from 'next'
 import { Noto_Serif, Plus_Jakarta_Sans } from 'next/font/google'
+
+import { ThemeProvider } from '@/theme/ThemeProvider'
+
 import './globals.css'
 
 const fontBody = Plus_Jakarta_Sans({
@@ -15,8 +18,8 @@ const fontHeading = Noto_Serif({
 })
 
 export const metadata: Metadata = {
-  title: 'Node Brew',
-  description: 'Node Brew — premium coffee experience',
+  title: 'Shop',
+  description: 'Public storefront and admin dashboard',
 }
 
 export default function RootLayout({
@@ -25,11 +28,11 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${fontBody.variable} ${fontHeading.variable} antialiased`}
       >
-        {children}
+        <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
   )

@@ -5,7 +5,6 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Tailwind ↔ CSS variables (Node Brew + shadcn) */
 @theme inline {
   --font-sans: var(--font-body);
   --font-mono: var(--font-body);
@@ -43,7 +42,6 @@
   --color-foreground: var(--foreground);
   --color-background: var(--background);
 
-  /* Node Brew — Material-style tokens (Sign Up / Figma export) */
   --color-on-surface: var(--on-surface);
   --color-on-background: var(--on-background);
   --color-on-surface-variant: var(--on-surface-variant);
@@ -99,7 +97,7 @@
 }
 
 :root {
-  /* shadcn semantics → Node Brew light */
+  color-scheme: light;
   --background: #fef9f1;
   --foreground: #1d1c17;
   --card: #ffffff;
@@ -108,8 +106,8 @@
   --popover-foreground: #1d1c17;
   --primary: #885200;
   --primary-foreground: #ffffff;
-  --secondary: #545f72;
-  --secondary-foreground: #ffffff;
+  --secondary: #ece8e0;
+  --secondary-foreground: #1d1c17;
   --muted: #f2ede5;
   --muted-foreground: #534436;
   --accent: #dde2f3;
@@ -133,7 +131,6 @@
   --sidebar-border: #d8c3b0;
   --sidebar-ring: #e89730;
 
-  /* Node Brew extended palette */
   --on-surface: #1d1c17;
   --on-background: #1d1c17;
   --on-surface-variant: #534436;
@@ -189,7 +186,7 @@
   --popover-foreground: #f5f0e8;
   --primary: #ffb869;
   --primary-foreground: #2b1700;
-  --secondary: #bcc7dd;
+  --secondary: #ece8e0;
   --secondary-foreground: #111c2c;
   --muted: #3a3833;
   --muted-foreground: #d8c3b0;
@@ -198,15 +195,15 @@
   --destructive: #ffb4ab;
   --border: #857464;
   --input: #3a3833;
-  --ring: #ffb869;
-  --chart-1: #ffb869;
+  --ring: #885200;
+  --chart-1: #885200;
   --chart-2: #bcc7dd;
   --chart-3: #a3a9b9;
   --chart-4: #d8c3b0;
   --chart-5: #ffb4ab;
   --sidebar: #32302b;
   --sidebar-foreground: #f5f0e8;
-  --sidebar-primary: #ffb869;
+  --sidebar-primary: #885200;
   --sidebar-primary-foreground: #2b1700;
   --sidebar-accent: #3a3833;
   --sidebar-accent-foreground: #f5f0e8;

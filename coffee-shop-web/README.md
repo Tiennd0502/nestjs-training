@@ -25,7 +25,7 @@ coffee-shop-web/
 │   │   ├── features/           # By domain
 │   │   └── shared/             # Header, footer, … (when present)
 │   ├── hooks/
-│   ├── lib/
+│   ├── utils/
 │   ├── services/               # Server Actions, API client
 │   ├── store/
 │   ├── types/
