@@ -1,14 +1,14 @@
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 
-/**
- * Stub: extend later with auth checks and redirect unauthorized users
- * away from /dashboard (see project rules).
- */
-export function middleware(request: NextRequest) {
-  void request
-  return NextResponse.next()
-}
+const isProtectedRoute = createRouteMatcher(['/dashboard(.*)'])
+
+export default clerkMiddleware(async (auth, request) => {
+  if (!isProtectedRoute(request)) {
+    return
+  }
+
+  await auth.protect()
+})
 
 export const config = {
   matcher: ['/dashboard/:path*'],
