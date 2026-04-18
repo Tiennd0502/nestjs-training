@@ -34,7 +34,8 @@ describe('Input', () => {
     render(<Input aria-label="f" />)
     const input = screen.getByLabelText('f')
     expect(input).toHaveClass('rounded-xs')
-    expect(input).toHaveClass('border-0')
+    expect(input).toHaveClass('border')
+    expect(input).toHaveClass('border-outline-variant/70')
     expect(input).toHaveClass('bg-surface-container-high')
     expect(input).toHaveClass('text-md')
   })
@@ -47,5 +48,13 @@ describe('Input', () => {
   it('includes focus-visible ring utilities', () => {
     render(<Input aria-label="r" />)
     expect(screen.getByLabelText('r')).toHaveClass('focus-visible:ring-ring/50')
+    expect(screen.getByLabelText('r')).toHaveClass('focus-visible:border-ring')
+  })
+
+  it('includes destructive border utilities for invalid state', () => {
+    render(<Input aria-label="err" aria-invalid />)
+    expect(screen.getByLabelText('err')).toHaveClass(
+      'aria-invalid:border-destructive',
+    )
   })
 })

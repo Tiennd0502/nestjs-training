@@ -15,12 +15,14 @@ type SeparatorPrimitiveProps = React.ComponentPropsWithoutRef<
 export type SeparatorProps = SeparatorPrimitiveProps & {
   /** Center label on the line; blank after trim → standard separator. Vertical uses rotated text. */
   text?: string
+  textClassName?: string
 }
 
 export const Separator = ({
   className,
   orientation = 'horizontal',
   text = '',
+  textClassName,
   ...props
 }: SeparatorProps) => {
   const isHorizontal = orientation === 'horizontal'
@@ -51,6 +53,7 @@ export const Separator = ({
           className={cn(
             'pointer-events-none absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 bg-background px-3 text-center text-xs font-medium uppercase tracking-wide text-muted-foreground',
             !isHorizontal && 'origin-center -rotate-90 whitespace-nowrap',
+            textClassName,
           )}
         >
           {text}
