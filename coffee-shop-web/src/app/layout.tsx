@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Noto_Serif, Plus_Jakarta_Sans } from 'next/font/google'
 import { ClerkProvider } from '@clerk/nextjs'
 
+import { Toaster } from '@/components/ui/sonner'
 import { ROUTES } from '@/constants/routes'
 import { ThemeProvider } from '@/theme/ThemeProvider'
 
@@ -32,10 +33,14 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
+        suppressHydrationWarning
         className={`${fontBody.variable} ${fontHeading.variable} antialiased`}
       >
         <ClerkProvider signInUrl={ROUTES.SIGN_IN} signUpUrl={ROUTES.SIGN_UP}>
-          <ThemeProvider>{children}</ThemeProvider>
+          <ThemeProvider>
+            {children}
+            <Toaster />
+          </ThemeProvider>
         </ClerkProvider>
       </body>
     </html>

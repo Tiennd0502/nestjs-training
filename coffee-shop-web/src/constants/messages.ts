@@ -11,4 +11,9 @@ export const ERROR_MESSAGES = {
   DATE_OF_BIRTH_INVALID: 'Enter a valid date of birth',
   DATE_OF_BIRTH_FUTURE: 'Date of birth cannot be in the future',
   DATE_OF_BIRTH_UNDER_MINIMUM_AGE: 'You must be at least 18 years old',
+  SIGN_OUT_FAILED: 'Logout failed. Something went wrong.',
 } as const
+
+export const SUCCESS_MESSAGES = {
+  SIGNED_OUT: 'Signed out successfully',
+}

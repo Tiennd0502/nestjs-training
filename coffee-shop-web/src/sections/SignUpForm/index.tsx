@@ -319,7 +319,7 @@ const SignUpForm = () => {
                 aria-label="Verify your account"
                 className="flex min-h-[520px] items-center bg-surface px-6 py-10 md:px-10 lg:px-16"
               >
-                <Clerk.Loading>
+                <Clerk.Loading scope="submit">
                   {(isSubmitting) => {
                     const isLoading = isGlobalLoading || isSubmitting
 
@@ -349,12 +349,11 @@ const SignUpForm = () => {
                             <SignUp.Action submit asChild disabled={isLoading}>
                               <Button
                                 type="submit"
+                                disabled={isLoading}
                                 className="h-12 w-full rounded-full text-base shadow-lg shadow-primary/20"
                               >
                                 Verify email
-                                {isSubmitting && (
-                                  <Spinner decorative size="md" />
-                                )}
+                                {isLoading && <Spinner decorative size="md" />}
                               </Button>
                             </SignUp.Action>
                             <SignUp.Action
@@ -387,12 +386,11 @@ const SignUpForm = () => {
                             <SignUp.Action submit asChild disabled={isLoading}>
                               <Button
                                 type="submit"
+                                disabled={isLoading}
                                 className="h-12 w-full rounded-full text-base shadow-lg shadow-primary/20"
                               >
                                 Verify phone
-                                {isSubmitting && (
-                                  <Spinner decorative size="md" />
-                                )}
+                                {isLoading && <Spinner decorative size="md" />}
                               </Button>
                             </SignUp.Action>
                           </div>
