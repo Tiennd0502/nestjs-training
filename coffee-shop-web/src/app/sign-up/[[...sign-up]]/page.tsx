@@ -1,10 +1,9 @@
-import { SignUp } from '@clerk/nextjs'
-import { dark } from '@clerk/themes'
+import SignUpForm from '@/sections/SignUpForm'
 
 export default function SignUpPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-6">
-      <SignUp appearance={{ baseTheme: dark }} />
+      <SignUpForm />
     </div>
   )
 }

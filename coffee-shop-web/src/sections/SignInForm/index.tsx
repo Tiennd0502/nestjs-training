@@ -92,7 +92,7 @@ const SignInForm = () => {
               </div>
               <Clerk.Loading>
                 {(isSubmitting) => {
-                  const isBusy = isGlobalLoading || isSubmitting
+                  const isLoading = isGlobalLoading || isSubmitting
 
                   return (
                     <div className="flex bg-surface px-6 py-8 md:items-center md:px-10 md:py-10 lg:px-16 lg:py-12">
@@ -114,7 +114,7 @@ const SignInForm = () => {
                             placeholder="example@gmail.com"
                             type="email"
                             icon={<Mail className="size-4" aria-hidden />}
-                            disabled={isBusy}
+                            disabled={isLoading}
                             clientError={clientErrors.identifier}
                             onChange={() =>
                               setClientErrors((prev) => ({
@@ -131,7 +131,7 @@ const SignInForm = () => {
                               </span>
                               <SignIn.Action
                                 navigate="forgot-password"
-                                disabled={isBusy}
+                                disabled={isLoading}
                                 className="cursor-pointer text-xs font-semibold text-primary transition-colors hover:text-primary-container disabled:pointer-events-none disabled:opacity-50"
                               >
                                 Forgot Password?
@@ -144,7 +144,7 @@ const SignInForm = () => {
                               placeholder="Enter your password"
                               type="password"
                               icon={<Lock className="size-4" aria-hidden />}
-                              disabled={isBusy}
+                              disabled={isLoading}
                               clientError={clientErrors.password}
                               onChange={() =>
                                 setClientErrors((prev) => ({
@@ -157,14 +157,14 @@ const SignInForm = () => {
 
                           <Checkbox
                             defaultChecked
-                            disabled={isBusy}
+                            disabled={isLoading}
                             label="Keep me signed in"
                             wrapperClassName="gap-3 px-1"
                             className="size-5 border data-unchecked:border-outline-variant data-unchecked:bg-surface-container-low"
                             labelClassName="text-sm font-medium text-on-surface-variant"
                           />
 
-                          <SignIn.Action submit asChild disabled={isBusy}>
+                          <SignIn.Action submit asChild disabled={isLoading}>
                             <Button
                               type="submit"
                               className="h-14 rounded-full text-base shadow-lg shadow-primary/20 transition-transform duration-300 hover:scale-[1.02] active:scale-[0.98]"
@@ -181,7 +181,7 @@ const SignInForm = () => {
                           className="[&>span]:bg-surface [&>span]:px-4 [&>span]:text-[0.7rem] [&>span]:font-semibold [&>span]:tracking-[0.2em] **:data-[slot=separator]:bg-outline-variant/30"
                         />
 
-                        <SocialButtons disabled={isBusy} />
+                        <SocialButtons disabled={isLoading} />
 
                         <p className="pt-2 text-center text-base font-medium text-on-surface-variant">
                           New to CoffeeHub?{' '}

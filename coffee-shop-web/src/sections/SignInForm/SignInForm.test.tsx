@@ -3,7 +3,7 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import Link from 'next/link'
 
-import { SIGN_IN_CREDENTIALS_VALIDATION_MESSAGES } from '@/constants/messages'
+import { ERROR_MESSAGES } from '@/constants/messages'
 
 import SignInForm from '@/sections/SignInForm'
 import { useCleanClerkUrl } from '@/hooks/useCleanClerkUrl'
@@ -247,14 +247,10 @@ describe('SignInForm', () => {
     await user.click(screen.getByRole('button', { name: 'Sign In' }))
 
     expect(
-      screen.getByText(
-        SIGN_IN_CREDENTIALS_VALIDATION_MESSAGES.IDENTIFIER_REQUIRED,
-      ),
+      screen.getByText(ERROR_MESSAGES.IDENTIFIER_REQUIRED),
     ).toBeInTheDocument()
     expect(
-      screen.getByText(
-        SIGN_IN_CREDENTIALS_VALIDATION_MESSAGES.PASSWORD_REQUIRED,
-      ),
+      screen.getByText(ERROR_MESSAGES.PASSWORD_REQUIRED),
     ).toBeInTheDocument()
   })
 
@@ -274,9 +270,7 @@ describe('SignInForm', () => {
     await user.click(screen.getByRole('button', { name: 'Sign In' }))
 
     expect(
-      screen.getByText(
-        SIGN_IN_CREDENTIALS_VALIDATION_MESSAGES.IDENTIFIER_EMAIL_INVALID,
-      ),
+      screen.getByText(ERROR_MESSAGES.IDENTIFIER_EMAIL_INVALID),
     ).toBeInTheDocument()
   })
 })

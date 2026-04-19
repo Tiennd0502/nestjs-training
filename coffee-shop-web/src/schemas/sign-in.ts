@@ -2,15 +2,7 @@ import { z } from 'zod'
 
 import { ERROR_MESSAGES } from '@/constants/messages'
 
-const formDataEntryToString = (value: FormDataEntryValue | null): string => {
-  if (value === null) {
-    return ''
-  }
-  if (typeof value === 'string') {
-    return value
-  }
-  return ''
-}
+import { formDataEntryToString } from '@/utils/validation/form-data'
 
 export const signInCredentialsSchema = z.object({
   identifier: z
