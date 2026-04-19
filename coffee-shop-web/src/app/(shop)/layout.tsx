@@ -1,4 +1,5 @@
 import Header from '@/layouts/Header/ShopHeader'
+import Footer from '@/layouts/Footer'
 
 export default function ShopLayout({
   children,
@@ -8,7 +9,8 @@ export default function ShopLayout({
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
-      <main className="flex-1 p-6">{children}</main>
+      <main className="flex-1 w-full min-w-0">{children}</main>
+      <Footer />
     </div>
   )
 }
