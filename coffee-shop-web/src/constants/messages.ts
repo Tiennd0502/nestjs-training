@@ -12,6 +12,8 @@ export const ERROR_MESSAGES = {
   DATE_OF_BIRTH_FUTURE: 'Date of birth cannot be in the future',
   DATE_OF_BIRTH_UNDER_MINIMUM_AGE: 'You must be at least 18 years old',
   SIGN_OUT_FAILED: 'Logout failed. Something went wrong.',
+  UNEXPECTED_PROFILE_RESPONSE: 'Unexpected profile response',
+  NETWORK_ERROR: 'Network error',
 } as const
 
 export const SUCCESS_MESSAGES = {

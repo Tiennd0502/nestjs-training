@@ -29,8 +29,7 @@ export async function POST(req: NextRequest) {
     }
 
     return Response.json({ received: true })
-  } catch (err) {
-    console.error('[clerk webhook]', err)
-    return new Response('Webhook error', { status: 400 })
+  } catch {
+    return Response.json({ received: false }, { status: 400 })
   }
 }
