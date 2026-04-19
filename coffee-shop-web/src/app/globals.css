@@ -256,6 +256,14 @@
   --surface-tint: #ffb869;
 }
 
+/* Sonner reads these custom properties on the toaster host (see sonner docs). */
+[data-sonner-toaster] {
+  --normal-bg: var(--popover);
+  --normal-text: var(--popover-foreground);
+  --normal-border: var(--border);
+  --border-radius: var(--radius);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
