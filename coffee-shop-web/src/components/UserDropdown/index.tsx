@@ -32,9 +32,15 @@ import { User } from 'lucide-react'
 
 interface UserDropdownProps {
   onChange?: () => void
+  forceDropdown?: boolean
+  showChevron?: boolean
 }
 
-export const UserDropdown = ({ onChange }: UserDropdownProps) => {
+export const UserDropdown = ({
+  onChange,
+  forceDropdown = false,
+  showChevron = true,
+}: UserDropdownProps) => {
   const router = useRouter()
   const pathname = usePathname()
 
@@ -77,69 +83,78 @@ export const UserDropdown = ({ onChange }: UserDropdownProps) => {
       })
   }
 
-  return (
-    <>
-      <div className="hidden md:block">
-        <DropdownMenu>
-          <DropdownMenuTrigger className="cursor-pointer">
-            <div
-              data-testid="btn-dropdown"
-              className="flex items-center gap-3.5 w-fit"
-            >
-              <Avatar
-                src={imageUrl || ''}
-                name={displayName}
-                size="default"
-                isActive
-              />
-              <ChevronIcon direction={DIRECTION.DOWN} />
-            </div>
-          </DropdownMenuTrigger>
+  const accountDropdown = (
+    <DropdownMenu>
+      <DropdownMenuTrigger className="cursor-pointer">
+        <div
+          data-testid="btn-dropdown"
+          className="flex w-fit items-center gap-3.5"
+        >
+          <Avatar
+            src={imageUrl || ''}
+            name={displayName}
+            size="default"
+            isActive
+          />
+          {showChevron ? <ChevronIcon direction={DIRECTION.DOWN} /> : null}
+        </div>
+      </DropdownMenuTrigger>
 
-          <DropdownMenuContent
-            sideOffset={0}
-            className="w-fit mt-2 p-0 rounded-sm shadow-lg"
-          >
-            {USER_DROPDOWNS.map(
-              ({ text, href, isSignOut = false, Icon = User }, index) => (
-                <DropdownMenuItem
-                  data-testid="dropdown-menu-item"
-                  key={index}
-                  className={cn(
-                    'flex flex-row justify-star items-center px-5 py-2.5 hover:rounded-none font-primary cursor-pointer',
-                    index < USER_DROPDOWNS_LENGTH - 1 &&
-                      'border-b rounded-none',
-                  )}
-                  onClick={() => handleClick(href, isSignOut)}
-                >
-                  <Icon />
-                  {text}
-                </DropdownMenuItem>
-              ),
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-      <div className="md:hidden">
-        <div className="flex flex-col items-start gap-2">
-          {USER_DROPDOWNS.map(({ text, href, isSignOut = false }, index) => (
-            <Button
-              data-testid="menu-item"
-              variant="ghost"
+      <DropdownMenuContent
+        sideOffset={0}
+        className="mt-2 w-fit rounded-sm p-0 shadow-lg"
+      >
+        {USER_DROPDOWNS.map(
+          ({ text, href, isSignOut = false, Icon = User }, index) => (
+            <DropdownMenuItem
+              data-testid="dropdown-menu-item"
               key={index}
               className={cn(
-                'items-start justify-start px-5 py-2 h-fit w-full font-bold text-current hover:no-underline hover:text-primary',
-                isUserProfile &&
-                  href === ROUTES.USER_PROFILE &&
-                  'text-primary bg-accent',
+                'font-primary flex cursor-pointer flex-row items-center justify-star px-5 py-2.5 hover:rounded-none !hover:text-primary',
+                index < USER_DROPDOWNS_LENGTH - 1 && 'rounded-none border-b',
               )}
               onClick={() => handleClick(href, isSignOut)}
             >
+              <Icon />
               {text}
-            </Button>
-          ))}
-        </div>
-      </div>
+            </DropdownMenuItem>
+          ),
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+
+  return (
+    <>
+      {forceDropdown ? (
+        accountDropdown
+      ) : (
+        <>
+          <div className="hidden md:block">{accountDropdown}</div>
+          <div className="md:hidden">
+            <div className="flex flex-col items-start gap-2">
+              {USER_DROPDOWNS.map(
+                ({ text, href, isSignOut = false }, index) => (
+                  <Button
+                    data-testid="menu-item"
+                    variant="ghost"
+                    key={index}
+                    className={cn(
+                      'h-fit w-full items-start justify-start px-5 py-2 font-bold text-current hover:text-primary hover:no-underline',
+                      isUserProfile &&
+                        href === ROUTES.USER_PROFILE &&
+                        'bg-accent text-primary',
+                    )}
+                    onClick={() => handleClick(href, isSignOut)}
+                  >
+                    {text}
+                  </Button>
+                ),
+              )}
+            </div>
+          </div>
+        </>
+      )}
       <AlertDialog
         data-testid="modal-confirm"
         open={isOpen}

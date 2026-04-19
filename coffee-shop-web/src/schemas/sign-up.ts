@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 import { ERROR_MESSAGES } from '@/constants/messages'
-import { formDataEntryToString } from '@/utils/validation/form-data'
+import { formDataEntryToString } from '@/utils/validation'
 
 const toIsoLocalDate = (date: Date): string => {
   const y = date.getFullYear()

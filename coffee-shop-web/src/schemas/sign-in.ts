@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 import { ERROR_MESSAGES } from '@/constants/messages'
 
-import { formDataEntryToString } from '@/utils/validation/form-data'
+import { formDataEntryToString } from '@/utils/validation'
 
 export const signInCredentialsSchema = z.object({
   identifier: z

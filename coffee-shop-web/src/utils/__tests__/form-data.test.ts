@@ -1,4 +1,4 @@
-import { formDataEntryToString } from '@/utils/validation/form-data'
+import { formDataEntryToString } from '@/utils/validation'
 
 describe('formDataEntryToString', () => {
   it('returns empty string for null', () => {

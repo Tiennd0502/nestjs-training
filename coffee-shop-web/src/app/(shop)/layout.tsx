@@ -1,4 +1,4 @@
-import { ThemeToggle } from '@/components/ThemeToggle'
+import Header from '@/layouts/Header/ShopHeader'
 
 export default function ShopLayout({
   children,
@@ -7,9 +7,7 @@ export default function ShopLayout({
 }) {
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="flex items-center justify-end border-b border-border px-6 py-3">
-        <ThemeToggle />
-      </header>
+      <Header />
       <main className="flex-1 p-6">{children}</main>
     </div>
   )
