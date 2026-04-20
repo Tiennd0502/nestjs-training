@@ -22,7 +22,7 @@ export default function DashboardLayout({
         >
           <Sidebar />
         </ContainerSidebar>
-        <SidebarInset className="bg-muted min-h-svh">
+        <SidebarInset className="bg-muted min-h-svh w-full h-full relative">
           <HeaderDashboard />
           <div className="flex-1 p-6">{children}</div>
         </SidebarInset>

@@ -10,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { cn } from '@/utils/styles'
 
 export interface SelectProps extends Omit<
   React.ComponentProps<typeof SelectRoot>,
@@ -18,12 +19,14 @@ export interface SelectProps extends Omit<
   label?: React.ReactNode
   placeholder?: string
   options: string[]
+  classNameTrigger?: string
 }
 
 export const Select = ({
   label,
   placeholder = '',
   options,
+  classNameTrigger = '',
   ...rootProps
 }: SelectProps) => {
   const controlId = React.useId()
@@ -34,7 +37,7 @@ export const Select = ({
       <SelectRoot {...rootProps}>
         <SelectTrigger
           id={controlId}
-          className="w-full"
+          className={cn('w-full', classNameTrigger)}
           disabled={rootProps.disabled}
         >
           <SelectValue placeholder={placeholder} />

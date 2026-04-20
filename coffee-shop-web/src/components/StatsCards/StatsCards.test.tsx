@@ -1,7 +1,7 @@
 import { Mail, UserPlus } from 'lucide-react'
 import { render, screen } from '@testing-library/react'
 
-import { StatsCards } from '@/components/common/StatsCards'
+import { StatsCards } from '@/components/StatsCards'
 
 describe('StatsCards', () => {
   it('renders nothing for empty items', () => {

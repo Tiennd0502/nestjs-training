@@ -1,5 +1,6 @@
 import {
   User,
+  Users,
   LogOut,
   LayoutDashboard,
   Coffee,
@@ -38,7 +39,7 @@ export const MENU: MenuItem[] = [
 export const DASHBOARD_MENU = [
   {
     label: 'Dashboard',
-    href: '/dashboard',
+    href: ROUTES.DASHBOARD,
     icon: LayoutDashboard,
     match: 'exact',
   },
@@ -58,6 +59,12 @@ export const DASHBOARD_MENU = [
     label: 'Orders',
     href: '/dashboard/orders',
     icon: FileText,
+    match: 'prefix',
+  },
+  {
+    label: 'Users',
+    href: ROUTES.DASHBOARD_USERS,
+    icon: Users,
     match: 'prefix',
   },
   {

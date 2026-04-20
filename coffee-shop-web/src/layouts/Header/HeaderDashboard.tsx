@@ -19,7 +19,7 @@ const HeaderDashboard = ({ className }: HeaderDashboardProps) => {
   return (
     <header
       className={cn(
-        'flex-1 max-h-fit items-center justify-center gap-3 rounded-none border-b px-5 py-6 shadow-xl shadow-on-surface/5 my-auto',
+        'flex-1 max-h-fit items-center bg-background justify-center gap-3 rounded-none border-b px-5 py-6 shadow-xl shadow-on-surface/5 my-auto sticky top-0 z-40',
         className,
       )}
     >
