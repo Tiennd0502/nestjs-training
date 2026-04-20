@@ -31,6 +31,7 @@ import { ROUTES } from '@/constants/routes'
 import { User } from 'lucide-react'
 
 interface UserDropdownProps {
+  isAdmin?: boolean
   onChange?: () => void
   forceDropdown?: boolean
   showChevron?: boolean
@@ -38,6 +39,7 @@ interface UserDropdownProps {
 }
 
 export const UserDropdown = ({
+  isAdmin = false,
   onChange,
   forceDropdown = false,
   showChevron = true,
@@ -117,7 +119,7 @@ export const UserDropdown = ({
         sideOffset={0}
         className="mt-2 w-fit rounded-sm p-0 shadow-lg"
       >
-        {USER_DROPDOWNS.map(
+        {USER_DROPDOWNS(isAdmin, isDashboard).map(
           ({ text, href, isSignOut = false, Icon = User }, index) => (
             <DropdownMenuItem
               data-testid="dropdown-menu-item"

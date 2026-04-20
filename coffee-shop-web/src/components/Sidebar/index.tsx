@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
@@ -14,6 +15,7 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
 import { DASHBOARD_MENU } from '@/constants/nav'
+import { ROUTES } from '@/constants/routes'
 import { cn } from '@/utils/styles'
 
 import { Button } from '../ui/button'
@@ -23,13 +25,28 @@ const Sidebar = () => {
 
   return (
     <>
-      <SidebarHeader className="gap-1 px-4 py-6">
-        <p className="font-headline text-xl leading-tight text-sidebar-foreground">
-          CoffeeHub Dashboard
-        </p>
-        <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-dashboard-subtitle">
-          The Editorial Chemist
-        </p>
+      <SidebarHeader className="min-w-0 px-4 py-6 group-data-[collapsible=icon]:px-2 group-data-[collapsible=icon]:py-4">
+        <Link
+          href={ROUTES.DASHBOARD}
+          className="flex min-w-0 items-center gap-3 rounded-md outline-none ring-sidebar-ring transition-opacity hover:opacity-90 focus-visible:ring-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0"
+        >
+          <Image
+            src="/images/logo.png"
+            alt="CoffeeHub"
+            width={36}
+            height={36}
+            className="size-9 shrink-0 object-contain group-data-[collapsible=icon]:size-8"
+            priority
+          />
+          <div className="flex min-w-0 flex-1 flex-col gap-1 group-data-[collapsible=icon]:hidden">
+            <p className="wrap-break-word font-headline text-xl leading-tight text-sidebar-foreground">
+              CoffeeHub Dashboard
+            </p>
+            <p className="wrap-break-word text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-dashboard-subtitle">
+              The Editorial Chemist
+            </p>
+          </div>
+        </Link>
       </SidebarHeader>
       <SidebarContent className="px-2 py-4">
         <SidebarGroup>
@@ -50,19 +67,21 @@ const Sidebar = () => {
                         isActive={isActive}
                         render={
                           <Link
+                            className="h-12 w-full rounded-full px-4"
                             href={item.href}
                             aria-current={isActive ? 'page' : undefined}
                           />
                         }
                         tooltip={item.label}
                         className={cn(
-                          'h-12 gap-3 rounded-full px-3 transition-colors',
+                          'w-full rounded-full px-4 transition-colors',
+                          'group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:p-4! group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center',
                           'data-active:bg-sidebar-primary data-active:text-sidebar-primary-foreground data-active:hover:bg-sidebar-primary data-active:hover:text-sidebar-primary-foreground',
                           'text-sidebar-foreground/80 hover:text-sidebar-foreground',
                         )}
                         size="lg"
                       >
-                        <Icon aria-hidden className="size-4 shrink-0" />
+                        <Icon aria-hidden className="size-6 shrink-0" />
                         <span>{item.label}</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -73,7 +92,7 @@ const Sidebar = () => {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="p-3">
+      <SidebarFooter className="min-w-0 p-3 group-data-[collapsible=icon]:hidden">
         <div className="rounded-xl bg-sidebar-accent/80 p-4 text-sidebar-foreground">
           <p className="font-semibold text-sidebar-foreground">
             Inventory Alert

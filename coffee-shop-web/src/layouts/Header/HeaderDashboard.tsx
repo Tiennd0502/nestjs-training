@@ -10,6 +10,7 @@ import { UserDropdown } from '@/components/UserDropdown'
 // Utils
 import { cn } from '@/utils/styles'
 import { ROUTES } from '@/constants/routes'
+import { SidebarTrigger } from '@/components/ui/sidebar'
 
 export interface HeaderDashboardProps {
   className?: string
@@ -23,11 +24,14 @@ const HeaderDashboard = ({ className }: HeaderDashboardProps) => {
         className,
       )}
     >
-      <div className="flex justify-between gap-6 sm:gap-2 md:gap-3">
-        <SearchInput
-          aria-label="Search products"
-          containerClassName="h-9 min-w-[250px] w-auto"
-        />
+      <div className="flex justify-between items-center gap-6 sm:gap-2 md:gap-3">
+        <div className="flex items-center gap-6">
+          <SidebarTrigger className="size-6 inline-block" />
+          <SearchInput
+            aria-label="Search products"
+            containerClassName="h-9 min-w-[250px] w-auto"
+          />
+        </div>
         <div className="flex items-end justify-end gap-10">
           <ThemeToggle className="h-8 w-8" />
           <SignedIn>

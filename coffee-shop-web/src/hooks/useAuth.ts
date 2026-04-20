@@ -4,8 +4,7 @@ import { useAuth as useClerkAuth } from '@clerk/nextjs'
 import { useCallback, useEffect } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 
-import type { ClerkUser } from '@/types/user'
-import { fetchAuthUser } from '@/services/user'
+import { fetchUser } from '@/services/user'
 import { useUserStore } from '@/store/useUserStore'
 import { CLERK_SESSION_TEMPLATE } from '@/constants/common'
 
@@ -28,12 +27,12 @@ export const useAuth = () => {
   const load = useCallback(async () => {
     setLoading(true)
     setError(null)
-    const result = await fetchAuthUser(() =>
+    const result = await fetchUser(() =>
       getToken({ template: CLERK_SESSION_TEMPLATE }),
     )
 
     if (result.ok) {
-      setUser(result?.user as ClerkUser)
+      setUser(result?.user)
     } else {
       setUser(null)
       setError(result.error)

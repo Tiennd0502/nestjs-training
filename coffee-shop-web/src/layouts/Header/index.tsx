@@ -11,6 +11,7 @@ import { ROUTES } from '@/constants/routes'
 
 // Types
 import { type MenuItem } from '@/types/menu'
+import { USER_ROLES } from '@/types/user'
 
 // Components
 import { Menu } from '@/components/Menu'
@@ -25,6 +26,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 
+// Hooks
+import { useAuth } from '@/hooks/useAuth'
+
 // Utils
 import { cn } from '@/utils/styles'
 
@@ -35,6 +39,7 @@ export interface ShopHeaderProps {
 
 const Header = ({ className, menu = MENU }: ShopHeaderProps) => {
   const router = useRouter()
+  const { user } = useAuth()
 
   return (
     <header
@@ -98,7 +103,11 @@ const Header = ({ className, menu = MENU }: ShopHeaderProps) => {
 
           <SignedIn>
             <div className="shrink-0">
-              <UserDropdown forceDropdown showChevron={false} />
+              <UserDropdown
+                isAdmin={user?.role === USER_ROLES.ADMIN}
+                forceDropdown
+                showChevron={false}
+              />
             </div>
           </SignedIn>
 

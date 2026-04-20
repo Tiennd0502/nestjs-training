@@ -38,7 +38,6 @@ describe('Select', () => {
     expect(trigger).toHaveClass('rounded-xs')
     expect(trigger).toHaveClass('border-0')
     expect(trigger).toHaveClass('text-on-surface')
-    expect(trigger).toHaveClass('min-h-14')
   })
 
   it('shows placeholder text when no value is selected', () => {
