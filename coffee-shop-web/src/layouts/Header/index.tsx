@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { SignedIn, SignedOut } from '@clerk/nextjs'
-import { Menu as MenuIcon, ShoppingCart, CircleUser } from 'lucide-react'
+import { Menu as MenuIcon, ShoppingCart } from 'lucide-react'
 
 // Constants
 import { MENU } from '@/constants/nav'
@@ -77,16 +77,23 @@ const Header = ({ className, menu = MENU }: ShopHeaderProps) => {
           </Link>
 
           <SignedOut>
-            <Link
-              href={ROUTES.SIGN_IN}
-              className={cn(
-                buttonVariants({ variant: 'ghost', size: 'icon' }),
-                'shrink-0 text-primary',
-              )}
-              aria-label="Sign in"
-            >
-              <CircleUser className="size-6" aria-hidden />
-            </Link>
+            <div className="flex shrink-0 items-center gap-2 text-sm">
+              <Link
+                href={ROUTES.SIGN_IN}
+                className="font-medium text-primary underline-offset-4 hover:underline"
+              >
+                Sign in
+              </Link>
+              <span className="text-muted-foreground" aria-hidden>
+                /
+              </span>
+              <Link
+                href={ROUTES.SIGN_UP}
+                className="font-medium text-primary underline-offset-4 hover:underline"
+              >
+                Sign up
+              </Link>
+            </div>
           </SignedOut>
 
           <SignedIn>

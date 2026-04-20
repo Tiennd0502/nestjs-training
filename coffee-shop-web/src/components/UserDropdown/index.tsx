@@ -34,12 +34,14 @@ interface UserDropdownProps {
   onChange?: () => void
   forceDropdown?: boolean
   showChevron?: boolean
+  isDashboard?: boolean
 }
 
 export const UserDropdown = ({
   onChange,
   forceDropdown = false,
   showChevron = true,
+  isDashboard = false,
 }: UserDropdownProps) => {
   const router = useRouter()
   const pathname = usePathname()
@@ -51,8 +53,17 @@ export const UserDropdown = ({
   const [isOpen, setIsOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
-  const { imageUrl = '', firstName = '', lastName = '' } = user ?? {}
-  const displayName = `${firstName?.trim().charAt(0) ?? ''}${lastName?.trim().charAt(0) ?? ''}`
+  const {
+    imageUrl = '',
+    firstName = '',
+    lastName = '',
+    fullName = '',
+    emailAddresses = [],
+  } = user ?? {}
+  const email = emailAddresses[0]?.emailAddress ?? ''
+  const displayName = isDashboard
+    ? fullName
+    : `${firstName?.trim().charAt(0) ?? ''}${lastName?.trim().charAt(0) ?? ''}`
 
   const handleToggleModal = (nextOpen?: boolean) => {
     setIsOpen(Boolean(nextOpen))
@@ -91,8 +102,10 @@ export const UserDropdown = ({
           className="flex w-fit items-center gap-3.5"
         >
           <Avatar
+            email={email}
+            isDashboard={isDashboard}
             src={imageUrl || ''}
-            name={displayName}
+            name={displayName ?? ''}
             size="default"
             isActive
           />

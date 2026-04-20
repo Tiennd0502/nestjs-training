@@ -56,7 +56,7 @@ const SignUpForm = () => {
   )
 
   return (
-    <div className="mx-auto w-full max-w-[1440px] h-full overflow-hidden rounded-3xl text-sm shadow-xl shadow-on-surface/5">
+    <>
       <SignUp.Root
         fallback={
           <div className="flex justify-center py-20">
@@ -70,7 +70,7 @@ const SignUpForm = () => {
       >
         <Clerk.Loading>
           {(isGlobalLoading) => (
-            <>
+            <div className="mx-auto w-full max-w-[1440px] h-full overflow-hidden rounded-3xl text-sm shadow-[0_0_15px_5px_rgba(0,0,0,0.1)]">
               <SignUp.Step
                 name="start"
                 aria-label="Create account: your details"
@@ -400,11 +400,11 @@ const SignUpForm = () => {
                   }}
                 </Clerk.Loading>
               </SignUp.Step>
-            </>
+            </div>
           )}
         </Clerk.Loading>
       </SignUp.Root>
-    </div>
+    </>
   )
 }
 
