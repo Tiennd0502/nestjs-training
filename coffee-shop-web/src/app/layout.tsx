@@ -3,6 +3,7 @@ import { Noto_Serif, Plus_Jakarta_Sans } from 'next/font/google'
 import { ClerkProvider } from '@clerk/nextjs'
 
 import { Toaster } from '@/components/ui/sonner'
+import { TooltipProvider } from '@/components/ui/tooltip'
 import { ROUTES } from '@/constants/routes'
 import { ThemeProvider } from '@/theme/ThemeProvider'
 
@@ -38,8 +39,10 @@ export default function RootLayout({
       >
         <ClerkProvider signInUrl={ROUTES.SIGN_IN} signUpUrl={ROUTES.SIGN_UP}>
           <ThemeProvider>
-            {children}
-            <Toaster />
+            <TooltipProvider delay={0}>
+              {children}
+              <Toaster />
+            </TooltipProvider>
           </ThemeProvider>
         </ClerkProvider>
       </body>

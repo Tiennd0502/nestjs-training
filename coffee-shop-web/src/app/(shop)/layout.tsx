@@ -1,4 +1,4 @@
-import Header from '@/layouts/Header/ShopHeader'
+import Header from '@/layouts/Header'
 import Footer from '@/layouts/Footer'
 
 export default function ShopLayout({

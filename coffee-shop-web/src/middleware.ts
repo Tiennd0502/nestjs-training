@@ -1,15 +1,38 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
+import { NextResponse } from 'next/server'
 
-const isProtectedRoute = createRouteMatcher(['/dashboard(.*)'])
+import { ROLES } from '@/constants/user'
+import { ROUTES } from '@/constants/routes'
+import { getSessionPublicRole } from '@/utils/session'
+
+const isDashboardRoute = createRouteMatcher(['/dashboard(.*)'])
+const isProfileRoute = createRouteMatcher([`${ROUTES.USER_PROFILE}(.*)`])
 
 export default clerkMiddleware(async (auth, request) => {
-  if (!isProtectedRoute(request)) {
+  if (isProfileRoute(request)) {
+    await auth.protect()
+    return NextResponse.next()
+  }
+
+  if (!isDashboardRoute(request)) {
     return
   }
 
-  await auth.protect()
+  const { userId, sessionClaims } = await auth()
+
+  if (!userId) {
+    await auth.protect()
+    return
+  }
+
+  const role = getSessionPublicRole(sessionClaims)
+  if (role !== ROLES.ADMIN) {
+    return NextResponse.redirect(new URL(ROUTES.HOME, request.url))
+  }
+
+  return NextResponse.next()
 })
 
 export const config = {
-  matcher: ['/dashboard/:path*'],
+  matcher: ['/dashboard/:path*', '/profile', '/profile/:path*'],
 }

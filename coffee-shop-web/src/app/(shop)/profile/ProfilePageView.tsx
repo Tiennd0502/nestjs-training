@@ -55,6 +55,7 @@ export function ProfilePageView() {
           <div className="flex flex-col items-center gap-12 rounded-xl bg-surface-container-low p-8 md:flex-row md:items-start md:p-12 lg:col-span-8">
             <div className="relative shrink-0">
               <Avatar
+                key={displayName}
                 name={displayName}
                 src={imageSrc}
                 alt={displayName}
@@ -88,16 +89,16 @@ export function ProfilePageView() {
               <p className="mb-2 text-lg text-on-surface-variant">
                 {email.length > 0 ? email : '—'}
               </p>
-              {isAuthLoaded && !isSignedIn ? (
+              {isAuthLoaded && !isSignedIn && (
                 <p className="mb-2 text-sm text-on-surface-variant">
                   Sign in to load your account from the API.
                 </p>
-              ) : null}
-              {error && isSignedIn ? (
+              )}
+              {error && isSignedIn && (
                 <p className="mb-2 text-sm text-destructive" role="alert">
                   {error}
                 </p>
-              ) : null}
+              )}
               <div className="mt-8">
                 <ProfileAccountDialogs />
               </div>

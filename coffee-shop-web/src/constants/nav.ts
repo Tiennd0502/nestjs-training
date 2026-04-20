@@ -1,4 +1,12 @@
-import { User, LogOut } from 'lucide-react'
+import {
+  User,
+  LogOut,
+  LayoutDashboard,
+  Coffee,
+  Heart,
+  FileText,
+  Settings,
+} from 'lucide-react'
 
 import { type MenuItem } from '@/types/menu'
 import { ROUTES } from './routes'
@@ -25,4 +33,37 @@ export const MENU: MenuItem[] = [
   { label: 'Brew Guides', href: '/brew-guides', match: 'prefix' },
   { label: 'Subscriptions', href: '/subscriptions', match: 'prefix' },
   { label: 'Contact', href: '/contact', match: 'prefix' },
+]
+
+export const DASHBOARD_MENU = [
+  {
+    label: 'Dashboard',
+    href: '/dashboard',
+    icon: LayoutDashboard,
+    match: 'exact',
+  },
+  {
+    label: 'Products',
+    href: '/dashboard/products',
+    icon: Coffee,
+    match: 'prefix',
+  },
+  {
+    label: 'Favorites',
+    href: '/dashboard/favorites',
+    icon: Heart,
+    match: 'prefix',
+  },
+  {
+    label: 'Orders',
+    href: '/dashboard/orders',
+    icon: FileText,
+    match: 'prefix',
+  },
+  {
+    label: 'Settings',
+    href: '/dashboard/settings',
+    icon: Settings,
+    match: 'prefix',
+  },
 ]

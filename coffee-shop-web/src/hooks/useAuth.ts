@@ -7,9 +7,11 @@ import { useShallow } from 'zustand/react/shallow'
 import type { ClerkUser } from '@/types/user'
 import { fetchAuthUser } from '@/services/user'
 import { useUserStore } from '@/store/useUserStore'
+import { CLERK_SESSION_TEMPLATE } from '@/constants/common'
 
 export const useAuth = () => {
   const { isLoaded, isSignedIn, getToken } = useClerkAuth()
+
   const [user, setUser, isLoading, error, setLoading, setError, reset] =
     useUserStore(
       useShallow((state) => [
@@ -26,7 +28,10 @@ export const useAuth = () => {
   const load = useCallback(async () => {
     setLoading(true)
     setError(null)
-    const result = await fetchAuthUser(() => getToken())
+    const result = await fetchAuthUser(() =>
+      getToken({ template: CLERK_SESSION_TEMPLATE }),
+    )
+
     if (result.ok) {
       setUser(result?.user as ClerkUser)
     } else {
@@ -40,6 +45,7 @@ export const useAuth = () => {
     if (!isLoaded) return
     if (!isSignedIn) {
       reset()
+      setError(null)
       return
     }
     void load()
