@@ -1,12 +1,12 @@
 import { create } from 'zustand'
 
-import type { ClerkUser } from '@/types/user'
+import type { User } from '@/types/user'
 
 interface AuthState {
-  user: ClerkUser | null
+  user: User | null
   isLoading: boolean
   error: string | null
-  setUser: (user: ClerkUser | null) => void
+  setUser: (user: User | null) => void
   setLoading: (isLoading: boolean) => void
   setError: (error: string | null) => void
   reset: () => void

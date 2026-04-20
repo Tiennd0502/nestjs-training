@@ -15,6 +15,8 @@ export interface User {
   lastName: string | null
   name: string | null
   imageUrl: string | null
+  role?: USER_ROLES
+  status?: USER_STATUS
 }
 
 export interface ClerkUser extends User {

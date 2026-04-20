@@ -1,4 +1,4 @@
-import { formatPrice } from '../common'
+import { formatPrice, getNameInitials } from '../common'
 
 describe('formatPrice', () => {
   it('formats en-US USD with two fraction digits', () => {
@@ -20,5 +20,25 @@ describe('formatPrice', () => {
     expect(formatted).toMatch(/1/)
     expect(formatted).toMatch(/234/)
     expect(formatted).toMatch(/50/)
+  })
+})
+
+describe('getNameInitials', () => {
+  it('returns 2 initials from first and last name', () => {
+    expect(getNameInitials('Ada', 'Lovelace')).toBe('AL')
+  })
+
+  it('returns single initial if only one name exists', () => {
+    expect(getNameInitials('Ada', null)).toBe('A')
+    expect(getNameInitials(undefined, 'Lovelace')).toBe('L')
+  })
+
+  it('returns empty string if both names are missing', () => {
+    expect(getNameInitials(null, undefined)).toBe('')
+    expect(getNameInitials('', '   ')).toBe('')
+  })
+
+  it('trims spaces and uppercases initials', () => {
+    expect(getNameInitials('  ada', 'lovelace  ')).toBe('AL')
   })
 })

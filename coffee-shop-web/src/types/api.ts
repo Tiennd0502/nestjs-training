@@ -4,14 +4,16 @@ export interface QueryParams {
   sort?: string
 }
 
+export interface ResponseMeta {
+  limit: number
+  currentPage: number
+  pageCount: number
+  totalCount: number
+}
+
 export interface Response<T> {
   data: T
   error?: string
   message?: string
-  meta?: {
-    limit: number
-    currentPage: number
-    pageCount: number
-    totalCount: number
-  }
+  meta?: ResponseMeta
 }

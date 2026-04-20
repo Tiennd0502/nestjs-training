@@ -15,4 +15,5 @@ export const API_BASE_URL =
 
 export const API_ROUTES = {
   ME: `${API_BASE_URL}/api/v1/me`,
+  USERS: `${API_BASE_URL}/api/v1/users`,
 }

@@ -7,12 +7,31 @@ import {
   Heart,
   FileText,
   Settings,
+  Home,
 } from 'lucide-react'
 
 import { type MenuItem } from '@/types/menu'
 import { ROUTES } from './routes'
 
-export const USER_DROPDOWNS = [
+export const USER_DROPDOWNS = (isAdmin?: boolean, isDashboard?: boolean) => [
+  ...(isAdmin
+    ? [
+        {
+          text: 'Go to Dashboard',
+          Icon: LayoutDashboard,
+          href: ROUTES.DASHBOARD,
+        },
+      ]
+    : []),
+  ...(isDashboard
+    ? [
+        {
+          text: 'Go to Website',
+          Icon: Home,
+          href: ROUTES.HOME,
+        },
+      ]
+    : []),
   {
     text: 'Profile',
     Icon: User,

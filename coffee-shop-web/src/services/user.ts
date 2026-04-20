@@ -1,11 +1,49 @@
 import type { User } from '@/types/user'
+import { USER_ROLES, USER_STATUS } from '@/types/user'
+import type { Response, ResponseMeta } from '@/types/api'
 
 import { ERROR_MESSAGES } from '@/constants/messages'
 import { API_ROUTES } from '@/constants/routes'
 
+export interface FetchUsersOptions {
+  getToken?: () => Promise<string | null>
+  page?: number
+  limit?: number
+  search?: string
+  role?: string
+}
+
 function readString(value: unknown): string | null {
   if (typeof value === 'string' && value.trim()) return value.trim()
   return null
+}
+
+function getRole(value: unknown): User['role'] {
+  if (typeof value !== 'string') return undefined
+
+  const normalized = value.trim().toUpperCase()
+  if (normalized === USER_ROLES.ADMIN || normalized === 'MANAGER') {
+    return USER_ROLES.ADMIN
+  }
+  if (normalized === USER_ROLES.USER || normalized === 'BARISTA') {
+    return USER_ROLES.USER
+  }
+
+  return undefined
+}
+
+function getStatus(value: unknown): User['status'] {
+  if (typeof value !== 'string') return undefined
+
+  const normalized = value.trim().toUpperCase()
+  if (normalized === USER_STATUS.ACTIVE) {
+    return USER_STATUS.ACTIVE
+  }
+  if (normalized === USER_STATUS.INACTIVE) {
+    return USER_STATUS.INACTIVE
+  }
+
+  return undefined
 }
 
 export function parseAuthUserPayload(body: unknown): User | null {
@@ -40,6 +78,8 @@ export function parseAuthUserPayload(body: unknown): User | null {
     readString(payload.avatarUrl) ??
     readString(payload.avatar_url) ??
     readString(payload.picture)
+  const role = getRole(payload.role)
+  const status = getStatus(payload.status)
 
   return {
     id,
@@ -48,10 +88,12 @@ export function parseAuthUserPayload(body: unknown): User | null {
     lastName,
     name,
     imageUrl,
+    role,
+    status,
   }
 }
 
-export async function fetchAuthUser(
+export async function fetchUser(
   getToken?: () => Promise<string | null>,
 ): Promise<
   { ok: true; user: User } | { ok: false; error: string; status?: number }
@@ -80,6 +122,57 @@ export async function fetchAuthUser(
       }
     }
     return { ok: true, user }
+  } catch (e) {
+    const message =
+      e instanceof Error ? e.message : ERROR_MESSAGES.NETWORK_ERROR
+    return { ok: false, error: message }
+  }
+}
+
+export async function fetchUsers(
+  options: FetchUsersOptions = {},
+): Promise<
+  | { ok: true; users: User[]; meta?: ResponseMeta }
+  | { ok: false; error: string; status?: number }
+> {
+  const { getToken, page, limit, search, role } = options
+  const headers: HeadersInit = { Accept: 'application/json' }
+  const token = getToken ? await getToken() : null
+  if (token) {
+    headers.Authorization = `Bearer ${token}`
+  }
+
+  const url = new URL(API_ROUTES.USERS)
+  if (page !== undefined) {
+    url.searchParams.set('page', String(page))
+  }
+  if (limit !== undefined) {
+    url.searchParams.set('limit', String(limit))
+  }
+  if (search !== undefined && search.trim() !== '') {
+    url.searchParams.set('search', search.trim())
+  }
+  if (role !== undefined && role.trim() !== '') {
+    url.searchParams.set('role', role.trim())
+  }
+
+  try {
+    const res = await fetch(url.toString(), { headers, credentials: 'include' })
+    if (!res.ok) {
+      return {
+        ok: false,
+        error: `Could not load users (${res.status})`,
+        status: res.status,
+      }
+    }
+
+    const { data, meta }: Response<User[]> = await res.json()
+
+    return {
+      ok: true,
+      users: data,
+      meta: meta,
+    }
   } catch (e) {
     const message =
       e instanceof Error ? e.message : ERROR_MESSAGES.NETWORK_ERROR
