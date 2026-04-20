@@ -87,6 +87,7 @@
   --color-inverse-on-surface: var(--inverse-on-surface);
   --color-inverse-primary: var(--inverse-primary);
   --color-surface-tint: var(--surface-tint);
+  --color-pagination-surface: var(--pagination-surface);
 
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
@@ -177,6 +178,7 @@
   --inverse-on-surface: #f5f0e8;
   --inverse-primary: #ffb869;
   --surface-tint: #885200;
+  --pagination-surface: #edeae5;
 }
 
 .dark {
@@ -257,6 +259,7 @@
   --inverse-on-surface: #32302b;
   --inverse-primary: #885200;
   --surface-tint: #ffb869;
+  --pagination-surface: #45433e;
 }
 
 /* Sonner reads these custom properties on the toaster host (see sonner docs). */
