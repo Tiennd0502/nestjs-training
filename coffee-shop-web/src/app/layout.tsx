@@ -5,6 +5,7 @@ import { ClerkProvider } from '@clerk/nextjs'
 import { Toaster } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { ROUTES } from '@/constants/routes'
+import { QueryProvider } from '@/providers/QueryProvider'
 import { ThemeProvider } from '@/theme/ThemeProvider'
 
 import './globals.css'
@@ -38,12 +39,14 @@ export default function RootLayout({
         className={`${fontBody.variable} ${fontHeading.variable} antialiased`}
       >
         <ClerkProvider signInUrl={ROUTES.SIGN_IN} signUpUrl={ROUTES.SIGN_UP}>
-          <ThemeProvider>
-            <TooltipProvider delay={0}>
-              {children}
-              <Toaster />
-            </TooltipProvider>
-          </ThemeProvider>
+          <QueryProvider>
+            <ThemeProvider>
+              <TooltipProvider delay={0}>
+                {children}
+                <Toaster />
+              </TooltipProvider>
+            </ThemeProvider>
+          </QueryProvider>
         </ClerkProvider>
       </body>
     </html>

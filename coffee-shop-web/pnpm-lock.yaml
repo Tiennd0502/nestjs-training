@@ -8,6 +8,7 @@ specifiers:
   '@clerk/themes': ^2.4.57
   '@eslint/eslintrc': ^3
   '@tailwindcss/postcss': ^4
+  '@tanstack/react-query': ^5
   '@testing-library/dom': ^10.4.0
   '@testing-library/jest-dom': ^6.9.1
   '@testing-library/react': ^16.3.2
@@ -48,6 +49,7 @@ dependencies:
   '@clerk/elements': 0.24.13_ve543kbhszcgk6ymv5waczw4fm
   '@clerk/nextjs': 6.30.0_jjxyxfetvr6hdlq7vnho2ixmyu
   '@clerk/themes': 2.4.57_6emmfbwqxtzh24ergceii3tsaa
+  '@tanstack/react-query': 5.99.2_react@19.2.5
   class-variance-authority: 0.7.1
   clsx: 2.1.1
   lucide-react: 1.8.0_react@19.2.5
@@ -2102,6 +2104,19 @@ packages:
       postcss: 8.5.9
       tailwindcss: 4.2.2
     dev: true
+
+  /@tanstack/query-core/5.99.2:
+    resolution: {integrity: sha512-1HunU0bXVsR1ZJMZbcOPE6VtaBJxsW809RE9xPe4Gz7MlB0GWwQvuTPhMoEmQ/hIzFKJ/DWAuttIe7BOaWx0tA==}
+    dev: false
+
+  /@tanstack/react-query/5.99.2_react@19.2.5:
+    resolution: {integrity: sha512-vM91UEe45QUS9ED6OklsVL15i8qKcRqNwpWzPTVWvRPRSEgDudDgHpvyTjcdlwHcrKNa80T+xXYcchT2noPnZA==}
+    peerDependencies:
+      react: ^18 || ^19
+    dependencies:
+      '@tanstack/query-core': 5.99.2
+      react: 19.2.5
+    dev: false
 
   /@testing-library/dom/10.4.1:
     resolution: {integrity: sha512-o4PXJQidqJl82ckFaXUeoAW+XysPLauYI43Abki5hABd853iMhitooc6znOnczgbTYmEP6U6/y1ZyKAIsvMKGg==}

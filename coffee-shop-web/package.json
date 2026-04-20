@@ -30,6 +30,7 @@
     "@clerk/elements": "^0.24.13",
     "@clerk/nextjs": "^6.30.0",
     "@clerk/themes": "^2.4.57",
+    "@tanstack/react-query": "^5",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^1.8.0",
