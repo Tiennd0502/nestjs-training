@@ -2,6 +2,7 @@ export const ROUTES = {
   HOME: '/',
   CART: '/cart',
   DASHBOARD: '/dashboard',
+  DASHBOARD_CATEGORIES: '/dashboard/categories',
   DASHBOARD_USERS: '/dashboard/users',
   DASHBOARD_USERS_ADD: '/dashboard/users/add',
   SIGN_IN: process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL ?? '/sign-in',
@@ -16,4 +17,5 @@ export const API_BASE_URL =
 export const API_ROUTES = {
   ME: `${API_BASE_URL}/api/v1/me`,
   USERS: `${API_BASE_URL}/api/v1/users`,
+  CATEGORIES: `${API_BASE_URL}/api/v1/categories`,
 }

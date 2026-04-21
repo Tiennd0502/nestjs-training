@@ -1,37 +1,31 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { Download, Printer, UserPlus } from 'lucide-react'
+import { Download, Printer, Tag } from 'lucide-react'
 
 // Constants
 import { ROUTES } from '@/constants/routes'
 import { SEARCH_URL_DEBOUNCE_MS } from '@/constants/common'
-import {
-  ROLE_FILTER_OPTIONS,
-  USERS_DASHBOARD_STATS,
-  USERS_TABLE_COLUMNS,
-} from '@/constants/user'
+import { CATEGORIES_TABLE_COLUMNS } from '@/constants/category'
 
 // Hooks
-import { useUsers } from '@/hooks/useUser'
+import { useCategories } from '@/hooks/useCategory'
 import { useUrlState } from '@/hooks/useUrlState'
 
 // Components
 import Breadcrumb from '@/components/Breadcrumb'
 import Table from '@/components/Table'
 import { PaginationBar } from '@/components/Pagination'
-import { Select } from '@/components/Select'
 import { SearchInput } from '@/components/SearchInput'
-import StatsCards from '@/components/StatsCards'
 import { Button } from '@/components/ui/button'
-import { UserTableRow } from '@/sections/UserTableRow'
+import { CategoryTableRow } from '@/sections/CategoryTableRow'
 
 // Utils
-import { userUrlSchema } from '@/utils/url'
+import { urlSchema } from '@/utils/url'
 
 export const PageContent = () => {
-  const { state, update: updateUrl } = useUrlState(userUrlSchema)
-  const { page, search, role, limit } = state
+  const { state, update: updateUrl } = useUrlState(urlSchema)
+  const { page, search, limit } = state
   const searchInputRef = useRef<HTMLInputElement>(null)
   const [searchInput, setSearchInput] = useState(search)
   const updateUrlRef = useRef(updateUrl)
@@ -59,32 +53,21 @@ export const PageContent = () => {
     return () => window.clearTimeout(id)
   }, [searchInput])
 
-  const { users, meta, isLoading, isError, errorMessage, refetch } = useUsers({
+  const { categories, meta, isLoading, isError, errorMessage } = useCategories({
     page,
     limit,
     search: search.trim(),
-    role: role ?? undefined,
   })
 
   const totalPages = Math.max(1, meta?.pageCount ?? 1)
-  const totalCount = meta?.totalCount ?? users.length
-  const showingCount = users.length
+  const totalCount = meta?.totalCount ?? categories.length
+  const showingCount = categories.length
 
   useEffect(() => {
     if (page > totalPages) {
       updateUrl({ page: totalPages })
     }
   }, [page, totalPages, updateUrl])
-
-  const handleRoleChange = (value: unknown) => {
-    if (typeof value !== 'string' || !ROLE_FILTER_OPTIONS.includes(value)) {
-      return
-    }
-    updateUrl({
-      role: value === ROLE_FILTER_OPTIONS[0] ? null : value,
-      page: 1,
-    })
-  }
 
   const handleQueryChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchInput(event.target.value)
@@ -97,15 +80,15 @@ export const PageContent = () => {
           <Breadcrumb
             items={[
               { label: 'Dashboard', href: ROUTES.DASHBOARD },
-              { label: 'Users', href: ROUTES.DASHBOARD_USERS },
+              { label: 'Categories', href: ROUTES.DASHBOARD_CATEGORIES },
             ]}
           />
           <div className="space-y-2">
             <h1 className="text-5xl leading-tight font-bold tracking-tight text-foreground">
-              Manage Users
+              Manage Categories
             </h1>
             <p className="text-lg text-muted-foreground">
-              Oversee your brewing staff and editorial curators.
+              Organize product taxonomy, slugs, and editorial groupings.
             </p>
           </div>
         </div>
@@ -116,13 +99,11 @@ export const PageContent = () => {
             disabled
             className="w-full gap-2 px-8 sm:w-auto"
           >
-            <UserPlus className="size-4" aria-hidden />
-            Invite User
+            <Tag className="size-4" aria-hidden />
+            Add category
           </Button>
         </div>
       </header>
-
-      <StatsCards items={USERS_DASHBOARD_STATS} />
 
       <section className="overflow-hidden rounded-3xl border border-outline-variant/40 bg-card">
         <div className="flex flex-col gap-3 border-b border-outline-variant/30 p-4 md:flex-row lg:items-center lg:justify-between">
@@ -130,25 +111,16 @@ export const PageContent = () => {
             ref={searchInputRef}
             value={searchInput}
             onChange={handleQueryChange}
-            placeholder="Filter by name or email..."
-            aria-label="Filter users by name or email"
+            placeholder="Filter by name or slug..."
+            aria-label="Filter categories by name or slug"
             containerClassName="h-12 bg-surface-container-high w-full md:max-w-md"
           />
           <div className="flex flex-wrap items-center justify-end gap-3">
-            <div className="min-w-40">
-              <Select
-                classNameTrigger="rounded-full capitalize"
-                value={role ?? ROLE_FILTER_OPTIONS[0]}
-                onValueChange={handleRoleChange}
-                options={[...ROLE_FILTER_OPTIONS]}
-                placeholder="All Roles"
-              />
-            </div>
             <Button
               disabled
               variant="outline"
               size="icon"
-              aria-label="Export users list"
+              aria-label="Export categories list"
               className="size-11"
             >
               <Download className="size-4" aria-hidden />
@@ -157,7 +129,7 @@ export const PageContent = () => {
               disabled
               variant="outline"
               size="icon"
-              aria-label="Print users list"
+              aria-label="Print categories list"
               className="size-11"
             >
               <Printer className="size-4" aria-hidden />
@@ -167,26 +139,19 @@ export const PageContent = () => {
 
         {isLoading ? (
           <div className="px-6 py-12 text-center text-muted-foreground">
-            Loading users...
+            Loading categories...
           </div>
         ) : isError ? (
           <div className="flex flex-col items-center gap-4 px-6 py-12 text-center">
             <p className="text-muted-foreground">{errorMessage}</p>
-            <Button
-              className="w-fit px-6"
-              variant="destructive"
-              size="sm"
-              onClick={() => void refetch()}
-            >
-              Retry
-            </Button>
           </div>
         ) : (
           <Table
-            columns={USERS_TABLE_COLUMNS}
-            data={users}
-            getRowKey={(user, index) => user.id ?? `user-${index}`}
-            renderRow={(user) => <UserTableRow user={user} />}
+            columns={CATEGORIES_TABLE_COLUMNS}
+            data={categories}
+            getRowKey={(row, index) => row.id ?? `category-${index}`}
+            renderRow={(row) => <CategoryTableRow category={row} />}
+            emptyMessage="No categories match your filters."
           />
         )}
 
@@ -197,6 +162,7 @@ export const PageContent = () => {
             onPageChange={(next) => updateUrl({ page: next })}
             showingCount={showingCount}
             totalCount={totalCount}
+            entityLabel="categories"
           />
         </footer>
       </section>

@@ -8,6 +8,7 @@ import {
   FileText,
   Settings,
   Home,
+  Tags,
 } from 'lucide-react'
 
 import { type MenuItem } from '@/types/menu'
@@ -61,6 +62,12 @@ export const DASHBOARD_MENU = [
     href: ROUTES.DASHBOARD,
     icon: LayoutDashboard,
     match: 'exact',
+  },
+  {
+    label: 'Categories',
+    href: ROUTES.DASHBOARD_CATEGORIES,
+    icon: Tags,
+    match: 'prefix',
   },
   {
     label: 'Products',
