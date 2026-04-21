@@ -1,31 +1,52 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import Link from 'next/link'
 import { Download, Printer, Tag } from 'lucide-react'
+import { toast } from 'sonner'
 
 // Constants
+import {
+  DIALOG_MESSAGES,
+  ERROR_MESSAGES,
+  SUCCESS_MESSAGES,
+} from '@/constants/messages'
 import { ROUTES } from '@/constants/routes'
 import { SEARCH_URL_DEBOUNCE_MS } from '@/constants/common'
 import { CATEGORIES_TABLE_COLUMNS } from '@/constants/category'
 
 // Hooks
-import { useCategories } from '@/hooks/useCategory'
+import { useCategories, useDeleteCategory } from '@/hooks/useCategory'
 import { useUrlState } from '@/hooks/useUrlState'
 
 // Components
+import AlertDialog from '@/components/AlertDialog'
 import Breadcrumb from '@/components/Breadcrumb'
 import Table from '@/components/Table'
 import { PaginationBar } from '@/components/Pagination'
 import { SearchInput } from '@/components/SearchInput'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { CategoryTableRow } from '@/sections/CategoryTableRow'
 
 // Utils
 import { urlSchema } from '@/utils/url'
+import { cn } from '@/utils/styles'
+
+interface PendingDelete {
+  id: string
+  name: string
+  slug: string
+}
 
 export const PageContent = () => {
   const { state, update: updateUrl } = useUrlState(urlSchema)
   const { page, search, limit } = state
+  const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(null)
+  const [deleteErrorMessage, setDeleteErrorMessage] = useState<string | null>(
+    null,
+  )
+  const { mutate: deleteCategoryMutate, isPending: isDeletePending } =
+    useDeleteCategory()
   const searchInputRef = useRef<HTMLInputElement>(null)
   const [searchInput, setSearchInput] = useState(search)
   const updateUrlRef = useRef(updateUrl)
@@ -75,6 +96,48 @@ export const PageContent = () => {
 
   return (
     <div className="flex flex-col gap-6">
+      <AlertDialog
+        data-testid="modal-confirm-delete-category"
+        open={pendingDelete !== null}
+        isLoading={isDeletePending}
+        errorMessage={deleteErrorMessage}
+        onOpenChange={(open) => {
+          if (!open) {
+            setPendingDelete(null)
+            setDeleteErrorMessage(null)
+          }
+        }}
+        title={DIALOG_MESSAGES.CATEGORY.DELETE.TITLE}
+        description={
+          pendingDelete
+            ? DIALOG_MESSAGES.CATEGORY.DELETE.DESCRIPTION(
+                pendingDelete.name,
+                pendingDelete.slug,
+              )
+            : ''
+        }
+        textAction={DIALOG_MESSAGES.CATEGORY.DELETE.ACTION}
+        onClickAction={() => {
+          const id = pendingDelete?.id
+          if (!id) return
+          setDeleteErrorMessage(null)
+          deleteCategoryMutate(id, {
+            onSuccess: () => {
+              toast.success(SUCCESS_MESSAGES.CATEGORY_DELETED)
+              setPendingDelete(null)
+              setDeleteErrorMessage(null)
+            },
+            onError: (error) => {
+              setDeleteErrorMessage(
+                error instanceof Error
+                  ? error.message
+                  : ERROR_MESSAGES.NETWORK_ERROR,
+              )
+            },
+          })
+        }}
+      />
+
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div className="space-y-3">
           <Breadcrumb
@@ -93,15 +156,16 @@ export const PageContent = () => {
           </div>
         </div>
         <div className="flex w-full justify-end sm:w-auto">
-          <Button
-            variant="default"
-            size="default"
-            disabled
-            className="w-full gap-2 px-8 sm:w-auto"
+          <Link
+            href={ROUTES.DASHBOARD_CATEGORIES_ADD}
+            className={cn(
+              buttonVariants({ variant: 'default', size: 'default' }),
+              'inline-flex w-full gap-2 px-8 sm:w-auto',
+            )}
           >
             <Tag className="size-4" aria-hidden />
             Add category
-          </Button>
+          </Link>
         </div>
       </header>
 
@@ -150,7 +214,19 @@ export const PageContent = () => {
             columns={CATEGORIES_TABLE_COLUMNS}
             data={categories}
             getRowKey={(row, index) => row.id ?? `category-${index}`}
-            renderRow={(row) => <CategoryTableRow category={row} />}
+            renderRow={(row) => (
+              <CategoryTableRow
+                category={row}
+                onRequestDelete={(c) => {
+                  setDeleteErrorMessage(null)
+                  setPendingDelete({
+                    id: c.id,
+                    name: c.name?.trim() ? c.name : '—',
+                    slug: c.slug?.trim() ?? '',
+                  })
+                }}
+              />
+            )}
             emptyMessage="No categories match your filters."
           />
         )}

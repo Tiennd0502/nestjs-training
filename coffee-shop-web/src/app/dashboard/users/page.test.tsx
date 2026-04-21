@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 
 import { PageContent } from '@/app/dashboard/users/PageContent'
 import { PAGE_SIZE } from '@/constants/common'
+import { API_FALLBACK_ERRORS } from '@/constants/messages'
 import { useUsers, type UseUsersParams } from '@/hooks/useUser'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { USER_ROLES, USER_STATUS } from '@/types/user'
@@ -300,13 +301,13 @@ describe('Dashboard users page', () => {
       meta: null,
       isLoading: false,
       isError: true,
-      errorMessage: 'Could not load users',
+      errorMessage: API_FALLBACK_ERRORS.USERS_LOAD,
       refetch: refetchMock,
     }))
 
     renderUsersPage()
 
-    expect(screen.getByText('Could not load users')).toBeInTheDocument()
+    expect(screen.getByText(API_FALLBACK_ERRORS.USERS_LOAD)).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Retry' }))
     expect(refetchMock).toHaveBeenCalledTimes(1)
   })

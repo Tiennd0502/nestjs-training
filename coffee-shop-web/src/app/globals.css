@@ -115,6 +115,9 @@
   --accent: #dde2f3;
   --accent-foreground: #383e4b;
   --destructive: #ba1a1a;
+  --success: #2a6d47;
+  --info: #3f73c4;
+  --warning: #c2870e;
   --border: #d8c3b0;
   --input: #f8f3eb;
   --ring: #e89730;
@@ -197,6 +200,9 @@
   --accent: #414754;
   --accent-foreground: #dde2f3;
   --destructive: #ffb4ab;
+  --success: #2d6f4e;
+  --info: #2d5594;
+  --warning: #9a7412;
   --border: #857464;
   --input: #3a3833;
   --ring: #885200;
@@ -262,12 +268,57 @@
   --pagination-surface: #45433e;
 }
 
-/* Sonner reads these custom properties on the toaster host (see sonner docs). */
+/*
+ * Sonner injects its own theme tokens at runtime (after this file), which overrides
+ * earlier custom properties. Use !important so our palette + readable text win.
+ */
 [data-sonner-toaster] {
   --normal-bg: var(--popover);
   --normal-text: var(--popover-foreground);
   --normal-border: var(--border);
   --border-radius: var(--radius);
+}
+
+[data-sonner-toaster][data-sonner-theme='light'] {
+  --success-bg: var(--success) !important;
+  --success-border: color-mix(in srgb, var(--success) 78%, #000) !important;
+  --success-text: #ffffff !important;
+
+  --error-bg: var(--error) !important;
+  --error-border: color-mix(in srgb, var(--error) 78%, #000) !important;
+  --error-text: #ffffff !important;
+
+  --info-bg: var(--info) !important;
+  --info-border: color-mix(in srgb, var(--info) 78%, #000) !important;
+  --info-text: #ffffff !important;
+
+  --warning-bg: var(--warning) !important;
+  --warning-border: color-mix(in srgb, var(--warning) 78%, #000) !important;
+  --warning-text: #1a1406 !important;
+}
+
+[data-sonner-toaster][data-sonner-theme='dark'] {
+  --success-bg: var(--success) !important;
+  --success-border: color-mix(in srgb, var(--success) 78%, #000) !important;
+  --success-text: #ffffff !important;
+
+  --error-bg: var(--error) !important;
+  --error-border: color-mix(in srgb, var(--error) 78%, #000) !important;
+  --error-text: #1c0b0d !important;
+
+  --info-bg: var(--info) !important;
+  --info-border: color-mix(in srgb, var(--info) 78%, #000) !important;
+  --info-text: #ffffff !important;
+
+  --warning-bg: var(--warning) !important;
+  --warning-border: color-mix(in srgb, var(--warning) 78%, #000) !important;
+  --warning-text: #141003 !important;
+}
+
+[data-rich-colors='true'][data-sonner-toast][data-styled='true'] [data-title],
+[data-rich-colors='true'][data-sonner-toast][data-styled='true']
+  [data-description] {
+  color: inherit !important;
 }
 
 @layer base {

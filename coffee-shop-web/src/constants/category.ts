@@ -5,9 +5,9 @@ import type { TableColumn } from '@/components/Table'
 
 export const CATEGORIES_TABLE_COLUMNS: TableColumn[] = [
   {
-    key: 'category',
-    label: 'Category',
-    className: 'w-[40%] min-w-0 px-6 py-4',
+    key: 'name',
+    label: 'Name',
+    className: 'w-auto min-w-0 px-6 py-4',
   },
   { key: 'slug', label: 'Slug', className: 'w-[22%] px-6 py-4' },
   { key: 'created', label: 'Created', className: 'w-[18%] px-6 py-4' },
@@ -15,7 +15,7 @@ export const CATEGORIES_TABLE_COLUMNS: TableColumn[] = [
   {
     key: 'actions',
     label: 'Actions',
-    className: 'w-[8%] px-6 py-4 text-right',
+    className: 'w-27 px-6 py-4 text-right',
   },
 ]
 

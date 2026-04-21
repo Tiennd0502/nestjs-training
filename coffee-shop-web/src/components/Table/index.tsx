@@ -28,7 +28,7 @@ export default function Table<T>({
   emptyRowClassName = 'px-6 py-12 text-center text-muted-foreground',
 }: TableProps<T>) {
   return (
-    <div className="overflow-x-auto [scrollbar-gutter:stable]">
+    <div className="overflow-x-auto">
       <table className={tableClassName}>
         <thead className={headerClassName}>
           <tr>

@@ -3,6 +3,7 @@ export const ROUTES = {
   CART: '/cart',
   DASHBOARD: '/dashboard',
   DASHBOARD_CATEGORIES: '/dashboard/categories',
+  DASHBOARD_CATEGORIES_ADD: '/dashboard/categories/add',
   DASHBOARD_USERS: '/dashboard/users',
   DASHBOARD_USERS_ADD: '/dashboard/users/add',
   SIGN_IN: process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL ?? '/sign-in',

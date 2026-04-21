@@ -17,7 +17,15 @@ function formatTs(value: string | null): string {
   })
 }
 
-export function CategoryTableRow({ category }: { category: Category }) {
+export interface CategoryTableRowProps {
+  category: Category
+  onRequestDelete?: (category: Category) => void
+}
+
+export function CategoryTableRow({
+  category,
+  onRequestDelete,
+}: CategoryTableRowProps) {
   const isDeleted = Boolean(category.deletedAt)
 
   return (
@@ -66,10 +74,15 @@ export function CategoryTableRow({ category }: { category: Category }) {
             <Pencil className="size-4" aria-hidden />
           </Button>
           <Button
+            type="button"
             size="icon-xs"
             variant="ghost"
-            aria-label={`Delete ${category.name}`}
-            disabled={isDeleted}
+            aria-label={`Remove ${category.name}`}
+            disabled={isDeleted || !category.id}
+            onClick={() => {
+              if (!category.id || isDeleted) return
+              onRequestDelete?.(category)
+            }}
           >
             <Trash2 className="size-4" aria-hidden />
           </Button>

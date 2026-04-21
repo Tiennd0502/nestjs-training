@@ -2,8 +2,9 @@ import type { User } from '@/types/user'
 import { USER_ROLES, USER_STATUS } from '@/types/user'
 import type { Response, ResponseMeta } from '@/types/api'
 
-import { ERROR_MESSAGES } from '@/constants/messages'
+import { API_FALLBACK_ERRORS, ERROR_MESSAGES } from '@/constants/messages'
 import { API_ROUTES } from '@/constants/routes'
+import { apiClient } from '@/services/api'
 
 export interface FetchUsersOptions {
   getToken?: () => Promise<string | null>
@@ -98,35 +99,20 @@ export async function fetchUser(
 ): Promise<
   { ok: true; user: User } | { ok: false; error: string; status?: number }
 > {
-  const headers: HeadersInit = { Accept: 'application/json' }
-  const token = getToken ? await getToken() : null
-  if (token) {
-    headers.Authorization = `Bearer ${token}`
-  }
+  const result = await apiClient.get<unknown>(API_ROUTES.ME, {
+    getToken,
+    fallbackError: API_FALLBACK_ERRORS.PROFILE_LOAD,
+  })
+  if (!result.ok) return result
 
-  try {
-    const res = await fetch(API_ROUTES.ME, { headers, credentials: 'include' })
-    if (!res.ok) {
-      return {
-        ok: false,
-        error: `Could not load profile (${res.status})`,
-        status: res.status,
-      }
+  const user = parseAuthUserPayload(result.data)
+  if (!user) {
+    return {
+      ok: false,
+      error: ERROR_MESSAGES.UNEXPECTED_PROFILE_RESPONSE,
     }
-    const json: unknown = await res.json()
-    const user = parseAuthUserPayload(json)
-    if (!user) {
-      return {
-        ok: false,
-        error: ERROR_MESSAGES.UNEXPECTED_PROFILE_RESPONSE,
-      }
-    }
-    return { ok: true, user }
-  } catch (e) {
-    const message =
-      e instanceof Error ? e.message : ERROR_MESSAGES.NETWORK_ERROR
-    return { ok: false, error: message }
   }
+  return { ok: true, user }
 }
 
 export async function fetchUsers(
@@ -136,46 +122,18 @@ export async function fetchUsers(
   | { ok: false; error: string; status?: number }
 > {
   const { getToken, page, limit, search, role } = options
-  const headers: HeadersInit = { Accept: 'application/json' }
-  const token = getToken ? await getToken() : null
-  if (token) {
-    headers.Authorization = `Bearer ${token}`
-  }
+  const result = await apiClient.get<Response<User[]>>(API_ROUTES.USERS, {
+    getToken,
+    query: {
+      page,
+      limit,
+      search: search?.trim(),
+      role: role?.trim(),
+    },
+    fallbackError: API_FALLBACK_ERRORS.USERS_LOAD,
+  })
+  if (!result.ok) return result
 
-  const url = new URL(API_ROUTES.USERS)
-  if (page !== undefined) {
-    url.searchParams.set('page', String(page))
-  }
-  if (limit !== undefined) {
-    url.searchParams.set('limit', String(limit))
-  }
-  if (search !== undefined && search.trim() !== '') {
-    url.searchParams.set('search', search.trim())
-  }
-  if (role !== undefined && role.trim() !== '') {
-    url.searchParams.set('role', role.trim())
-  }
-
-  try {
-    const res = await fetch(url.toString(), { headers, credentials: 'include' })
-    if (!res.ok) {
-      return {
-        ok: false,
-        error: `Could not load users (${res.status})`,
-        status: res.status,
-      }
-    }
-
-    const { data, meta }: Response<User[]> = await res.json()
-
-    return {
-      ok: true,
-      users: data,
-      meta: meta,
-    }
-  } catch (e) {
-    const message =
-      e instanceof Error ? e.message : ERROR_MESSAGES.NETWORK_ERROR
-    return { ok: false, error: message }
-  }
+  const { data, meta } = result.data
+  return { ok: true, users: data, meta }
 }

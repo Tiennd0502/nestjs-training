@@ -1,4 +1,4 @@
-import { ERROR_MESSAGES } from '@/constants/messages'
+import { API_FALLBACK_ERRORS, ERROR_MESSAGES } from '@/constants/messages'
 import { API_ROUTES } from '@/constants/routes'
 import { fetchUsers } from '@/services/user'
 import { USER_ROLES } from '@/types/user'
@@ -76,7 +76,7 @@ describe('fetchUsers', () => {
 
     expect(result).toEqual({
       ok: false,
-      error: 'Could not load users (403)',
+      error: `${API_FALLBACK_ERRORS.USERS_LOAD} (403)`,
       status: 403,
     })
   })

@@ -20,6 +20,7 @@ import { Button } from '@/components/ui/button'
 interface AlertDialogProps {
   title: string
   description?: string
+  errorMessage?: string | null
   textButton?: string
   textCancel?: string
   textAction?: string
@@ -28,7 +29,6 @@ interface AlertDialogProps {
   onOpenChange?: (open?: boolean) => void
   onClickAction?: () => void
   onClickCancel?: () => void
-  /** Optional body below the title/description (e.g. product preview card). */
   children?: ReactNode
   'data-testid'?: string
 }
@@ -36,6 +36,7 @@ interface AlertDialogProps {
 const AlertDialog = ({
   title,
   description = '',
+  errorMessage,
   textButton = '',
   textCancel = 'Cancel',
   textAction = 'Continue',
@@ -82,17 +83,25 @@ const AlertDialog = ({
             <AlertDialogTitle className="text-lg font-bold text-foreground">
               {title}
             </AlertDialogTitle>
-            {description ? (
+            {description && (
               <AlertDialogDescription className="text-left text-sm text-muted-foreground">
                 {description}
               </AlertDialogDescription>
-            ) : null}
+            )}
+            {errorMessage && (
+              <p
+                role="alert"
+                className="text-left text-sm font-medium text-destructive"
+              >
+                {errorMessage}
+              </p>
+            )}
           </AlertDialogHeader>
-          {children ? (
+          {Boolean(children) && (
             <div className="mt-5 w-full text-left text-card-foreground">
               {children}
             </div>
-          ) : null}
+          )}
         </div>
         <AlertDialogFooter className="mx-0 mb-0 flex flex-row items-center justify-between gap-3 rounded-none border-t border-border/40 bg-transparent px-6 py-4 sm:flex-row sm:justify-between">
           <AlertDialogCancel

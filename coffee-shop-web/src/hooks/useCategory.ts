@@ -1,14 +1,25 @@
 'use client'
 
-import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type QueryClient,
+} from '@tanstack/react-query'
 
 import {
   LIST_QUERY_GC_MS,
   LIST_QUERY_STALE_MS,
   PAGE_SIZE,
 } from '@/constants/common'
-import { fetchCategories, type CategoryOptions } from '@/services/category'
-import type { Category } from '@/types/category'
+import {
+  createCategory,
+  deleteCategory,
+  fetchCategories,
+  type CategoryOptions,
+} from '@/services/category'
+import type { Category, CategoryPayload } from '@/types/category'
 import type { ResponseMeta } from '@/types/api'
 
 export interface UseCategoriesResult {
@@ -30,6 +41,22 @@ export function categoriesListQueryKey(params: CategoryOptions) {
   ] as const
 }
 
+const categoriesQueryRoot = ['categories'] as const
+
+const listQueryOptions = {
+  staleTime: LIST_QUERY_STALE_MS,
+  gcTime: LIST_QUERY_GC_MS,
+  placeholderData: keepPreviousData,
+} as const
+
+function invalidateCategoryLists(queryClient: QueryClient) {
+  void queryClient.invalidateQueries({ queryKey: categoriesQueryRoot })
+}
+
+function throwIfServiceFailed(result: { ok: false; error: string }): never {
+  throw new Error(result.error)
+}
+
 export const useCategories = (
   params: CategoryOptions = {},
 ): UseCategoriesResult => {
@@ -37,17 +64,14 @@ export const useCategories = (
     queryKey: categoriesListQueryKey(params),
     queryFn: async () => {
       const result = await fetchCategories(params)
-      if (!result.ok) {
-        throw new Error(result.error)
-      }
+      if (!result.ok) throwIfServiceFailed(result)
+
       return {
         categories: result.categories,
         meta: result.meta ?? null,
       }
     },
-    staleTime: LIST_QUERY_STALE_MS,
-    gcTime: LIST_QUERY_GC_MS,
-    placeholderData: keepPreviousData,
+    ...listQueryOptions,
   })
 
   return {
@@ -65,4 +89,29 @@ export const useCategories = (
       await query.refetch()
     },
   }
+}
+
+export function useCreateCategory() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (body: CategoryPayload) => {
+      const result = await createCategory(body)
+      if (!result.ok) throwIfServiceFailed(result)
+      return result.category
+    },
+    onSuccess: () => invalidateCategoryLists(queryClient),
+  })
+}
+
+export function useDeleteCategory() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const result = await deleteCategory(id)
+      if (!result.ok) throwIfServiceFailed(result)
+    },
+    onSuccess: () => invalidateCategoryLists(queryClient),
+  })
 }
