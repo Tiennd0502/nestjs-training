@@ -12,44 +12,99 @@ import {
 } from '@/components/ui/select'
 import { cn } from '@/utils/styles'
 
+interface SelectOption {
+  label: string
+  value: string | number
+}
+
 export interface SelectProps extends Omit<
   React.ComponentProps<typeof SelectRoot>,
-  'children' | 'id'
+  'children' | 'id' | 'value' | 'defaultValue'
 > {
+  errorMessage?: string
   label?: React.ReactNode
   placeholder?: string
-  options: string[]
+  selected?: string | number
+  options: SelectOption[]
   classNameTrigger?: string
 }
 
 export const Select = ({
   label,
   placeholder = '',
+  selected,
   options,
+  disabled = false,
+  onValueChange,
+  errorMessage,
   classNameTrigger = '',
   ...rootProps
 }: SelectProps) => {
   const controlId = React.useId()
+  const selectedValue =
+    selected === undefined || selected === null ? '' : String(selected)
+  const [internalSelected, setInternalSelected] = React.useState(selectedValue)
+
+  React.useEffect(() => {
+    setInternalSelected(selectedValue)
+  }, [selectedValue])
+
+  const handleValueChange = React.useCallback(
+    (value: unknown, eventDetails: unknown) => {
+      const nextSelected =
+        typeof value === 'string' || typeof value === 'number'
+          ? String(value)
+          : ''
+      setInternalSelected(nextSelected)
+      onValueChange?.(value, eventDetails as never)
+    },
+    [onValueChange],
+  )
+
+  const selectedLabel =
+    internalSelected === ''
+      ? undefined
+      : options.find((option) => String(option.value) === internalSelected)
+          ?.label
 
   return (
     <div className="w-full">
       {Boolean(label) && <Label htmlFor={controlId}>{label}</Label>}
-      <SelectRoot {...rootProps}>
+      <SelectRoot
+        value={internalSelected}
+        onValueChange={handleValueChange}
+        disabled={disabled}
+        className={cn(
+          'w-full',
+          classNameTrigger,
+          errorMessage && ' border-destructive',
+        )}
+        {...rootProps}
+      >
         <SelectTrigger
           id={controlId}
-          className={cn('w-full', classNameTrigger)}
-          disabled={rootProps.disabled}
+          className={cn(
+            'w-full',
+            classNameTrigger,
+            Boolean(errorMessage) ? 'border border-destructive' : undefined,
+          )}
+          disabled={disabled}
         >
-          <SelectValue placeholder={placeholder} />
+          <SelectValue placeholder={placeholder}>{selectedLabel}</SelectValue>
         </SelectTrigger>
         <SelectContent>
           {options.map((item) => (
-            <SelectItem key={item} value={item}>
-              {item}
+            <SelectItem key={String(item.value)} value={String(item.value)}>
+              {item.label}
             </SelectItem>
           ))}
         </SelectContent>
       </SelectRoot>
+      {Boolean(errorMessage) && (
+        <p className="mt-2 text-xs font-medium text-destructive">
+          {errorMessage}
+        </p>
+      )}
     </div>
   )
 }

@@ -5,6 +5,10 @@ import { Eye, EyeOff } from 'lucide-react'
 
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import {
+  formatNumericWithThousands,
+  normalizeNumericInput,
+} from '@/utils/number'
 import { cn } from '@/utils/styles'
 
 export interface InputProps extends Omit<
@@ -40,6 +44,9 @@ const InputField = React.forwardRef<HTMLElement, InputProps>(
       'aria-describedby': ariaDescribedByProp,
       'aria-invalid': ariaInvalidProp,
       errorMessage,
+      onChange,
+      value,
+      defaultValue,
       ...rest
     },
     ref,
@@ -51,7 +58,15 @@ const InputField = React.forwardRef<HTMLElement, InputProps>(
     const errorId = `${inputId}-error`
 
     const isPassword = type === 'password'
+    const isNumberType = type === 'number'
+    const isControlledNumberInput = isNumberType && value !== undefined
     const [showPassword, setShowPassword] = React.useState(false)
+    const [uncontrolledFormattedNumber, setUncontrolledFormattedNumber] =
+      React.useState(() => {
+        if (!isNumberType) return ''
+        const normalized = normalizeNumericInput(String(defaultValue ?? ''))
+        return formatNumericWithThousands(normalized)
+      })
 
     React.useEffect(() => {
       if (!isPassword) {
@@ -59,7 +74,16 @@ const InputField = React.forwardRef<HTMLElement, InputProps>(
       }
     }, [isPassword])
 
-    const effectiveType = isPassword && showPassword ? 'text' : (type ?? 'text')
+    const effectiveType = isNumberType
+      ? 'text'
+      : isPassword && showPassword
+        ? 'text'
+        : (type ?? 'text')
+    const effectiveNumberValue = isNumberType
+      ? isControlledNumberInput
+        ? formatNumericWithThousands(normalizeNumericInput(String(value ?? '')))
+        : uncontrolledFormattedNumber
+      : undefined
 
     const handleTogglePasswordVisibility = () => {
       setShowPassword((prev) => !prev)
@@ -72,6 +96,26 @@ const InputField = React.forwardRef<HTMLElement, InputProps>(
         event.preventDefault()
         handleTogglePasswordVisibility()
       }
+    }
+
+    const handleNumberInputChange = (
+      event: React.ChangeEvent<HTMLInputElement>,
+    ) => {
+      const normalized = normalizeNumericInput(event.target.value)
+      const formatted = formatNumericWithThousands(normalized)
+
+      if (!isControlledNumberInput) {
+        setUncontrolledFormattedNumber(formatted)
+      }
+
+      if (!onChange) return
+      ;(event.target as HTMLInputElement).value = normalized
+      ;(event.currentTarget as HTMLInputElement).value = normalized
+      onChange(
+        event as React.ChangeEvent<HTMLInputElement> & {
+          preventBaseUIHandler: () => void
+        },
+      )
     }
 
     const hasStartIcon = Boolean(startIcon)
@@ -122,9 +166,13 @@ const InputField = React.forwardRef<HTMLElement, InputProps>(
             id={inputId}
             type={effectiveType}
             disabled={disabled}
+            inputMode={isNumberType ? 'decimal' : rest.inputMode}
             autoComplete={
               autoComplete ?? (isPassword ? 'current-password' : undefined)
             }
+            value={isNumberType ? effectiveNumberValue : value}
+            defaultValue={isNumberType ? undefined : defaultValue}
+            onChange={isNumberType ? handleNumberInputChange : onChange}
             className={cn(
               'peer',
               hasStartIcon && 'pl-12',

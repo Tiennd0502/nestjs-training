@@ -36,7 +36,15 @@ jest.mock('@/components/ui/select', () => {
 
 describe('Select', () => {
   it('renders a label connected to the trigger', () => {
-    render(<Select label="Roast" options={['Light', 'Dark']} />)
+    render(
+      <Select
+        label="Roast"
+        options={[
+          { value: 'light', label: 'Light' },
+          { value: 'dark', label: 'Dark' },
+        ]}
+      />,
+    )
 
     expect(screen.getByText('Roast').tagName).toBe('LABEL')
     expect(screen.getByLabelText('Roast')).toBeInTheDocument()
@@ -47,7 +55,7 @@ describe('Select', () => {
       <Select
         label="Category"
         placeholder="Choose a category"
-        options={['Beans']}
+        options={[{ value: 'beans', label: 'Beans' }]}
       />,
     )
 
@@ -58,7 +66,11 @@ describe('Select', () => {
     render(
       <Select
         label="Size"
-        options={['Small', 'Medium', 'Large']}
+        options={[
+          { value: 'small', label: 'Small' },
+          { value: 'medium', label: 'Medium' },
+          { value: 'large', label: 'Large' },
+        ]}
         placeholder="Pick one"
       />,
     )
@@ -70,7 +82,13 @@ describe('Select', () => {
   })
 
   it('forwards disabled state to the trigger', () => {
-    render(<Select label="Origin" options={['Brazil']} disabled />)
+    render(
+      <Select
+        label="Origin"
+        options={[{ value: 'brazil', label: 'Brazil' }]}
+        disabled
+      />,
+    )
 
     expect(screen.getByLabelText('Origin')).toBeDisabled()
   })
