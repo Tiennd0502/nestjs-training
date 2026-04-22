@@ -11,11 +11,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { cn } from '@/utils/styles'
-
-interface SelectOption {
-  label: string
-  value: string | number
-}
+import { type OptionItem } from '@/types/common'
 
 export interface SelectProps extends Omit<
   React.ComponentProps<typeof SelectRoot>,
@@ -25,7 +21,7 @@ export interface SelectProps extends Omit<
   label?: React.ReactNode
   placeholder?: string
   selected?: string | number
-  options: SelectOption[]
+  options: OptionItem[]
   classNameTrigger?: string
 }
 

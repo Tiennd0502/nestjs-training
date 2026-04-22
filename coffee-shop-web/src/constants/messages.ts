@@ -30,6 +30,7 @@ export const API_FALLBACK_ERRORS = {
   CATEGORY_DELETE: 'Could not delete category',
   CATEGORIES_LOAD: 'Could not load categories',
   PRODUCT_CREATE: 'Could not create product',
+  PRODUCTS_LOAD: 'Could not load products',
   IMAGE_UPLOAD: 'Could not upload image',
   USERS_LOAD: 'Could not load users',
   USER_DELETE: 'Could not delete user',

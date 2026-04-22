@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { BadgeCheck, Leaf, Plus, X } from 'lucide-react'
 import { Controller, useForm } from 'react-hook-form'
@@ -47,7 +47,11 @@ import BrainIcon from '@/components/icon/BrainIcon'
 
 // Utils
 import { normalizeNumericInput } from '@/utils/number'
-import { renderProductSku, toAlphaOnly } from '@/utils/common'
+import {
+  getCategoryOptions,
+  renderProductSku,
+  toAlphaOnly,
+} from '@/utils/common'
 
 interface LocalImage {
   url: string
@@ -120,16 +124,7 @@ const PageContent = () => {
     DEFAULT_TASTING_NOTES,
   )
   const [pendingNote, setPendingNote] = useState('')
-  const categoryOptions = useMemo(
-    () =>
-      categories
-        .filter((category) => Boolean(category.id))
-        .map((category) => ({
-          value: category.id,
-          label: category.name?.trim() ? category.name : category.slug,
-        })),
-    [categories],
-  )
+  const categoryOptions = getCategoryOptions(categories)
 
   const {
     register,

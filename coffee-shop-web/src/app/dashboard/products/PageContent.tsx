@@ -1,0 +1,218 @@
+'use client'
+
+import { useRef } from 'react'
+import Link from 'next/link'
+import { Download, Plus, Printer } from 'lucide-react'
+
+import Breadcrumb from '@/components/Breadcrumb'
+import { PaginationBar } from '@/components/Pagination'
+import { SearchInput } from '@/components/SearchInput'
+import Table from '@/components/Table'
+import { Button, buttonVariants } from '@/components/ui/button'
+import { SEARCH_URL_DEBOUNCE_MS } from '@/constants/common'
+import {
+  PRODUCT_STATUS_OPTIONS,
+  PRODUCTS_TABLE_COLUMNS,
+} from '@/constants/product'
+import { ROUTES } from '@/constants/routes'
+import { CATEGORY_QUERY_OPTIONS } from '@/constants/category'
+import { useCategories } from '@/hooks/useCategory'
+import { useProducts } from '@/hooks/useProduct'
+import { ProductTableRow } from '@/sections/ProductTableRow'
+import { getCategoryOptions } from '@/utils/common'
+import { productUrlSchema } from '@/utils/url'
+import { cn } from '@/utils/styles'
+import { useUrlState } from '@/hooks/useUrlState'
+import { Select } from '@/components/Select'
+import { Spinner } from '@/components/ui/spinner'
+
+const ALL_CATEGORIES_VALUE = 'all-categories'
+
+export const PageContent = () => {
+  const { state, update: updateUrl } = useUrlState(productUrlSchema)
+  const { page, search, limit, categoryId, status } = state
+  const searchDebounceTimerRef = useRef<number | null>(null)
+
+  const { categories, isLoading: isCategoryLoading } = useCategories(
+    CATEGORY_QUERY_OPTIONS,
+  )
+
+  const categoryOptions = [
+    { value: ALL_CATEGORIES_VALUE, label: 'All categories' },
+    ...getCategoryOptions(categories),
+  ]
+  const normalizedCategoryId =
+    categoryId &&
+    categoryOptions.some((option) => String(option.value) === categoryId)
+      ? categoryId
+      : null
+
+  const { products, meta, isLoading, isError, errorMessage, refetch } =
+    useProducts({
+      page,
+      limit,
+      search: search.trim(),
+      categoryId: normalizedCategoryId ?? undefined,
+      status: status ?? undefined,
+    })
+
+  const totalPages = Math.max(1, meta?.pageCount ?? 1)
+  const totalCount = meta?.totalCount ?? products.length
+  const showingCount = products.length
+
+  const handleQueryChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const nextSearch = event.target.value
+
+    if (searchDebounceTimerRef.current !== null) {
+      window.clearTimeout(searchDebounceTimerRef.current)
+    }
+
+    searchDebounceTimerRef.current = window.setTimeout(() => {
+      if (nextSearch === search) return
+      updateUrl({ search: nextSearch, page: 1 })
+    }, SEARCH_URL_DEBOUNCE_MS)
+  }
+
+  const handleCategoryChange = (value: unknown) => {
+    if (typeof value !== 'string') return
+    updateUrl({
+      categoryId: value === ALL_CATEGORIES_VALUE ? null : value,
+      page: 1,
+    })
+  }
+  const handleProductStatusChange = (value: unknown) => {
+    if (typeof value !== 'string') return
+    updateUrl({
+      status: value === PRODUCT_STATUS_OPTIONS[0].value ? null : value,
+      page: 1,
+    })
+  }
+
+  return (
+    <div className="flex flex-col gap-6">
+      <header className="flex flex-wrap items-center justify-between gap-4">
+        <div className="space-y-3">
+          <Breadcrumb
+            items={[
+              { label: 'Dashboard', href: ROUTES.DASHBOARD },
+              { label: 'Products', href: ROUTES.DASHBOARD_PRODUCTS },
+            ]}
+          />
+          <div className="space-y-2">
+            <h1 className="text-5xl leading-tight font-bold tracking-tight text-foreground">
+              Products
+            </h1>
+            <p className="text-lg text-muted-foreground">
+              Oversee your catalog and inventory
+            </p>
+          </div>
+        </div>
+        <div className="flex w-full justify-end sm:w-auto">
+          <Link
+            href={ROUTES.DASHBOARD_PRODUCTS_ADD}
+            className={cn(
+              buttonVariants({ variant: 'default', size: 'default' }),
+              'inline-flex w-full gap-2 px-8 sm:w-auto',
+            )}
+          >
+            <Plus className="size-4" aria-hidden />
+            Add product
+          </Link>
+        </div>
+      </header>
+
+      <section className="overflow-hidden rounded-3xl border border-outline-variant/40 bg-card">
+        <div className="flex flex-col gap-3 border-b border-outline-variant/30 p-4 md:flex-row lg:items-center lg:justify-between">
+          <SearchInput
+            value={search}
+            onChange={handleQueryChange}
+            placeholder="Filter by product name..."
+            aria-label="Filter products by name"
+            containerClassName="h-12 bg-surface-container-high w-full md:max-w-md"
+          />
+          <div className="w-full flex gap-4 md:w-80 md:max-w-80">
+            <Select
+              classNameTrigger="h-12 rounded-full"
+              placeholder="All categories"
+              options={categoryOptions}
+              selected={normalizedCategoryId ?? ALL_CATEGORIES_VALUE}
+              disabled={isCategoryLoading}
+              onValueChange={handleCategoryChange}
+            />
+          </div>
+          <div className="w-full flex gap-4 md:w-50 md:max-w-50">
+            <Select
+              classNameTrigger="h-12 rounded-full"
+              placeholder="All statuses"
+              options={PRODUCT_STATUS_OPTIONS}
+              selected={status ?? PRODUCT_STATUS_OPTIONS[0].value}
+              onValueChange={handleProductStatusChange}
+            />
+          </div>
+          <div className="flex items-center justify-end gap-3">
+            <Button
+              disabled
+              variant="outline"
+              size="icon"
+              aria-label="Export products list"
+              className="size-11"
+            >
+              <Download className="size-4" aria-hidden />
+            </Button>
+            <Button
+              disabled
+              variant="outline"
+              size="icon"
+              aria-label="Print products list"
+              className="size-11"
+            >
+              <Printer className="size-4" aria-hidden />
+            </Button>
+          </div>
+        </div>
+
+        {isLoading ? (
+          <div className="px-6 py-12 text-center text-muted-foreground">
+            <Spinner size="lg" />
+          </div>
+        ) : isError ? (
+          <div className="flex flex-col items-center gap-4 px-6 py-12 text-center">
+            <p className="text-muted-foreground">{errorMessage}</p>
+            <Button
+              className="w-fit px-6"
+              variant="destructive"
+              size="sm"
+              onClick={() => void refetch()}
+            >
+              Retry
+            </Button>
+          </div>
+        ) : (
+          <Table
+            columns={PRODUCTS_TABLE_COLUMNS}
+            data={products}
+            getRowKey={(product, index) => product.id ?? `product-${index}`}
+            renderRow={(product) => (
+              <ProductTableRow
+                product={product}
+                categoryOptions={categoryOptions}
+              />
+            )}
+            emptyMessage="No products found."
+          />
+        )}
+
+        <footer className="border-t border-outline-variant/30 px-6 py-4">
+          <PaginationBar
+            currentPage={Math.min(page, totalPages)}
+            totalPages={totalPages}
+            onPageChange={(next) => updateUrl({ page: next })}
+            showingCount={showingCount}
+            totalCount={totalCount}
+            entityLabel="products"
+          />
+        </footer>
+      </section>
+    </div>
+  )
+}

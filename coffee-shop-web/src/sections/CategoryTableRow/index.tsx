@@ -53,7 +53,7 @@ export function CategoryTableRow({
         </div>
       </td>
       <td className="px-6 py-4">
-        <code className="rounded-md bg-muted px-2 py-0.5 text-sm text-muted-foreground">
+        <code className="rounded-md bg-muted px-4 py-2 text-sm truncate overflow-hidden text-ellipsis text-muted-foreground">
           {category.slug || '—'}
         </code>
       </td>

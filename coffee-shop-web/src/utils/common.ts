@@ -1,3 +1,6 @@
+import { type Category } from '@/types/category'
+import { type OptionItem } from '@/types/common'
+
 /**
  * Formats a numeric amount as currency for display (e.g. price labels).
  * @param amount - The amount to format.
@@ -97,3 +100,11 @@ export const formatNumericWithThousands = (raw: string): string => {
 
   return `${prefixedInteger}.${decimalPart}`
 }
+
+export const getCategoryOptions = (categories: Category[]): OptionItem[] =>
+  categories
+    .filter((category) => Boolean(category.id))
+    .map((category) => ({
+      value: category.id,
+      label: category.name?.trim() ? category.name : category.slug,
+    }))

@@ -1,10 +1,16 @@
 import { API_FALLBACK_ERRORS } from '@/constants/messages'
 import { API_ROUTES } from '@/constants/routes'
+import type { Response as ApiResponse, ResponseMeta } from '@/types/api'
 import { apiClient } from '@/services/api'
 import type { Product, ProductPayload } from '@/types/product'
 
 export interface ProductOptions {
   getToken?: () => Promise<string | null>
+  page?: number
+  limit?: number
+  search?: string
+  categoryId?: string
+  status?: string
 }
 
 export async function createProduct(
@@ -42,4 +48,31 @@ export async function createProduct(
         updatedAt: null,
       } as Product),
   }
+}
+
+export async function fetchProducts(
+  options: ProductOptions = {},
+): Promise<
+  | { ok: true; products: Product[]; meta?: ResponseMeta }
+  | { ok: false; error: string; status?: number }
+> {
+  const { getToken, page, limit, search, categoryId, status } = options
+  const result = await apiClient.get<ApiResponse<Product[]>>(
+    API_ROUTES.PRODUCTS,
+    {
+      getToken,
+      query: {
+        page,
+        limit,
+        search: search?.trim(),
+        categoryId: categoryId?.trim(),
+        status: status?.trim(),
+      },
+      fallbackError: API_FALLBACK_ERRORS.PRODUCTS_LOAD,
+    },
+  )
+  if (!result.ok) return result
+
+  const { data, meta } = result.data
+  return { ok: true, products: data, meta }
 }

@@ -40,7 +40,7 @@ const SelectTrigger = React.forwardRef<
       data-slot="select-trigger"
       data-size={size}
       className={cn(
-        'flex w-full min-w-0 select-none items-center justify-between gap-2 rounded-xs border-0 bg-surface-container-high px-6 py-4 text-md leading-normal text-on-surface outline-none transition-colors',
+        'flex w-full min-w-0 cursor-pointer select-none items-center justify-between gap-2 rounded-xs border-0 bg-surface-container-high px-6 py-4 text-md leading-normal text-on-surface outline-none transition-colors',
         'focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-0 focus-visible:outline-none',
         'disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50',
         'aria-invalid:border-0 aria-invalid:ring-2 aria-invalid:ring-destructive/30 dark:aria-invalid:ring-destructive/40',
@@ -132,7 +132,7 @@ const SelectItem = ({
     <SelectPrimitive.Item
       data-slot="select-item"
       className={cn(
-        'relative flex w-full cursor-default items-center gap-1.5 rounded-sm py-2.5 pl-2 pr-8 text-sm text-on-surface outline-hidden select-none transition-colors data-disabled:pointer-events-none data-disabled:opacity-50 data-highlighted:bg-muted data-highlighted:text-on-surface data-selected:font-medium data-selected:text-primary [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*="size-"])]:size-4 data-selected:[&_svg]:text-primary *:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2',
+        'relative flex w-full cursor-pointer items-center gap-1.5 rounded-sm py-2.5 pl-2 pr-8 text-sm text-on-surface outline-hidden select-none transition-colors data-disabled:cursor-not-allowed data-disabled:pointer-events-none data-disabled:opacity-50 data-highlighted:bg-muted data-highlighted:text-on-surface data-selected:font-medium data-selected:text-primary [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*="size-"])]:size-4 data-selected:[&_svg]:text-primary *:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2',
         className,
       )}
       {...props}

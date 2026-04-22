@@ -9,13 +9,26 @@ export const CATEGORIES_TABLE_COLUMNS: TableColumn[] = [
     label: 'Name',
     className: 'w-auto min-w-0 px-6 py-4',
   },
-  { key: 'slug', label: 'Slug', className: 'w-[22%] px-6 py-4' },
-  { key: 'created', label: 'Created', className: 'w-[18%] px-6 py-4' },
-  { key: 'updated', label: 'Updated', className: 'w-[12%] px-6 py-4' },
+  {
+    key: 'slug',
+    label: 'Slug',
+    className:
+      'w-[24%] px-6 py-4 text-center truncate overflow-hidden text-ellipsis',
+  },
+  {
+    key: 'created',
+    label: 'Created',
+    className: 'w-[16%] px-6 py-4 text-center',
+  },
+  {
+    key: 'updated',
+    label: 'Updated',
+    className: 'w-[16%] px-6 py-4 text-center',
+  },
   {
     key: 'actions',
     label: 'Actions',
-    className: 'w-27 px-6 py-4 text-right',
+    className: 'w-27 px-6 py-4 text-center',
   },
 ]
 
