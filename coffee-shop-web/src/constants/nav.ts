@@ -71,7 +71,7 @@ export const DASHBOARD_MENU = [
   },
   {
     label: 'Products',
-    href: '/dashboard/products',
+    href: ROUTES.DASHBOARD_PRODUCTS,
     icon: Coffee,
     match: 'prefix',
   },

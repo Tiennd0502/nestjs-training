@@ -1,0 +1,85 @@
+export enum ROAST_LEVEL {
+  LIGHT = 'LIGHT',
+  MEDIUM = 'MEDIUM',
+  DARK = 'DARK',
+}
+
+export enum DISCOUNT_TYPE {
+  PERCENT = 'PERCENT',
+  FIXED = 'FIXED',
+}
+
+export enum PRODUCT_STATUS {
+  DRAFT = 'DRAFT',
+  ACTIVE = 'ACTIVE',
+  INACTIVE = 'INACTIVE',
+  ARCHIVED = 'ARCHIVED',
+}
+
+export type ProductStatus = PRODUCT_STATUS
+
+export interface ProductVariantPayload {
+  sku?: string
+  weight: number
+  unit: string
+  price: number
+  discountType: DISCOUNT_TYPE | null
+  discountValue: number | null
+  quantity: number
+}
+
+export interface ProductImagePayload {
+  url: string
+  isPrimary: boolean
+  sortOrder: number
+}
+
+export interface ProductPayload {
+  categoryId: string
+  name: string
+  description: string
+  roastLevel: ROAST_LEVEL
+  isOrganic: boolean
+  isFairTrade: boolean
+  status: ProductStatus
+  tastingNotes: string
+  origin: string
+  processingMethod: string
+  variants: ProductVariantPayload[]
+  images: ProductImagePayload[]
+}
+
+export interface Product {
+  id: string
+  categoryId: string
+  name: string
+  description: string
+  roastLevel: ROAST_LEVEL
+  isOrganic: boolean
+  isFairTrade: boolean
+  status: ProductStatus
+  tastingNotes: string
+  origin: string
+  processingMethod: string
+  variants: ProductVariantPayload[]
+  images: ProductImagePayload[]
+  createdAt: string | null
+  updatedAt: string | null
+}
+
+export interface ProductFormValues {
+  categoryId: string
+  name: string
+  description: string
+  roastLevel: ROAST_LEVEL
+  isOrganic: boolean
+  isFairTrade: boolean
+  weight: number
+  unit: string
+  price: number
+  discountType: DISCOUNT_TYPE
+  discountValue: number
+  quantity: number
+  origin: string
+  processingMethod: string
+}

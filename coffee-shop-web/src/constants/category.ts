@@ -52,3 +52,9 @@ export const CATEGORIES_DASHBOARD_STATS: StatCardItem[] = [
     footnoteIcon: FolderTree,
   },
 ]
+
+export const CATEGORY_QUERY_OPTIONS = {
+  page: 1,
+  limit: 100,
+  search: '',
+} as const

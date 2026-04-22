@@ -16,12 +16,21 @@ export const ERROR_MESSAGES = {
   NETWORK_ERROR: 'Network error',
   FIELD_REQUIRED: 'This field is required',
   CATEGORY_NAME_MAX: 'Name must be at most 120 characters',
+  DISCOUNT_PERCENT_MIN: 'Discount cannot be less than 0%',
+  DISCOUNT_PERCENT_MAX: 'Discount cannot exceed 100%',
+  DISCOUNT_FIXED_MUST_BE_LESS_THAN_PRICE:
+    'Fixed discount must be less than base price',
+  IMAGE_UPLOAD_NOT_CONFIGURED: 'Image upload is not configured',
+  PRODUCT_AVATAR_REQUIRED: 'Main hero image is required',
+  PRODUCT_GALLERY_REQUIRED: 'At least one gallery image is required',
 } as const
 
 export const API_FALLBACK_ERRORS = {
   CATEGORY_CREATE: 'Could not create category',
   CATEGORY_DELETE: 'Could not delete category',
   CATEGORIES_LOAD: 'Could not load categories',
+  PRODUCT_CREATE: 'Could not create product',
+  IMAGE_UPLOAD: 'Could not upload image',
   USERS_LOAD: 'Could not load users',
   USER_DELETE: 'Could not delete user',
   PROFILE_LOAD: 'Could not load profile',
@@ -31,6 +40,8 @@ export const SUCCESS_MESSAGES = {
   SIGNED_OUT: 'Signed out successfully',
   CATEGORY_CREATED: 'Category created',
   CATEGORY_DELETED: 'Category removed',
+  PRODUCT_CREATED: 'Product created',
+  DRAFT_DISCARDED: 'Draft discarded',
 }
 
 export const DIALOG_MESSAGES = {

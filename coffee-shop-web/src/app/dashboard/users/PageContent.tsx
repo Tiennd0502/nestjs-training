@@ -138,9 +138,12 @@ export const PageContent = () => {
             <div className="min-w-40">
               <Select
                 classNameTrigger="rounded-full capitalize"
-                value={role ?? ROLE_FILTER_OPTIONS[0]}
+                selected={role ?? ROLE_FILTER_OPTIONS[0]}
                 onValueChange={handleRoleChange}
-                options={[...ROLE_FILTER_OPTIONS]}
+                options={ROLE_FILTER_OPTIONS.map((option) => ({
+                  value: option,
+                  label: option,
+                }))}
                 placeholder="All Roles"
               />
             </div>
