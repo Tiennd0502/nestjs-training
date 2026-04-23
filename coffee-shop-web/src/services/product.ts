@@ -15,6 +15,10 @@ export interface ProductOptions {
   search?: string
   categoryId?: string
   status?: string
+  minPrice?: number
+  maxPrice?: number
+  roastLevels?: string
+  sort?: string
 }
 
 export async function createProduct(
@@ -60,7 +64,18 @@ export async function fetchProducts(
   | { ok: true; products: Product[]; meta?: ResponseMeta }
   | { ok: false; error: string; status?: number }
 > {
-  const { getToken, page, limit, search, categoryId, status } = options
+  const {
+    getToken,
+    page,
+    limit,
+    search,
+    categoryId,
+    status,
+    minPrice,
+    maxPrice,
+    roastLevels,
+    sort,
+  } = options
   const result = await apiClient.get<ApiResponse<Product[]>>(
     API_ROUTES.PRODUCTS,
     {
@@ -71,6 +86,10 @@ export async function fetchProducts(
         search: search?.trim(),
         categoryId: categoryId?.trim(),
         status: status?.trim(),
+        minPrice,
+        maxPrice,
+        roastLevels: roastLevels?.trim(),
+        sort: sort?.trim(),
       },
       fallbackError: API_FALLBACK_ERRORS.PRODUCTS_LOAD,
     },

@@ -1,5 +1,14 @@
 import { PAGE_SIZE } from '@/constants/common'
+import {
+  ROAST_PRICE_MAX,
+  ROAST_PRICE_MIN,
+  ROAST_SORT_VALUE,
+  type RoastSortValue,
+} from '@/constants/roast'
+import { ROAST_LEVEL } from '@/types/product'
 import { USER_ROLES } from '@/types/user'
+
+const ROAST_LEVEL_SET = new Set<string>(Object.values(ROAST_LEVEL))
 
 const VALID_PRODUCT_STATUSES = [
   'DRAFT',
@@ -69,4 +78,50 @@ export const productUrlSchema = {
   ...urlSchema,
   categoryId: parseListCategoryIdParam,
   status: parseListStatusParam,
+} as const
+
+export function parseRoastPriceQueryParam(
+  value: string | null,
+  kind: 'min' | 'max',
+): number {
+  const fallback = kind === 'min' ? ROAST_PRICE_MIN : ROAST_PRICE_MAX
+  if (value == null || value === '') return fallback
+  const n = Number.parseFloat(value)
+  if (!Number.isFinite(n)) return fallback
+  return Math.min(Math.max(n, ROAST_PRICE_MIN), ROAST_PRICE_MAX)
+}
+
+export function parseRoastLevelsParam(value: string | null): ROAST_LEVEL[] {
+  if (value == null || value.trim() === '') return []
+  const parts = value.split(',').map((s) => s.trim().toUpperCase())
+  const out: ROAST_LEVEL[] = []
+  for (const part of parts) {
+    if (ROAST_LEVEL_SET.has(part)) {
+      out.push(part as ROAST_LEVEL)
+    }
+  }
+  return out
+}
+
+export function parseRoastSortParam(value: string | null): RoastSortValue {
+  const v = value?.trim() ?? ''
+  if (
+    v === ROAST_SORT_VALUE.CURATED ||
+    v === ROAST_SORT_VALUE.PRICE_ASC ||
+    v === ROAST_SORT_VALUE.PRICE_DESC
+  ) {
+    return v
+  }
+  return ROAST_SORT_VALUE.CURATED
+}
+
+/** Shop /roasts: list + filters in query string (real API + shareable state). */
+export const shopRoastsUrlSchema = {
+  page: parseListPageParam,
+  limit: parseListLimitParam,
+  search: parseListSearchParam,
+  minPrice: (v: string | null) => parseRoastPriceQueryParam(v, 'min'),
+  maxPrice: (v: string | null) => parseRoastPriceQueryParam(v, 'max'),
+  roasts: parseRoastLevelsParam,
+  sort: parseRoastSortParam,
 } as const

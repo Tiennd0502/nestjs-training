@@ -10,8 +10,8 @@ import { type OptionItem } from '@/types/common'
  */
 export const formatPrice = (
   amount: number,
-  locale: string,
-  currency: string,
+  locale = 'en-US',
+  currency = 'USD',
 ): string =>
   new Intl.NumberFormat(locale, {
     style: 'currency',

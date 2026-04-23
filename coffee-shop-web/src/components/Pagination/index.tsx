@@ -85,6 +85,7 @@ export interface PaginationBarProps {
   showingCount: number
   totalCount: number
   entityLabel?: string
+  hideSummary?: boolean
   siblingCount?: number
   className?: string
 }
@@ -96,6 +97,7 @@ export function PaginationBar({
   showingCount,
   totalCount,
   entityLabel = 'users',
+  hideSummary = false,
   siblingCount = DEFAULT_PAGINATION_SIBLING_COUNT,
   className,
 }: PaginationBarProps) {
@@ -127,13 +129,15 @@ export function PaginationBar({
         className,
       )}
     >
-      <p className="text-sm" role="status">
-        <span className="text-muted-foreground">Showing </span>
-        <strong className="font-bold text-foreground">{showingCount}</strong>
-        <span className="text-muted-foreground"> of </span>
-        <strong className="font-bold text-foreground">{totalCount}</strong>
-        <span className="text-muted-foreground"> {entityLabel}</span>
-      </p>
+      {!hideSummary && (
+        <p className="text-sm" role="status">
+          <span className="text-muted-foreground">Showing </span>
+          <strong className="font-bold text-foreground">{showingCount}</strong>
+          <span className="text-muted-foreground"> of </span>
+          <strong className="font-bold text-foreground">{totalCount}</strong>
+          <span className="text-muted-foreground"> {entityLabel}</span>
+        </p>
+      )}
       <Pagination className="mx-0 w-auto shrink-0 justify-end">
         <PaginationContent>
           <PaginationItem>

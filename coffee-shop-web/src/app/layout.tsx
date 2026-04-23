@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Noto_Serif, Plus_Jakarta_Sans } from 'next/font/google'
+import { Abel, Plus_Jakarta_Sans } from 'next/font/google'
 import { ClerkProvider } from '@clerk/nextjs'
 
 import { Toaster } from '@/components/ui/sonner'
@@ -16,10 +16,10 @@ const fontBody = Plus_Jakarta_Sans({
   weight: ['300', '400', '500', '600', '700'],
 })
 
-const fontHeading = Noto_Serif({
+const fontHeading = Abel({
   variable: '--font-heading',
   subsets: ['latin'],
-  weight: ['400', '700'],
+  weight: ['400'],
 })
 
 export const metadata: Metadata = {

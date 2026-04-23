@@ -1,13 +1,39 @@
 import type { UploadImageGalleryItem } from '@/components/UploadImage/Gallery'
+import { type RoastCollection } from '@/constants/roast'
 import type { EditProductFormValues } from '@/schemas/product'
 import {
   DISCOUNT_TYPE,
+  ROAST_LEVEL,
   type Product,
   type ProductFormValues,
   type ProductImage,
   type ProductImagePayload,
   type ProductImageUpdatePayload,
 } from '@/types/product'
+
+const LOW_STOCK_THRESHOLD = 10
+
+function formatProductRoastMeta(product: Product): string {
+  const levelLabel: Record<ROAST_LEVEL, string> = {
+    [ROAST_LEVEL.LIGHT]: 'Light roast',
+    [ROAST_LEVEL.MEDIUM]: 'Medium roast',
+    [ROAST_LEVEL.DARK]: 'Dark roast',
+  }
+  const origin = product.origin?.trim()
+  const roast = levelLabel[product.roastLevel]
+  if (origin) {
+    return `${origin} | ${roast}`
+  }
+  return roast
+}
+
+function productFlavorLine(product: Product): string {
+  const notes = product.tastingNotes?.trim()
+  if (notes) return notes
+  const description = product.description?.trim()
+  if (description) return description
+  return '—'
+}
 
 export function getProductListPrice(product: Product): number {
   const firstVariant = product.variants[0]
@@ -21,6 +47,28 @@ export function getProductPrimaryImageUrl(product: Product): string | null {
   const first = primary ?? product.images[0]
   const url = first?.url?.trim() ?? ''
   return url || null
+}
+
+export function mapProductToRoastCollection(
+  product: Product,
+  placeholderImageUrl: string,
+): RoastCollection {
+  const price = getProductListPrice(product)
+  const imageUrl = getProductPrimaryImageUrl(product) ?? placeholderImageUrl
+  const quantity = product.variants[0]?.quantity ?? 0
+  const badgeLabel =
+    quantity > 0 && quantity < LOW_STOCK_THRESHOLD ? 'Low Stock' : undefined
+
+  return {
+    id: product.id,
+    name: product.name,
+    price,
+    flavorNotes: productFlavorLine(product),
+    roastMeta: formatProductRoastMeta(product),
+    roastLevel: product.roastLevel,
+    imageUrl,
+    badgeLabel,
+  }
 }
 
 export function parseTastingNotesString(notes: string): string[] {

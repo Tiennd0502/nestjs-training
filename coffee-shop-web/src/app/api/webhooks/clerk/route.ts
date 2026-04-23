@@ -2,7 +2,7 @@ import type { NextRequest } from 'next/server'
 import { clerkClient } from '@clerk/nextjs/server'
 import { verifyWebhook } from '@clerk/nextjs/webhooks'
 
-import { DEFAULT_USER_PUBLIC_ROLE } from '@/constants/user-metadata'
+import { DEFAULT_USER_PUBLIC_ROLE } from '@/constants/user'
 
 export async function POST(req: NextRequest) {
   try {

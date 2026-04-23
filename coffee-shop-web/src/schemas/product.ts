@@ -29,11 +29,7 @@ export const createProductFormSchema = z
       .string()
       .trim()
       .min(1, { message: ERROR_MESSAGES.FIELD_REQUIRED }),
-    roastLevel: z.enum([
-      ROAST_LEVEL.LIGHT,
-      ROAST_LEVEL.MEDIUM,
-      ROAST_LEVEL.DARK,
-    ]),
+    roastLevel: z.nativeEnum(ROAST_LEVEL),
     isOrganic: z.boolean(),
     isFairTrade: z.boolean(),
     weight: greaterThanZeroNumber('Weight must be greater than 0'),
@@ -97,7 +93,7 @@ export const editProductFormSchema = z.object({
     .string()
     .trim()
     .min(1, { message: ERROR_MESSAGES.FIELD_REQUIRED }),
-  roastLevel: z.enum([ROAST_LEVEL.LIGHT, ROAST_LEVEL.MEDIUM, ROAST_LEVEL.DARK]),
+  roastLevel: z.nativeEnum(ROAST_LEVEL),
   isOrganic: z.boolean(),
   isFairTrade: z.boolean(),
   origin: z.string().trim().min(1, { message: ERROR_MESSAGES.FIELD_REQUIRED }),

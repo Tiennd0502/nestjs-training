@@ -66,6 +66,10 @@ export function productsListQueryKey(params: ProductOptions) {
     params.search ?? '',
     params.categoryId ?? '',
     params.status ?? '',
+    params.minPrice ?? '',
+    params.maxPrice ?? '',
+    params.roastLevels ?? '',
+    params.sort ?? '',
   ] as const
 }
 
