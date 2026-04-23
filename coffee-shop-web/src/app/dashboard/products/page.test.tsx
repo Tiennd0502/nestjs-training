@@ -3,10 +3,10 @@ import userEvent from '@testing-library/user-event'
 
 import { PageContent } from '@/app/dashboard/products/PageContent'
 import { PAGE_SIZE } from '@/constants/common'
-import { API_FALLBACK_ERRORS } from '@/constants/messages'
+import { API_FALLBACK_ERRORS, DIALOG_MESSAGES } from '@/constants/messages'
 import { ROUTES } from '@/constants/routes'
 import { useCategories } from '@/hooks/useCategory'
-import { useProducts } from '@/hooks/useProduct'
+import { useDeleteProduct, useProducts } from '@/hooks/useProduct'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { type ProductOptions } from '@/services/product'
 import {
@@ -31,6 +31,11 @@ jest.mock('next/navigation', () => ({
 jest.mock('@/hooks/useProduct', () => ({
   useProducts: jest.fn(),
   useCreateProduct: jest.fn(),
+  useDeleteProduct: jest.fn(),
+}))
+
+jest.mock('sonner', () => ({
+  toast: { success: jest.fn() },
 }))
 
 jest.mock('@/hooks/useCategory', () => ({
@@ -42,26 +47,32 @@ jest.mock('@/components/Select', () => ({
     selected,
     onValueChange,
     options,
+    placeholder = '',
   }: {
     selected?: string
     onValueChange?: (value: string) => void
     options: { value: string; label: string }[]
-  }) => (
-    <label>
-      <span className="sr-only">Category filter</span>
-      <select
-        aria-label="Category filter"
-        value={selected ?? ''}
-        onChange={(event) => onValueChange?.(event.target.value)}
-      >
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-    </label>
-  ),
+    placeholder?: string
+  }) => {
+    const ariaLabel =
+      placeholder === 'All statuses' ? 'Status filter' : 'Category filter'
+    return (
+      <label>
+        <span className="sr-only">{ariaLabel}</span>
+        <select
+          aria-label={ariaLabel}
+          value={selected ?? ''}
+          onChange={(event) => onValueChange?.(event.target.value)}
+        >
+          {options.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </label>
+    )
+  },
 }))
 
 const mockUsePathname = jest.mocked(usePathname)
@@ -69,6 +80,8 @@ const mockUseRouter = jest.mocked(useRouter)
 const mockUseSearchParams = jest.mocked(useSearchParams)
 const mockUseProducts = jest.mocked(useProducts)
 const mockUseCategories = jest.mocked(useCategories)
+const mockUseDeleteProduct = jest.mocked(useDeleteProduct)
+const mutateDeleteProduct = jest.fn()
 const refetchMock = jest.fn()
 
 const MOCK_PRODUCTS_PAGE_SIZE = 2
@@ -244,6 +257,11 @@ describe('Dashboard products page', () => {
     mockUseProducts.mockImplementation((params) =>
       mockProductsByApiParams(params),
     )
+    mockUseDeleteProduct.mockReturnValue({
+      mutate: mutateDeleteProduct,
+      isPending: false,
+    } as unknown as ReturnType<typeof useDeleteProduct>)
+    mutateDeleteProduct.mockReset()
   })
 
   it('renders heading, add product action and first page rows', () => {
@@ -361,9 +379,41 @@ describe('Dashboard products page', () => {
 
     renderProductsPage()
 
+    expect(screen.getByText('No products found.')).toBeInTheDocument()
+  })
+
+  it('opens remove dialog and calls delete mutate on confirm', async () => {
+    const user = userEvent.setup()
+    renderProductsPage()
+
+    await user.click(
+      screen.getByRole('button', { name: /delete ethiopian yirgacheffe/i }),
+    )
     expect(
-      screen.getByText('No products match your filters.'),
+      await screen.findByText(DIALOG_MESSAGES.PRODUCT.DELETE.TITLE),
     ).toBeInTheDocument()
+
+    await user.click(
+      screen.getByRole('button', {
+        name: DIALOG_MESSAGES.PRODUCT.DELETE.ACTION,
+      }),
+    )
+    expect(mutateDeleteProduct).toHaveBeenCalledWith(
+      'product-1',
+      expect.any(Object),
+    )
+  })
+
+  it('closes remove dialog without calling delete when Cancel', async () => {
+    const user = userEvent.setup()
+    renderProductsPage()
+
+    await user.click(
+      screen.getByRole('button', { name: /delete ethiopian yirgacheffe/i }),
+    )
+    await screen.findByText(DIALOG_MESSAGES.PRODUCT.DELETE.TITLE)
+    await user.click(screen.getByTestId('btn-cancel'))
+    expect(mutateDeleteProduct).not.toHaveBeenCalled()
   })
 
   it('renders error state and retries', async () => {

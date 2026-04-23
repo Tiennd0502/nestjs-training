@@ -30,6 +30,7 @@ export const API_FALLBACK_ERRORS = {
   CATEGORY_DELETE: 'Could not delete category',
   CATEGORIES_LOAD: 'Could not load categories',
   PRODUCT_CREATE: 'Could not create product',
+  PRODUCT_DELETE: 'Could not delete product',
   PRODUCTS_LOAD: 'Could not load products',
   IMAGE_UPLOAD: 'Could not upload image',
   USERS_LOAD: 'Could not load users',
@@ -42,6 +43,7 @@ export const SUCCESS_MESSAGES = {
   CATEGORY_CREATED: 'Category created',
   CATEGORY_DELETED: 'Category removed',
   PRODUCT_CREATED: 'Product created',
+  PRODUCT_DELETED: 'Product removed',
   DRAFT_DISCARDED: 'Draft discarded',
 }
 
@@ -52,6 +54,14 @@ export const DIALOG_MESSAGES = {
       ACTION: 'Remove',
       DESCRIPTION: (name: string, slug: string) =>
         `This will remove ${name} (${slug}). It may still appear in this list with the Removed badge.`,
+    },
+  },
+  PRODUCT: {
+    DELETE: {
+      TITLE: 'Delete Product?',
+      ACTION: 'Delete Product',
+      DESCRIPTION:
+        'Are you sure you want to delete this product? This action cannot be undone.',
     },
   },
 }

@@ -14,6 +14,7 @@ import {
 } from '@/constants/common'
 import {
   createProduct,
+  deleteProduct,
   fetchProducts,
   type ProductOptions,
 } from '@/services/product'
@@ -92,6 +93,20 @@ export function useCreateProduct() {
       const result = await createProduct(body)
       if (!result.ok) throwIfServiceFailed(result)
       return result.product
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: productsQueryRoot })
+    },
+  })
+}
+
+export function useDeleteProduct() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const result = await deleteProduct(id)
+      if (!result.ok) throwIfServiceFailed(result)
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: productsQueryRoot })

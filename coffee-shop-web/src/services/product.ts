@@ -76,3 +76,17 @@ export async function fetchProducts(
   const { data, meta } = result.data
   return { ok: true, products: data, meta }
 }
+
+export async function deleteProduct(
+  id: string,
+  options: Pick<ProductOptions, 'getToken'> = {},
+): Promise<{ ok: true } | { ok: false; error: string; status?: number }> {
+  const trimmed = id.trim()
+  const url = `${API_ROUTES.PRODUCTS}/${encodeURIComponent(trimmed)}`
+  const result = await apiClient.delete(url, {
+    getToken: options.getToken,
+    fallbackError: API_FALLBACK_ERRORS.PRODUCT_DELETE,
+  })
+  if (!result.ok) return result
+  return { ok: true }
+}

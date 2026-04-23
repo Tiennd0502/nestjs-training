@@ -1,9 +1,11 @@
 'use client'
 
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import Link from 'next/link'
 import { Download, Plus, Printer } from 'lucide-react'
+import { toast } from 'sonner'
 
+import AlertDialog from '@/components/AlertDialog'
 import Breadcrumb from '@/components/Breadcrumb'
 import { PaginationBar } from '@/components/Pagination'
 import { SearchInput } from '@/components/SearchInput'
@@ -11,20 +13,31 @@ import Table from '@/components/Table'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { SEARCH_URL_DEBOUNCE_MS } from '@/constants/common'
 import {
+  DIALOG_MESSAGES,
+  ERROR_MESSAGES,
+  SUCCESS_MESSAGES,
+} from '@/constants/messages'
+import {
   PRODUCT_STATUS_OPTIONS,
   PRODUCTS_TABLE_COLUMNS,
 } from '@/constants/product'
 import { ROUTES } from '@/constants/routes'
 import { CATEGORY_QUERY_OPTIONS } from '@/constants/category'
 import { useCategories } from '@/hooks/useCategory'
-import { useProducts } from '@/hooks/useProduct'
+import { useDeleteProduct, useProducts } from '@/hooks/useProduct'
+import { ProductDeletePreview } from '@/sections/ProductDeletePreview'
 import { ProductTableRow } from '@/sections/ProductTableRow'
+import {
+  getProductListPrice,
+  getProductPrimaryImageUrl,
+} from '@/utils/productDisplay'
 import { getCategoryOptions } from '@/utils/common'
 import { productUrlSchema } from '@/utils/url'
 import { cn } from '@/utils/styles'
 import { useUrlState } from '@/hooks/useUrlState'
 import { Select } from '@/components/Select'
 import { Spinner } from '@/components/ui/spinner'
+import type { Product } from '@/types/product'
 
 const ALL_CATEGORIES_VALUE = 'all-categories'
 
@@ -32,6 +45,12 @@ export const PageContent = () => {
   const { state, update: updateUrl } = useUrlState(productUrlSchema)
   const { page, search, limit, categoryId, status } = state
   const searchDebounceTimerRef = useRef<number | null>(null)
+  const [pendingDelete, setPendingDelete] = useState<Product | null>(null)
+  const [deleteErrorMessage, setDeleteErrorMessage] = useState<string | null>(
+    null,
+  )
+  const { mutate: deleteProductMutate, isPending: isDeletePending } =
+    useDeleteProduct()
 
   const { categories, isLoading: isCategoryLoading } = useCategories(
     CATEGORY_QUERY_OPTIONS,
@@ -90,6 +109,49 @@ export const PageContent = () => {
 
   return (
     <div className="flex flex-col gap-6">
+      <AlertDialog
+        data-testid="modal-confirm-delete-product"
+        open={pendingDelete !== null}
+        isLoading={isDeletePending}
+        errorMessage={deleteErrorMessage}
+        onOpenChange={(open) => {
+          if (!open) {
+            setPendingDelete(null)
+            setDeleteErrorMessage(null)
+          }
+        }}
+        title={DIALOG_MESSAGES.PRODUCT.DELETE.TITLE}
+        description={DIALOG_MESSAGES.PRODUCT.DELETE.DESCRIPTION}
+        textAction={DIALOG_MESSAGES.PRODUCT.DELETE.ACTION}
+        onClickAction={() => {
+          const id = pendingDelete?.id
+          if (!id) return
+          setDeleteErrorMessage(null)
+          deleteProductMutate(id, {
+            onSuccess: () => {
+              toast.success(SUCCESS_MESSAGES.PRODUCT_DELETED)
+              setPendingDelete(null)
+              setDeleteErrorMessage(null)
+            },
+            onError: (error) => {
+              setDeleteErrorMessage(
+                error instanceof Error
+                  ? error.message
+                  : ERROR_MESSAGES.NETWORK_ERROR,
+              )
+            },
+          })
+        }}
+      >
+        {pendingDelete ? (
+          <ProductDeletePreview
+            name={pendingDelete.name}
+            imageUrl={getProductPrimaryImageUrl(pendingDelete)}
+            price={getProductListPrice(pendingDelete)}
+          />
+        ) : null}
+      </AlertDialog>
+
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div className="space-y-3">
           <Breadcrumb
@@ -196,6 +258,7 @@ export const PageContent = () => {
               <ProductTableRow
                 product={product}
                 categoryOptions={categoryOptions}
+                onRequestDelete={(p) => setPendingDelete(p)}
               />
             )}
             emptyMessage="No products found."

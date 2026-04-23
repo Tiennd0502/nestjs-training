@@ -26,24 +26,24 @@ jest.mock('@/hooks/useUser', () => ({
 
 jest.mock('@/components/Select', () => ({
   Select: ({
-    value,
+    selected,
     onValueChange,
     options,
   }: {
-    value?: string
+    selected?: string
     onValueChange?: (value: string) => void
-    options: string[]
+    options: { value: string; label: string }[]
   }) => (
     <label>
       <span className="sr-only">Role filter</span>
       <select
         aria-label="Role filter"
-        value={value}
+        value={selected ?? ''}
         onChange={(event) => onValueChange?.(event.target.value)}
       >
         {options.map((option) => (
-          <option key={option} value={option}>
-            {option}
+          <option key={option.value} value={option.value}>
+            {option.label}
           </option>
         ))}
       </select>

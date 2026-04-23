@@ -5,13 +5,12 @@ import { Pencil, Trash2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import {
-  PRODUCT_STATUS,
-  ROAST_LEVEL,
-  type Product,
-  type ProductImagePayload,
-} from '@/types/product'
+import { PRODUCT_STATUS, ROAST_LEVEL, type Product } from '@/types/product'
 import { formatPrice } from '@/utils/common'
+import {
+  getProductListPrice,
+  getProductPrimaryImageUrl,
+} from '@/utils/productDisplay'
 import { cn } from '@/utils/styles'
 import { type OptionItem } from '@/types/common'
 
@@ -31,25 +30,11 @@ function readProductCategory(
   return category.label
 }
 
-function readProductPrice(product: Product): number {
-  const firstVariant = product.variants[0]
-  if (!firstVariant) return 0
-  return Number.isFinite(firstVariant.price) ? firstVariant.price : 0
-}
-
 function readProductStock(product: Product): number {
   return product.variants.reduce((total, variant) => {
     const quantity = Number.isFinite(variant.quantity) ? variant.quantity : 0
     return total + quantity
   }, 0)
-}
-
-function readProductImageUrl(images: ProductImagePayload[]): string | null {
-  if (images.length === 0) return null
-  const primary = images.find((image) => image.isPrimary)
-  const first = primary ?? images[0]
-  const url = first?.url?.trim() ?? ''
-  return url || null
 }
 
 function formatRoastLevel(level: Product['roastLevel']): string {
@@ -81,11 +66,13 @@ function getStatusStyles(status: PRODUCT_STATUS): string {
 export interface ProductTableRowProps {
   product: Product
   categoryOptions: OptionItem[]
+  onRequestDelete?: (product: Product) => void
 }
 
 export function ProductTableRow({
   product,
   categoryOptions,
+  onRequestDelete,
 }: ProductTableRowProps) {
   const productName = product.name?.trim() || 'Untitled product'
   const categoryLabel = readProductCategory(product, categoryOptions)
@@ -93,8 +80,8 @@ export function ProductTableRow({
   const origin = product.origin?.trim() || 'Unknown origin'
   const status = product.status ?? PRODUCT_STATUS.DRAFT
   const stock = readProductStock(product)
-  const price = readProductPrice(product)
-  const imageUrl = readProductImageUrl(product.images)
+  const price = getProductListPrice(product)
+  const imageUrl = getProductPrimaryImageUrl(product)
 
   return (
     <>
@@ -158,10 +145,15 @@ export function ProductTableRow({
             <Pencil className="size-4" aria-hidden />
           </Button>
           <Button
+            type="button"
             size="icon-xs"
             variant="ghost"
             aria-label={`Delete ${productName}`}
-            disabled
+            disabled={!onRequestDelete || !product.id}
+            onClick={() => {
+              if (!product.id || !onRequestDelete) return
+              onRequestDelete(product)
+            }}
           >
             <Trash2 className="size-4" aria-hidden />
           </Button>
