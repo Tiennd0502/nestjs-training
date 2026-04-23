@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { Pencil, Trash2 } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
@@ -7,12 +8,11 @@ import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { PRODUCT_STATUS, ROAST_LEVEL, type Product } from '@/types/product'
 import { formatPrice } from '@/utils/common'
-import {
-  getProductListPrice,
-  getProductPrimaryImageUrl,
-} from '@/utils/productDisplay'
+import { getProductListPrice, getProductPrimaryImageUrl } from '@/utils/product'
 import { cn } from '@/utils/styles'
 import { type OptionItem } from '@/types/common'
+import { dashboardProductEditPath } from '@/constants/routes'
+import { buttonVariants } from '@/components/ui/button'
 
 type ProductWithCategoryName = Product & {
   categoryName?: string | null
@@ -136,14 +136,20 @@ export function ProductTableRow({
       </td>
       <td className="px-6 py-4">
         <div className="flex justify-end gap-1">
-          <Button
-            size="icon-xs"
-            variant="ghost"
+          <Link
+            href={dashboardProductEditPath(product.id)}
+            className={cn(
+              buttonVariants({ variant: 'ghost', size: 'icon-xs' }),
+              !product.id && 'pointer-events-none opacity-50',
+            )}
             aria-label={`Edit ${productName}`}
-            disabled
+            aria-disabled={!product.id}
+            onClick={(e) => {
+              if (!product.id) e.preventDefault()
+            }}
           >
             <Pencil className="size-4" aria-hidden />
-          </Button>
+          </Link>
           <Button
             type="button"
             size="icon-xs"

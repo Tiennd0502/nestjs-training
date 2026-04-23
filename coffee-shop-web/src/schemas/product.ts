@@ -86,3 +86,25 @@ export const createProductFormSchema = z
   })
 
 export type CreateProductFormValues = z.infer<typeof createProductFormSchema>
+
+export const editProductFormSchema = z.object({
+  categoryId: z
+    .string()
+    .trim()
+    .min(1, { message: ERROR_MESSAGES.FIELD_REQUIRED }),
+  name: z.string().trim().min(1, { message: ERROR_MESSAGES.FIELD_REQUIRED }),
+  description: z
+    .string()
+    .trim()
+    .min(1, { message: ERROR_MESSAGES.FIELD_REQUIRED }),
+  roastLevel: z.enum([ROAST_LEVEL.LIGHT, ROAST_LEVEL.MEDIUM, ROAST_LEVEL.DARK]),
+  isOrganic: z.boolean(),
+  isFairTrade: z.boolean(),
+  origin: z.string().trim().min(1, { message: ERROR_MESSAGES.FIELD_REQUIRED }),
+  processingMethod: z
+    .string()
+    .trim()
+    .min(1, { message: ERROR_MESSAGES.FIELD_REQUIRED }),
+})
+
+export type EditProductFormValues = z.infer<typeof editProductFormSchema>

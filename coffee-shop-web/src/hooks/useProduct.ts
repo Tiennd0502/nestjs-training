@@ -15,11 +15,17 @@ import {
 import {
   createProduct,
   deleteProduct,
+  fetchProductById,
   fetchProducts,
+  updateProduct,
   type ProductOptions,
 } from '@/services/product'
 import type { ResponseMeta } from '@/types/api'
-import type { Product, ProductPayload } from '@/types/product'
+import type {
+  Product,
+  ProductPayload,
+  ProductUpdatePayload,
+} from '@/types/product'
 
 function throwIfServiceFailed(result: { ok: false; error: string }): never {
   throw new Error(result.error)
@@ -41,6 +47,15 @@ const listQueryOptions = {
   gcTime: LIST_QUERY_GC_MS,
   placeholderData: keepPreviousData,
 } as const
+
+const detailQueryOptions = {
+  staleTime: LIST_QUERY_STALE_MS,
+  gcTime: LIST_QUERY_GC_MS,
+} as const
+
+export function productDetailQueryKey(id: string) {
+  return ['products', 'detail', id] as const
+}
 
 export function productsListQueryKey(params: ProductOptions) {
   return [
@@ -110,6 +125,60 @@ export function useDeleteProduct() {
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: productsQueryRoot })
+    },
+  })
+}
+
+export interface UseProductByIdResult {
+  product: Product | null
+  isLoading: boolean
+  isError: boolean
+  errorMessage: string | null
+  refetch: () => Promise<void>
+}
+
+export function useProductById(id: string): UseProductByIdResult {
+  const query = useQuery({
+    queryKey: productDetailQueryKey(id),
+    queryFn: async () => {
+      const result = await fetchProductById(id)
+      if (!result.ok) throwIfServiceFailed(result)
+      return result.product
+    },
+    enabled: Boolean(id?.trim()),
+    ...detailQueryOptions,
+  })
+
+  return {
+    product: query.data ?? null,
+    isLoading: !query.data && query.isFetching,
+    isError: query.isError,
+    errorMessage:
+      query.isError && query.error instanceof Error
+        ? query.error.message
+        : query.isError
+          ? String(query.error)
+          : null,
+    refetch: async () => {
+      await query.refetch()
+    },
+  }
+}
+
+export function useUpdateProduct() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (input: { id: string; body: ProductUpdatePayload }) => {
+      const result = await updateProduct(input.id, input.body)
+      if (!result.ok) throwIfServiceFailed(result)
+      return result.product
+    },
+    onSuccess: (_data, variables) => {
+      void queryClient.invalidateQueries({ queryKey: productsQueryRoot })
+      void queryClient.invalidateQueries({
+        queryKey: productDetailQueryKey(variables.id.trim()),
+      })
     },
   })
 }

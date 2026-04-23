@@ -97,7 +97,7 @@ const UploadImage = ({
                 <p className="truncate text-xl leading-tight font-semibold text-foreground">
                   {title}
                 </p>
-                {renderHelperText('truncate text-lg text-muted-foreground')}
+                {/* {renderHelperText('truncate text-lg text-muted-foreground')} */}
               </div>
             </div>
             <Button
@@ -130,7 +130,7 @@ const UploadImage = ({
                 <p className="truncate text-xl leading-tight font-semibold text-foreground">
                   {title}
                 </p>
-                {renderHelperText('truncate text-lg text-muted-foreground')}
+                {/* {renderHelperText('truncate text-lg text-muted-foreground')} */}
               </div>
             </div>
             <Button

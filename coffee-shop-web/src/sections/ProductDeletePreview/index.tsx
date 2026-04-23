@@ -22,7 +22,7 @@ export function ProductDeletePreview({
             alt={displayName}
             className="rounded-full object-cover"
           />
-          <AvatarFallback className="rounded-full text-sm font-semibold">
+          <AvatarFallback className="rounded-full text-sm font-semibold truncate">
             {displayName.slice(0, 1).toUpperCase()}
           </AvatarFallback>
         </Avatar>

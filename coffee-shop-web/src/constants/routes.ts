@@ -14,6 +14,10 @@ export const ROUTES = {
   USER_PROFILE: '/profile',
 }
 
+export function dashboardProductEditPath(productId: string): string {
+  return `/dashboard/products/${encodeURIComponent(productId.trim())}/edit`
+}
+
 export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000'
 

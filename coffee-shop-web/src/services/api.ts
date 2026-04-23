@@ -153,6 +153,96 @@ export class ApiClient {
     }
   }
 
+  async patch<TResponse>(
+    url: string,
+    body: unknown,
+    options: Omit<ApiRequestOptions, 'query'>,
+  ): Promise<ApiResult<TResponse>> {
+    const { getToken, fallbackError } = options
+    const baseHeaders = await this.createHeaders(getToken)
+    const headers = new Headers(baseHeaders)
+    headers.set('Content-Type', 'application/json')
+
+    try {
+      const response = await fetch(url, {
+        method: 'PATCH',
+        headers,
+        credentials: 'include',
+        body: JSON.stringify(body),
+      })
+      if (!response.ok) {
+        return {
+          ok: false,
+          error: await this.readErrorMessage(
+            response,
+            `${fallbackError} (${response.status})`,
+          ),
+          status: response.status,
+        }
+      }
+
+      let data: TResponse
+      try {
+        data = (await response.json()) as TResponse
+      } catch {
+        data = {} as TResponse
+      }
+
+      return { ok: true, data, status: response.status }
+    } catch (error) {
+      return {
+        ok: false,
+        error:
+          error instanceof Error ? error.message : ERROR_MESSAGES.NETWORK_ERROR,
+      }
+    }
+  }
+
+  async put<TResponse>(
+    url: string,
+    body: unknown,
+    options: Omit<ApiRequestOptions, 'query'>,
+  ): Promise<ApiResult<TResponse>> {
+    const { getToken, fallbackError } = options
+    const baseHeaders = await this.createHeaders(getToken)
+    const headers = new Headers(baseHeaders)
+    headers.set('Content-Type', 'application/json')
+
+    try {
+      const response = await fetch(url, {
+        method: 'PUT',
+        headers,
+        credentials: 'include',
+        body: JSON.stringify(body),
+      })
+      if (!response.ok) {
+        return {
+          ok: false,
+          error: await this.readErrorMessage(
+            response,
+            `${fallbackError} (${response.status})`,
+          ),
+          status: response.status,
+        }
+      }
+
+      let data: TResponse
+      try {
+        data = (await response.json()) as TResponse
+      } catch {
+        data = {} as TResponse
+      }
+
+      return { ok: true, data, status: response.status }
+    } catch (error) {
+      return {
+        ok: false,
+        error:
+          error instanceof Error ? error.message : ERROR_MESSAGES.NETWORK_ERROR,
+      }
+    }
+  }
+
   async delete(
     url: string,
     options: Omit<ApiRequestOptions, 'query'>,
@@ -211,6 +301,22 @@ export async function apiPost<TResponse>(
   options: Omit<ApiRequestOptions, 'query'>,
 ): Promise<ApiResult<TResponse>> {
   return apiClient.post<TResponse>(url, body, options)
+}
+
+export async function apiPatch<TResponse>(
+  url: string,
+  body: unknown,
+  options: Omit<ApiRequestOptions, 'query'>,
+): Promise<ApiResult<TResponse>> {
+  return apiClient.patch<TResponse>(url, body, options)
+}
+
+export async function apiPut<TResponse>(
+  url: string,
+  body: unknown,
+  options: Omit<ApiRequestOptions, 'query'>,
+): Promise<ApiResult<TResponse>> {
+  return apiClient.put<TResponse>(url, body, options)
 }
 
 export async function apiDelete(

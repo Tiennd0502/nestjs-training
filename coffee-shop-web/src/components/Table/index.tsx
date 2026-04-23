@@ -42,7 +42,12 @@ export default function Table<T>({
         <tbody>
           {data.length > 0 ? (
             data.map((item, index) => (
-              <tr key={getRowKey(item, index)}>{renderRow(item, index)}</tr>
+              <tr
+                className={index % 2 === 0 ? 'bg-card' : 'bg-background'}
+                key={getRowKey(item, index)}
+              >
+                {renderRow(item, index)}
+              </tr>
             ))
           ) : (
             <tr>

@@ -31,6 +31,8 @@ export const API_FALLBACK_ERRORS = {
   CATEGORIES_LOAD: 'Could not load categories',
   PRODUCT_CREATE: 'Could not create product',
   PRODUCT_DELETE: 'Could not delete product',
+  PRODUCT_LOAD: 'Could not load product',
+  PRODUCT_UPDATE: 'Could not update product',
   PRODUCTS_LOAD: 'Could not load products',
   IMAGE_UPLOAD: 'Could not upload image',
   USERS_LOAD: 'Could not load users',
@@ -43,6 +45,7 @@ export const SUCCESS_MESSAGES = {
   CATEGORY_CREATED: 'Category created',
   CATEGORY_DELETED: 'Category removed',
   PRODUCT_CREATED: 'Product created',
+  PRODUCT_UPDATED: 'Product updated',
   PRODUCT_DELETED: 'Product removed',
   DRAFT_DISCARDED: 'Draft discarded',
 }

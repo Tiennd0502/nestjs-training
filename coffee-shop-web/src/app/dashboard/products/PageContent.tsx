@@ -27,10 +27,7 @@ import { useCategories } from '@/hooks/useCategory'
 import { useDeleteProduct, useProducts } from '@/hooks/useProduct'
 import { ProductDeletePreview } from '@/sections/ProductDeletePreview'
 import { ProductTableRow } from '@/sections/ProductTableRow'
-import {
-  getProductListPrice,
-  getProductPrimaryImageUrl,
-} from '@/utils/productDisplay'
+import { getProductListPrice, getProductPrimaryImageUrl } from '@/utils/product'
 import { getCategoryOptions } from '@/utils/common'
 import { productUrlSchema } from '@/utils/url'
 import { cn } from '@/utils/styles'
@@ -143,13 +140,13 @@ export const PageContent = () => {
           })
         }}
       >
-        {pendingDelete ? (
+        {pendingDelete && (
           <ProductDeletePreview
             name={pendingDelete.name}
             imageUrl={getProductPrimaryImageUrl(pendingDelete)}
             price={getProductListPrice(pendingDelete)}
           />
-        ) : null}
+        )}
       </AlertDialog>
 
       <header className="flex flex-wrap items-center justify-between gap-4">

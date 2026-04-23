@@ -34,6 +34,16 @@ export interface ProductImagePayload {
   sortOrder: number
 }
 
+export interface ProductImage extends ProductImagePayload {
+  id?: string
+}
+
+export interface ProductImageUpdatePayload {
+  id: string
+  sortOrder: number
+  isPrimary: boolean
+}
+
 export interface ProductPayload {
   categoryId: string
   name: string
@@ -49,6 +59,15 @@ export interface ProductPayload {
   images: ProductImagePayload[]
 }
 
+export interface ProductUpdatePayload extends Omit<
+  ProductPayload,
+  'images' | 'variants'
+> {
+  addImages: ProductImagePayload[]
+  removeImageIds: string[]
+  updateImages: ProductImageUpdatePayload[]
+}
+
 export interface Product {
   id: string
   categoryId: string
@@ -62,7 +81,7 @@ export interface Product {
   origin: string
   processingMethod: string
   variants: ProductVariantPayload[]
-  images: ProductImagePayload[]
+  images: ProductImage[]
   createdAt: string | null
   updatedAt: string | null
 }

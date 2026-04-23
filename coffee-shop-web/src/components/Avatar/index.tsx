@@ -4,7 +4,6 @@ import {
   AvatarFallback,
   AvatarImage,
 } from '@/components/ui/avatar'
-import { Fragment } from 'react'
 
 interface AvatarProps {
   name: string
@@ -27,15 +26,8 @@ export const Avatar = ({
   isProfile = false,
   isDashboard = false,
 }: AvatarProps) => {
-  const Container = isDashboard ? 'div' : Fragment
-
-  const containerClassName = isDashboard ? 'flex items-center gap-4' : ''
-
-  return (
-    <Container
-      key={email}
-      {...(isDashboard && { key: email, className: containerClassName })}
-    >
+  const inner = (
+    <>
       {isDashboard && (
         <div className="flex flex-col w-fit justify-end items-end">
           <p className="text-sm font-medium text-on-surface-variant">{name}</p>
@@ -69,6 +61,14 @@ export const Avatar = ({
           </div>
         )}
       </ShadCNAvatar>
-    </Container>
+    </>
+  )
+
+  return isDashboard ? (
+    <div key={email} className="flex items-center gap-4">
+      {inner}
+    </div>
+  ) : (
+    inner
   )
 }
