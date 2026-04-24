@@ -148,8 +148,8 @@ export const UserDropdown = ({
           <div className="hidden md:block">{accountDropdown}</div>
           <div className="md:hidden">
             <div className="flex flex-col items-start gap-2">
-              {USER_DROPDOWNS.map(
-                ({ text, href, isSignOut = false }, index) => (
+              {USER_DROPDOWNS(isAdmin, isDashboard).map(
+                ({ text = '', href = '', isSignOut = false }, index) => (
                   <Button
                     data-testid="menu-item"
                     variant="ghost"

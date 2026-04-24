@@ -70,11 +70,6 @@ export const Select = ({
         value={internalSelected}
         onValueChange={handleValueChange}
         disabled={disabled}
-        className={cn(
-          'w-full',
-          classNameTrigger,
-          errorMessage && ' border-destructive',
-        )}
         {...rootProps}
       >
         <SelectTrigger
