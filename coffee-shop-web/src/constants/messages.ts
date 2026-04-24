@@ -28,6 +28,8 @@ export const ERROR_MESSAGES = {
 export const API_FALLBACK_ERRORS = {
   CATEGORY_CREATE: 'Could not create category',
   CATEGORY_DELETE: 'Could not delete category',
+  CATEGORY_LOAD: 'Could not load category',
+  CATEGORY_UPDATE: 'Could not update category',
   CATEGORIES_LOAD: 'Could not load categories',
   PRODUCT_CREATE: 'Could not create product',
   PRODUCT_DELETE: 'Could not delete product',
@@ -43,6 +45,7 @@ export const API_FALLBACK_ERRORS = {
 export const SUCCESS_MESSAGES = {
   SIGNED_OUT: 'Signed out successfully',
   CATEGORY_CREATED: 'Category created',
+  CATEGORY_UPDATED: 'Category updated',
   CATEGORY_DELETED: 'Category removed',
   PRODUCT_CREATED: 'Product created',
   PRODUCT_UPDATED: 'Product updated',

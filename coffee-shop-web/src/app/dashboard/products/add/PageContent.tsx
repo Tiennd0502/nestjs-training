@@ -340,7 +340,9 @@ const PageContent = () => {
     mutate(payload, {
       onSuccess: () => {
         toast.success(SUCCESS_MESSAGES.PRODUCT_CREATED)
-        reset()
+        setTimeout(() => {
+          reset()
+        }, 300)
         setAvatarImage(null)
         setGalleryImages([])
         setIsListedOnStorefront(false)

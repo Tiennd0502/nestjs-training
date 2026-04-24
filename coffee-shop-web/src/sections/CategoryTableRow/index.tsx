@@ -1,9 +1,11 @@
 'use client'
 
 import { Pencil, Trash2 } from 'lucide-react'
+import Link from 'next/link'
 
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
+import { dashboardCategoryEditRoute } from '@/constants/routes'
 import type { Category } from '@/types/category'
 import { cn } from '@/utils/styles'
 
@@ -53,7 +55,7 @@ export function CategoryTableRow({
         </div>
       </td>
       <td className="px-6 py-4">
-        <code className="rounded-md bg-muted px-4 py-2 text-sm truncate overflow-hidden text-ellipsis text-muted-foreground">
+        <code className="rounded-md bg-muted px-2 py-0.5 text-sm text-muted-foreground">
           {category.slug || '—'}
         </code>
       </td>
@@ -65,14 +67,27 @@ export function CategoryTableRow({
       </td>
       <td className="px-6 py-4">
         <div className="flex justify-end gap-1">
-          <Button
-            size="icon-xs"
-            variant="ghost"
-            aria-label={`Edit ${category.name}`}
-            disabled={isDeleted}
-          >
-            <Pencil className="size-4" aria-hidden />
-          </Button>
+          {!isDeleted && category.id ? (
+            <Link
+              href={dashboardCategoryEditRoute(category.id)}
+              className={cn(
+                buttonVariants({ variant: 'ghost', size: 'icon-xs' }),
+                'inline-flex',
+              )}
+              aria-label={`Edit ${category.name}`}
+            >
+              <Pencil className="size-4" aria-hidden />
+            </Link>
+          ) : (
+            <Button
+              size="icon-xs"
+              variant="ghost"
+              aria-label={`Edit ${category.name}`}
+              disabled
+            >
+              <Pencil className="size-4" aria-hidden />
+            </Button>
+          )}
           <Button
             type="button"
             size="icon-xs"

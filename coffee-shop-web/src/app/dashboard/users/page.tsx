@@ -1,16 +1,11 @@
 import { Suspense } from 'react'
 
+import Loading from '@/components/Loading'
 import { PageContent } from './PageContent'
 
 export default function UsersPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="px-6 py-12 text-center text-muted-foreground">
-          Loading…
-        </div>
-      }
-    >
+    <Suspense fallback={<Loading label="Loading users page" />}>
       <PageContent />
     </Suspense>
   )

@@ -16,7 +16,9 @@ import {
 import {
   createCategory,
   deleteCategory,
+  fetchCategoryById,
   fetchCategories,
+  updateCategory,
   type CategoryOptions,
 } from '@/services/category'
 import type { Category, CategoryPayload } from '@/types/category'
@@ -48,6 +50,15 @@ const listQueryOptions = {
   gcTime: LIST_QUERY_GC_MS,
   placeholderData: keepPreviousData,
 } as const
+
+const detailQueryOptions = {
+  staleTime: LIST_QUERY_STALE_MS,
+  gcTime: LIST_QUERY_GC_MS,
+} as const
+
+export function categoryDetailQueryKey(id: string) {
+  return ['categories', 'detail', id] as const
+}
 
 function invalidateCategoryLists(queryClient: QueryClient) {
   void queryClient.invalidateQueries({ queryKey: categoriesQueryRoot })
@@ -113,5 +124,59 @@ export function useDeleteCategory() {
       if (!result.ok) throwIfServiceFailed(result)
     },
     onSuccess: () => invalidateCategoryLists(queryClient),
+  })
+}
+
+export interface UseCategoryByIdResult {
+  category: Category | null
+  isLoading: boolean
+  isError: boolean
+  errorMessage: string | null
+  refetch: () => Promise<void>
+}
+
+export function useCategoryById(id: string): UseCategoryByIdResult {
+  const query = useQuery({
+    queryKey: categoryDetailQueryKey(id),
+    queryFn: async () => {
+      const result = await fetchCategoryById(id)
+      if (!result.ok) throwIfServiceFailed(result)
+      return result.category
+    },
+    enabled: Boolean(id?.trim()),
+    ...detailQueryOptions,
+  })
+
+  return {
+    category: query.data ?? null,
+    isLoading: !query.data && query.isFetching,
+    isError: query.isError,
+    errorMessage:
+      query.isError && query.error instanceof Error
+        ? query.error.message
+        : query.isError
+          ? String(query.error)
+          : null,
+    refetch: async () => {
+      await query.refetch()
+    },
+  }
+}
+
+export function useUpdateCategory() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (input: { id: string; body: CategoryPayload }) => {
+      const result = await updateCategory(input.id, input.body)
+      if (!result.ok) throwIfServiceFailed(result)
+      return result.category
+    },
+    onSuccess: (_data, variables) => {
+      invalidateCategoryLists(queryClient)
+      void queryClient.invalidateQueries({
+        queryKey: categoryDetailQueryKey(variables.id.trim()),
+      })
+    },
   })
 }

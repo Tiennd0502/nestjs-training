@@ -121,7 +121,7 @@ const EditProductForm = ({ product, productId }: EditProductFormProps) => {
     reset,
     setValue,
     watch,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<EditProductFormValues>({
     resolver: zodResolver(editProductFormSchema),
     defaultValues: EDIT_FORM_DEFAULTS,
@@ -144,6 +144,34 @@ const EditProductForm = ({ product, productId }: EditProductFormProps) => {
 
   const roastLevel = watch('roastLevel')
   const isSubmitting = isUpdatePending || isUploadingImages
+  const initialNotes = parseTastingNotesString(product.tastingNotes)
+  const initialListedOnStorefront = product.status === PRODUCT_STATUS.ACTIVE
+  const { primaryUrl: initialPrimaryUrl, galleryItems: initialGalleryItems } =
+    splitProductImagesForGallery(product)
+
+  const hasStorefrontChanged =
+    isListedOnStorefront !== initialListedOnStorefront
+  const hasTastingNotesChanged =
+    tastingNotes.join('|') !== initialNotes.join('|')
+  const hasPrimaryImageChanged =
+    Boolean(avatarImage) ||
+    (serverPrimaryUrl ?? '') !== (initialPrimaryUrl ?? '')
+  const hasGallerySelectionChanged = galleryImages.length > 0
+  const hasGalleryItemsChanged =
+    existingGalleryItems.length !== initialGalleryItems.length ||
+    existingGalleryItems.some((item, index) => {
+      const initial = initialGalleryItems[index]
+      return item.id !== initial?.id || item.url !== initial?.url
+    })
+
+  const hasAnyChanges =
+    isDirty ||
+    hasStorefrontChanged ||
+    hasTastingNotesChanged ||
+    hasPrimaryImageChanged ||
+    hasGallerySelectionChanged ||
+    hasGalleryItemsChanged
+  const submitDisabled = isSubmitting || !hasAnyChanges
 
   const handleResetChanges = () => {
     reset(mapProductToEditFormValues(product))
@@ -393,7 +421,7 @@ const EditProductForm = ({ product, productId }: EditProductFormProps) => {
           <Button
             type="button"
             className="w-auto px-8"
-            disabled={isSubmitting}
+            disabled={submitDisabled}
             loading={isSubmitting}
             onClick={handleSubmit(onSubmit)}
           >

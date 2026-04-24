@@ -15,7 +15,11 @@ export const ROUTES = {
 }
 
 export function dashboardProductEditPath(productId: string): string {
-  return `/dashboard/products/${encodeURIComponent(productId.trim())}/edit`
+  return `${ROUTES.DASHBOARD_PRODUCTS}/${encodeURIComponent(productId)}/edit`
+}
+
+export function dashboardCategoryEditRoute(categoryId: string): string {
+  return `${ROUTES.DASHBOARD_CATEGORIES}/${encodeURIComponent(categoryId)}/edit`
 }
 
 export function shopRoastDetailPath(roastId: string): string {

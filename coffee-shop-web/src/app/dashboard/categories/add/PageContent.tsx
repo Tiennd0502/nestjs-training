@@ -83,21 +83,19 @@ const PageContent = () => {
       </section>
 
       <section className="overflow-hidden rounded-3xl border border-outline-variant/40 bg-card p-6 md:p-8">
-        <div>
-          <Input
-            id="category-name"
-            label="Category name"
-            type="text"
-            autoComplete="off"
-            placeholder="Enter category name"
-            disabled={isPending}
-            errorMessage={errors.name?.message}
-            className="mt-2"
-            {...register('name', {
-              onChange: () => clearErrors('name'),
-            })}
-          />
-        </div>
+        <Input
+          id="category-name"
+          label="Category name"
+          type="text"
+          autoComplete="off"
+          placeholder="Enter category name"
+          disabled={isPending}
+          errorMessage={errors.name?.message}
+          className="mt-2"
+          {...register('name', {
+            onChange: () => clearErrors('name'),
+          })}
+        />
       </section>
     </form>
   )
