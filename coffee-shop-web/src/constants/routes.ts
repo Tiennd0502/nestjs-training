@@ -18,6 +18,10 @@ export function dashboardProductEditPath(productId: string): string {
   return `/dashboard/products/${encodeURIComponent(productId.trim())}/edit`
 }
 
+export function shopRoastDetailPath(roastId: string): string {
+  return `/roasts/${encodeURIComponent(roastId.trim())}`
+}
+
 export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000'
 

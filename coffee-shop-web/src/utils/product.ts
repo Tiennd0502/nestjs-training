@@ -11,7 +11,7 @@ import {
   type ProductImageUpdatePayload,
 } from '@/types/product'
 
-const LOW_STOCK_THRESHOLD = 10
+export const LOW_STOCK_THRESHOLD = 10
 
 function formatProductRoastMeta(product: Product): string {
   const levelLabel: Record<ROAST_LEVEL, string> = {

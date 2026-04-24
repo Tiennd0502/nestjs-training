@@ -24,10 +24,12 @@ describe('fetchUsers', () => {
     expect(fetchMock).toHaveBeenCalledWith(
       `${API_ROUTES.USERS}`,
       expect.objectContaining({
-        headers: { Accept: 'application/json' },
         credentials: 'include',
       }),
     )
+    const init = fetchMock.mock.calls[0]?.[1] as RequestInit | undefined
+    expect(init?.headers).toBeInstanceOf(Headers)
+    expect((init?.headers as Headers).get('Accept')).toBe('application/json')
     expect(result.ok).toBe(true)
     if (result.ok) {
       expect(result.users).toHaveLength(1)

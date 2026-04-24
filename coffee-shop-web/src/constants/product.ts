@@ -44,3 +44,58 @@ export const PRODUCT_STATUS_OPTIONS: {
   { value: PRODUCT_STATUS.INACTIVE, label: 'Inactive' },
   { value: PRODUCT_STATUS.ARCHIVED, label: 'Archived' },
 ]
+
+export const SERIES_KICKER = 'THE SENSORY BREW — SERIES 01'
+
+export const COMMUNITY_KICKER = 'COMMUNITY VOICES'
+
+export const PLACEHOLDER_RATING = 4.9
+export const PLACEHOLDER_REVIEW_COUNT = 128
+
+export interface ProductReviewDisplay {
+  id: string
+  authorName: string
+  authorRole: string
+  rating: 1 | 2 | 3 | 4 | 5
+  quote: string
+  dateLabel: string
+}
+
+export const MOCK_PRODUCT_REVIEWS: ProductReviewDisplay[] = [
+  {
+    id: 'r-1',
+    authorName: 'Julian Thorne',
+    authorRole: 'Verified Enthusiast',
+    rating: 5,
+    quote:
+      'Bright acidity without harsh edges — exactly what I want from a washed Yirgacheffe.',
+    dateLabel: 'October 14, 2024',
+  },
+  {
+    id: 'r-2',
+    authorName: 'Maya Chen',
+    authorRole: 'Home Barista',
+    rating: 5,
+    quote:
+      'Floral on the nose and a clean finish. My go-to for weekend pour-overs.',
+    dateLabel: 'September 2, 2024',
+  },
+]
+
+export const SHOP_PDP_TRUST_ITEMS = [
+  {
+    id: 'ship',
+    title: 'Free Shipping',
+    description: 'On qualifying orders',
+  },
+  {
+    id: 'ethics',
+    title: 'Ethically Sourced',
+    description: 'Partner farms we trust',
+  },
+  {
+    id: 'quality',
+    title: 'Quality Guaranteed',
+    description: 'Roasted with care',
+  },
+] as const

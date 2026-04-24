@@ -30,6 +30,12 @@ export const ROAST_LEVEL_OPTIONS: RoastLevelOption[] = [
   { value: ROAST_LEVEL.DARK, label: 'Dark Roast' },
 ]
 
+export const ROAST_LEVEL_SPECTRUM_PERCENT: Record<ROAST_LEVEL, number> = {
+  [ROAST_LEVEL.LIGHT]: 15,
+  [ROAST_LEVEL.MEDIUM]: 50,
+  [ROAST_LEVEL.DARK]: 85,
+}
+
 export const ROAST_SORT_OPTIONS: OptionItem[] = [
   { value: ROAST_SORT_VALUE.CURATED, label: 'Curated Selection' },
   { value: ROAST_SORT_VALUE.PRICE_ASC, label: 'Price: Low to High' },

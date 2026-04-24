@@ -69,11 +69,17 @@ export class ApiClient {
     return fallback
   }
 
-  private async createHeaders(getToken?: TokenGetter): Promise<HeadersInit> {
-    const headers: HeadersInit = { Accept: 'application/json' }
+  private async createHeaders(
+    getToken?: TokenGetter,
+    options?: { jsonBody?: boolean },
+  ): Promise<Headers> {
+    const headers = new Headers({ Accept: 'application/json' })
     const token = getToken ? await getToken() : null
     if (token) {
-      headers.Authorization = `Bearer ${token}`
+      headers.set('Authorization', `Bearer ${token}`)
+    }
+    if (options?.jsonBody) {
+      headers.set('Content-Type', 'application/json')
     }
     return headers
   }
@@ -115,8 +121,7 @@ export class ApiClient {
     options: Omit<ApiRequestOptions, 'query'>,
   ): Promise<ApiResult<TResponse>> {
     const { getToken, fallbackError } = options
-    const headers = await this.createHeaders(getToken)
-    headers['Content-Type'] = 'application/json'
+    const headers = await this.createHeaders(getToken, { jsonBody: true })
 
     try {
       const response = await fetch(url, {
@@ -159,9 +164,7 @@ export class ApiClient {
     options: Omit<ApiRequestOptions, 'query'>,
   ): Promise<ApiResult<TResponse>> {
     const { getToken, fallbackError } = options
-    const baseHeaders = await this.createHeaders(getToken)
-    const headers = new Headers(baseHeaders)
-    headers.set('Content-Type', 'application/json')
+    const headers = await this.createHeaders(getToken, { jsonBody: true })
 
     try {
       const response = await fetch(url, {
@@ -204,9 +207,7 @@ export class ApiClient {
     options: Omit<ApiRequestOptions, 'query'>,
   ): Promise<ApiResult<TResponse>> {
     const { getToken, fallbackError } = options
-    const baseHeaders = await this.createHeaders(getToken)
-    const headers = new Headers(baseHeaders)
-    headers.set('Content-Type', 'application/json')
+    const headers = await this.createHeaders(getToken, { jsonBody: true })
 
     try {
       const response = await fetch(url, {
@@ -287,41 +288,3 @@ export class ApiClient {
   }
 }
 export const apiClient = new ApiClient()
-
-export async function apiGet<T>(
-  url: string,
-  options: ApiRequestOptions,
-): Promise<ApiResult<T>> {
-  return apiClient.get<T>(url, options)
-}
-
-export async function apiPost<TResponse>(
-  url: string,
-  body: unknown,
-  options: Omit<ApiRequestOptions, 'query'>,
-): Promise<ApiResult<TResponse>> {
-  return apiClient.post<TResponse>(url, body, options)
-}
-
-export async function apiPatch<TResponse>(
-  url: string,
-  body: unknown,
-  options: Omit<ApiRequestOptions, 'query'>,
-): Promise<ApiResult<TResponse>> {
-  return apiClient.patch<TResponse>(url, body, options)
-}
-
-export async function apiPut<TResponse>(
-  url: string,
-  body: unknown,
-  options: Omit<ApiRequestOptions, 'query'>,
-): Promise<ApiResult<TResponse>> {
-  return apiClient.put<TResponse>(url, body, options)
-}
-
-export async function apiDelete(
-  url: string,
-  options: Omit<ApiRequestOptions, 'query'>,
-): Promise<ApiResult<undefined>> {
-  return apiClient.delete(url, options)
-}
