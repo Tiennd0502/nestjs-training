@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import type React from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 
 import RoastDetailPageContent from '@/sections/RoastDetailPageContent'
 import { useProductById } from '@/hooks/useProduct'
@@ -13,6 +13,7 @@ import {
 
 jest.mock('next/navigation', () => ({
   useParams: jest.fn(),
+  useRouter: jest.fn(),
 }))
 
 jest.mock('@/hooks/useProduct', () => ({
@@ -53,6 +54,7 @@ beforeAll(() => {
 })
 
 const mockUseParams = jest.mocked(useParams)
+const mockUseRouter = jest.mocked(useRouter)
 const mockUseProductById = jest.mocked(useProductById)
 
 const productFixture: Product = {
@@ -92,6 +94,9 @@ const productFixture: Product = {
 describe('RoastDetailPageContent', () => {
   beforeEach(() => {
     mockUseParams.mockReturnValue({ id: 'product-1' })
+    mockUseRouter.mockReturnValue({
+      push: jest.fn(),
+    } as unknown as ReturnType<typeof useRouter>)
   })
 
   it('shows loading skeleton when loading', () => {

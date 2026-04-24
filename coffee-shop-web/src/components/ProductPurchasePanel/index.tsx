@@ -1,14 +1,16 @@
 'use client'
 
-import { Heart, Minus, Plus, ShoppingCart } from 'lucide-react'
-import { useCallback, useEffect, useState } from 'react'
+import { Heart, ShoppingCart } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 import { toast } from 'sonner'
 
+import { Quantity } from '@/components/Quantity'
 import { Button } from '@/components/ui/button'
+import { ROUTES } from '@/constants/routes'
+import { useCartStore } from '@/store/useCartStore'
 import type { Product } from '@/types/product'
 import { cn } from '@/utils/styles'
-
-const QUANTITY_CAP = 99
 
 export interface ProductPurchasePanelProps {
   product: Product
@@ -19,27 +21,35 @@ export function ProductPurchasePanel({
   product,
   className,
 }: ProductPurchasePanelProps) {
+  const router = useRouter()
+  const { addItem } = useCartStore()
   const productName = product.name
   const maxQuantity = product.variants[0]?.quantity ?? 1
-  const effectiveMax = Math.max(1, Math.min(maxQuantity, QUANTITY_CAP))
   const [quantity, setQuantity] = useState(1)
 
-  useEffect(() => {
-    setQuantity((q) => Math.min(q, effectiveMax))
-  }, [effectiveMax])
-
-  const decrement = useCallback(() => {
-    setQuantity((q) => Math.max(1, q - 1))
-  }, [])
-
-  const increment = useCallback(() => {
-    setQuantity((q) => Math.min(effectiveMax, q + 1))
-  }, [effectiveMax])
-
   const handleAddToCart = () => {
-    toast.info('Cart checkout is coming soon.', {
+    const primaryImage = [...product.images]
+      .sort((a, b) => a.sortOrder - b.sortOrder)
+      .find((image) => Boolean(image.url))
+    const unitPrice = product.variants[0]?.price ?? 0
+    const meta = [product.roastLevel, product.tastingNotes]
+      .filter(Boolean)
+      .join(' • ')
+
+    addItem({
+      productId: product.id,
+      name: productName,
+      meta,
+      imageUrl: primaryImage?.url ?? '',
+      unitPrice,
+      quantity,
+      maxQuantity: maxQuantity,
+    })
+
+    toast.success('Added to cart', {
       description: `${quantity} × ${productName}`,
     })
+    router.push(ROUTES.CART)
   }
 
   const handleWishlist = () => {
@@ -54,40 +64,12 @@ export function ProductPurchasePanel({
       data-testid="product-purchase-panel"
     >
       <div className="flex w-full gap-6">
-        <div
-          className="inline-flex h-13 items-center rounded-full border border-outline-variant/80 bg-surface-container-low/90 px-1 dark:bg-surface-container-high/80"
-          role="group"
-          aria-label="Quantity"
-        >
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-sm"
-            className="size-10 rounded-full"
-            aria-label="Decrease quantity"
-            onClick={decrement}
-            disabled={quantity <= 1}
-          >
-            <Minus className="size-4" aria-hidden />
-          </Button>
-          <span
-            className="min-w-10 text-center text-sm font-semibold text-on-surface tabular-nums"
-            aria-live="polite"
-          >
-            {quantity}
-          </span>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-sm"
-            className="size-10 rounded-full"
-            aria-label="Increase quantity"
-            onClick={increment}
-            disabled={quantity >= effectiveMax}
-          >
-            <Plus className="size-4" aria-hidden />
-          </Button>
-        </div>
+        <Quantity
+          value={quantity}
+          min={1}
+          max={maxQuantity}
+          onChange={setQuantity}
+        />
 
         <Button
           type="button"
