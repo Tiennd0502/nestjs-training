@@ -1,5 +1,6 @@
 export interface CartItem {
   id: string
+  variantId: string
   productId: string
   name: string
   meta: string
@@ -17,6 +18,7 @@ export interface CartTotals {
 }
 
 export interface CartAddItemInput {
+  variantId: string
   productId: string
   name: string
   meta: string

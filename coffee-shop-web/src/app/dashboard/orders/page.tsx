@@ -1,3 +1,12 @@
+import { Suspense } from 'react'
+
+import OrdersPageContent from '@/sections/OrdersPageContent'
+import Loading from '@/components/Loading'
+
 export default function DashboardOrdersPage() {
-  return <p className="text-muted-foreground">Orders — placeholder.</p>
+  return (
+    <Suspense fallback={<Loading size="lg" label="Loading orders page" />}>
+      <OrdersPageContent />
+    </Suspense>
+  )
 }

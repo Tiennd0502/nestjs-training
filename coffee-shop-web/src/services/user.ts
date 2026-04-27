@@ -47,9 +47,25 @@ function getStatus(value: unknown): User['status'] {
   return undefined
 }
 
-export function parseAuthUserPayload(body: unknown): User | null {
-  if (!body || typeof body !== 'object') return null
-  const root = body as Record<string, unknown>
+export async function fetchUser(
+  getToken?: () => Promise<string | null>,
+): Promise<
+  { ok: true; user: User } | { ok: false; error: string; status?: number }
+> {
+  const result = await apiClient.get<unknown>(API_ROUTES.ME, {
+    getToken,
+    fallbackError: API_FALLBACK_ERRORS.PROFILE_LOAD,
+  })
+  if (!result.ok) return result
+
+  if (!result.data || typeof result.data !== 'object') {
+    return {
+      ok: false,
+      error: ERROR_MESSAGES.UNEXPECTED_PROFILE_RESPONSE,
+    }
+  }
+
+  const root = result.data as Record<string, unknown>
   const payload =
     root.data !== undefined &&
     root.data !== null &&
@@ -65,7 +81,12 @@ export function parseAuthUserPayload(body: unknown): User | null {
       ? payload.email.trim()
       : null)
 
-  if (!id) return null
+  if (!id) {
+    return {
+      ok: false,
+      error: ERROR_MESSAGES.UNEXPECTED_PROFILE_RESPONSE,
+    }
+  }
 
   const firstName =
     readString(payload.firstName) ?? readString(payload.first_name)
@@ -79,39 +100,64 @@ export function parseAuthUserPayload(body: unknown): User | null {
     readString(payload.avatarUrl) ??
     readString(payload.avatar_url) ??
     readString(payload.picture)
+  const addressCandidates = [
+    payload.address,
+    payload.shippingAddress,
+    payload.shipping_address,
+  ]
+  const addressPayload = (addressCandidates.find(
+    (candidate) =>
+      candidate !== null &&
+      typeof candidate === 'object' &&
+      !Array.isArray(candidate),
+  ) ?? null) as Record<string, unknown> | null
+  const address = addressPayload
+    ? {
+        firstName:
+          readString(addressPayload.firstName) ??
+          readString(addressPayload.first_name),
+        lastName:
+          readString(addressPayload.lastName) ??
+          readString(addressPayload.last_name),
+        phoneNumber:
+          readString(addressPayload.phoneNumber) ??
+          readString(addressPayload.phone_number),
+        addressLine:
+          readString(addressPayload.addressLine) ??
+          readString(addressPayload.address_line) ??
+          readString(addressPayload.address) ??
+          readString(addressPayload.line1) ??
+          readString(addressPayload.street),
+        district: readString(addressPayload.district),
+        ward: readString(addressPayload.ward),
+        city: readString(addressPayload.city),
+        postalCode:
+          readString(addressPayload.postalCode) ??
+          readString(addressPayload.postal_code) ??
+          readString(addressPayload.zipCode) ??
+          readString(addressPayload.zip_code),
+        isDefault:
+          typeof addressPayload.isDefault === 'boolean'
+            ? addressPayload.isDefault
+            : typeof addressPayload.is_default === 'boolean'
+              ? addressPayload.is_default
+              : null,
+      }
+    : null
   const role = getRole(payload.role)
   const status = getStatus(payload.status)
-
-  return {
+  const user: User = {
     id,
     email,
     firstName,
     lastName,
+    address,
     name,
-    imageUrl,
+    avatarUrl: imageUrl,
     role,
     status,
   }
-}
 
-export async function fetchUser(
-  getToken?: () => Promise<string | null>,
-): Promise<
-  { ok: true; user: User } | { ok: false; error: string; status?: number }
-> {
-  const result = await apiClient.get<unknown>(API_ROUTES.ME, {
-    getToken,
-    fallbackError: API_FALLBACK_ERRORS.PROFILE_LOAD,
-  })
-  if (!result.ok) return result
-
-  const user = parseAuthUserPayload(result.data)
-  if (!user) {
-    return {
-      ok: false,
-      error: ERROR_MESSAGES.UNEXPECTED_PROFILE_RESPONSE,
-    }
-  }
   return { ok: true, user }
 }
 

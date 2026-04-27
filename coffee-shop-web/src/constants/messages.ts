@@ -23,6 +23,18 @@ export const ERROR_MESSAGES = {
   IMAGE_UPLOAD_NOT_CONFIGURED: 'Image upload is not configured',
   PRODUCT_AVATAR_REQUIRED: 'Main hero image is required',
   PRODUCT_GALLERY_REQUIRED: 'At least one gallery image is required',
+  ADDRESS_REQUIRED: 'Enter your delivery address',
+  PHONE_NUMBER_REQUIRED: 'Enter your phone number',
+  CITY_REQUIRED: 'Enter your city',
+  DISTRICT_REQUIRED: 'Enter your district',
+  WARD_REQUIRED: 'Enter your ward',
+  POSTAL_CODE_REQUIRED: 'Enter your postal code',
+  CARD_NUMBER_REQUIRED: 'Enter your card number',
+  CARD_NUMBER_INVALID: 'Enter a valid card number',
+  EXPIRY_DATE_REQUIRED: 'Enter your expiry date',
+  EXPIRY_DATE_INVALID: 'Enter expiry date as MM/YY',
+  CVC_REQUIRED: 'Enter your CVC',
+  CVC_INVALID: 'Enter a valid CVC',
 } as const
 
 export const API_FALLBACK_ERRORS = {
@@ -40,6 +52,11 @@ export const API_FALLBACK_ERRORS = {
   USERS_LOAD: 'Could not load users',
   USER_DELETE: 'Could not delete user',
   PROFILE_LOAD: 'Could not load profile',
+  ORDER_CREATE: 'Could not place order',
+  ORDER_DELETE: 'Could not delete order',
+  ORDER_STATUS_UPDATE: 'Could not update order status',
+  ORDER_SHIPPING_STATUS_UPDATE: 'Could not update shipping status',
+  ORDERS_LOAD: 'Could not load orders',
 } as const
 
 export const SUCCESS_MESSAGES = {
@@ -50,6 +67,9 @@ export const SUCCESS_MESSAGES = {
   PRODUCT_CREATED: 'Product created',
   PRODUCT_UPDATED: 'Product updated',
   PRODUCT_DELETED: 'Product removed',
+  ORDER_DELETED: 'Order removed',
+  ORDER_STATUS_UPDATED: 'Order status updated',
+  ORDER_SHIPPING_STATUS_UPDATED: 'Shipping status updated',
   DRAFT_DISCARDED: 'Draft discarded',
 }
 
@@ -68,6 +88,14 @@ export const DIALOG_MESSAGES = {
       ACTION: 'Delete Product',
       DESCRIPTION:
         'Are you sure you want to delete this product? This action cannot be undone.',
+    },
+  },
+  ORDER: {
+    DELETE: {
+      TITLE: 'Delete order?',
+      ACTION: 'Delete order',
+      DESCRIPTION: (orderLabel: string) =>
+        `Are you sure you want to delete order ${orderLabel}? This action cannot be undone.`,
     },
   },
 }

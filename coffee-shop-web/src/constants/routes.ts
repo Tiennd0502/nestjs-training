@@ -1,6 +1,8 @@
 export const ROUTES = {
   HOME: '/',
   CART: '/cart',
+  CHECKOUT: '/checkout',
+  ORDER_SUCCESS: '/order-success',
   DASHBOARD: '/dashboard',
   DASHBOARD_PRODUCTS: '/dashboard/products',
   DASHBOARD_PRODUCTS_ADD: '/dashboard/products/add',
@@ -8,6 +10,7 @@ export const ROUTES = {
   DASHBOARD_CATEGORIES_ADD: '/dashboard/categories/add',
   DASHBOARD_USERS: '/dashboard/users',
   DASHBOARD_USERS_ADD: '/dashboard/users/add',
+  DASHBOARD_ORDERS: '/dashboard/orders',
   SIGN_IN: process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL ?? '/sign-in',
   SIGN_UP: process.env.NEXT_PUBLIC_CLERK_SIGN_UP_URL ?? '/sign-up',
   SIGN_UP_VERIFY: `${process.env.NEXT_PUBLIC_CLERK_SIGN_UP_URL ?? '/sign-up'}/verify`,
@@ -34,4 +37,5 @@ export const API_ROUTES = {
   USERS: `${API_BASE_URL}/api/v1/users`,
   CATEGORIES: `${API_BASE_URL}/api/v1/categories`,
   PRODUCTS: `${API_BASE_URL}/api/v1/products`,
+  ORDERS: `${API_BASE_URL}/api/v1/orders`,
 }

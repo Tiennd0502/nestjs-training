@@ -83,7 +83,7 @@ export const DASHBOARD_MENU = [
   },
   {
     label: 'Orders',
-    href: '/dashboard/orders',
+    href: ROUTES.DASHBOARD_ORDERS,
     icon: FileText,
     match: 'prefix',
   },

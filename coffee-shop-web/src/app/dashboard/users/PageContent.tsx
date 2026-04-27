@@ -59,11 +59,18 @@ export const PageContent = () => {
     return () => window.clearTimeout(id)
   }, [searchInput])
 
+  const normalizedRole =
+    role &&
+    role !== ROLE_FILTER_OPTIONS[0] &&
+    (ROLE_FILTER_OPTIONS as readonly string[]).includes(role)
+      ? role
+      : null
+
   const { users, meta, isLoading, isError, errorMessage, refetch } = useUsers({
     page,
     limit,
     search: search.trim(),
-    role: role ?? undefined,
+    role: normalizedRole ?? undefined,
   })
 
   const totalPages = Math.max(1, meta?.pageCount ?? 1)
@@ -77,9 +84,7 @@ export const PageContent = () => {
   }, [page, totalPages, updateUrl])
 
   const handleRoleChange = (value: unknown) => {
-    if (typeof value !== 'string' || !ROLE_FILTER_OPTIONS.includes(value)) {
-      return
-    }
+    if (typeof value !== 'string') return
     updateUrl({
       role: value === ROLE_FILTER_OPTIONS[0] ? null : value,
       page: 1,
@@ -138,7 +143,7 @@ export const PageContent = () => {
             <div className="min-w-40">
               <Select
                 classNameTrigger="rounded-full capitalize"
-                selected={role ?? ROLE_FILTER_OPTIONS[0]}
+                selected={normalizedRole ?? ROLE_FILTER_OPTIONS[0]}
                 onValueChange={handleRoleChange}
                 options={ROLE_FILTER_OPTIONS.map((option) => ({
                   value: option,

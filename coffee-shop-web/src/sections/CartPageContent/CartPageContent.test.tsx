@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import type React from 'react'
 import { useRouter } from 'next/navigation'
 
@@ -22,12 +22,6 @@ jest.mock('next/image', () => ({
   }: React.ImgHTMLAttributes<HTMLImageElement> & { src: string }) => (
     <img alt={alt ?? ''} src={src} {...rest} />
   ),
-}))
-
-jest.mock('sonner', () => ({
-  toast: {
-    info: jest.fn(),
-  },
 }))
 
 const mockUseRouter = jest.mocked(useRouter)
@@ -67,7 +61,7 @@ const baseUseCartResult = {
   isError: false,
   errorMessage: null,
   addItem: jest.fn(),
-  onChangeQuantity: jest.fn(),
+  changeQuantity: jest.fn(),
   removeItem: jest.fn(),
   clearCart: jest.fn(),
   refetch: jest.fn(),
@@ -140,5 +134,31 @@ describe('CartPageContent', () => {
 
     expect(screen.getByText('Your cart is empty.')).toBeInTheDocument()
     expect(push).toHaveBeenCalledWith('/')
+  })
+
+  it('navigates to checkout when clicking proceed to checkout', () => {
+    const push = jest.fn()
+    mockUseRouter.mockReturnValue({
+      push,
+    } as unknown as ReturnType<typeof useRouter>)
+
+    render(<CartPageContent />)
+    fireEvent.click(screen.getByRole('button', { name: 'Proceed to Checkout' }))
+
+    expect(push).toHaveBeenCalledWith('/checkout')
+  })
+
+  it('opens remove dialog and confirms removing item', () => {
+    render(<CartPageContent />)
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Remove Ethiopian Yirgacheffe' }),
+    )
+    const modal = screen.getByTestId('modal-confirm-remove-cart-item')
+    expect(within(modal).getByText('Remove item?')).toBeInTheDocument()
+    expect(within(modal).getByText('Ethiopian Yirgacheffe')).toBeInTheDocument()
+
+    fireEvent.click(within(modal).getByRole('button', { name: 'Remove' }))
+    expect(baseUseCartResult.removeItem).toHaveBeenCalledWith('line-1')
   })
 })

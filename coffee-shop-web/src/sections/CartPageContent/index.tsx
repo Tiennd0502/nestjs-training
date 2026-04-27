@@ -1,16 +1,23 @@
 'use client'
 
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { toast } from 'sonner'
+import { useState } from 'react'
 
+import AlertDialog from '@/components/AlertDialog'
 import { CartLineItem } from '@/components/CartLineItem'
 import { CartSummaryCard } from '@/components/CartSummaryCard'
 import { Button } from '@/components/ui/button'
 import { ROUTES } from '@/constants/routes'
 import { useCartStore } from '@/store/useCartStore'
+import type { CartItem } from '@/types/cart'
+import { formatCurrency } from '@/utils/cart'
 
 export default function CartPageContent() {
   const router = useRouter()
+  const [pendingRemoveItem, setPendingRemoveItem] = useState<CartItem | null>(
+    null,
+  )
   const {
     items,
     totals,
@@ -23,9 +30,7 @@ export default function CartPageContent() {
   } = useCartStore()
 
   const handleCheckout = () => {
-    toast.info('Checkout will be available soon.', {
-      description: `Total ${totals.total.toFixed(2)} USD`,
-    })
+    router.push(ROUTES.CHECKOUT)
   }
 
   const handleContinueShopping = () => {
@@ -76,6 +81,46 @@ export default function CartPageContent() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 md:px-6 md:py-12">
+      <AlertDialog
+        data-testid="modal-confirm-remove-cart-item"
+        open={pendingRemoveItem !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingRemoveItem(null)
+        }}
+        title="Remove item?"
+        description="Are you sure you want to remove this item from your cart?"
+        textCancel="Cancel"
+        textAction="Remove"
+        onClickAction={() => {
+          const itemId = pendingRemoveItem?.id
+          if (!itemId) return
+          removeItem(itemId)
+          setPendingRemoveItem(null)
+        }}
+      >
+        {pendingRemoveItem && (
+          <div className="flex items-center gap-3 rounded-2xl bg-sidebar-accent/80 p-3">
+            <div className="relative size-14 overflow-hidden rounded-full">
+              <Image
+                src={pendingRemoveItem.imageUrl}
+                alt={pendingRemoveItem.name}
+                fill
+                className="object-cover"
+              />
+            </div>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-medium text-on-surface">
+                {pendingRemoveItem.name}
+              </p>
+              <p className="text-sm text-on-surface-variant">
+                {formatCurrency(pendingRemoveItem.unitPrice)} •{' '}
+                {pendingRemoveItem.quantity} unit
+              </p>
+            </div>
+          </div>
+        )}
+      </AlertDialog>
+
       <section className="space-y-2" aria-label="Cart heading">
         <h1 className="text-4xl font-semibold text-on-surface md:text-5xl">
           Your Sensory Cart
@@ -108,7 +153,7 @@ export default function CartPageContent() {
                 key={item.id}
                 item={item}
                 onChangeQuantity={changeQuantity}
-                onRemove={removeItem}
+                onRemove={() => setPendingRemoveItem(item)}
               />
             ))}
           </section>
