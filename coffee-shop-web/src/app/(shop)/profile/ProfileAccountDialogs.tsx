@@ -25,6 +25,7 @@ export function ProfileAccountDialogs() {
     <>
       <div className="flex flex-wrap justify-center gap-4 md:justify-start">
         <Button
+          disabled
           type="button"
           variant="secondary"
           className="w-auto px-6 bg-surface-container-highest text-base font-semibold text-primary hover:bg-surface-container-highest/80"
@@ -33,6 +34,7 @@ export function ProfileAccountDialogs() {
           Change Email
         </Button>
         <Button
+          disabled
           type="button"
           variant="secondary"
           className="w-auto px-6 bg-surface-container-highest text-base font-semibold text-primary hover:bg-surface-container-highest/80"
