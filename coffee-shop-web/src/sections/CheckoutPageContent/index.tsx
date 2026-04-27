@@ -61,6 +61,7 @@ const CheckoutPageContent = () => {
   const router = useRouter()
   const { getToken } = useClerkAuth()
   const { user } = useAuth()
+
   const [values, setValues] = useState<CheckoutFormValues>(DEFAULT_VALUES)
   const [fieldErrors, setFieldErrors] = useState<CheckoutFieldErrors>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -74,6 +75,7 @@ const CheckoutPageContent = () => {
   const [hasAddressLookupError, setHasAddressLookupError] = useState(false)
   const [isAddressSuggestionsOpen, setIsAddressSuggestionsOpen] =
     useState(false)
+  const [isAddressInputFocused, setIsAddressInputFocused] = useState(false)
   const formRef = useRef<HTMLFormElement | null>(null)
   const selectedSuggestionRef = useRef<string | null>(null)
 
@@ -463,11 +465,13 @@ const CheckoutPageContent = () => {
                   label="Delivery Address"
                   value={values.addressLine}
                   onChange={handleAddressInputChange}
+                  onFocus={() => setIsAddressInputFocused(true)}
+                  onBlur={() => setIsAddressInputFocused(false)}
                   errorMessage={fieldErrors.addressLine}
                   placeholder="Enter your delivery address"
                   disabled={isSubmitting}
                 />
-                {isAddressSuggestionsOpen && (
+                {isAddressInputFocused && isAddressSuggestionsOpen && (
                   <div className="absolute z-20 mt-1 max-h-72 w-full overflow-y-auto rounded-2xl border border-outline-variant bg-surface shadow-lg">
                     {addressSuggestions.map((suggestion) => (
                       <button

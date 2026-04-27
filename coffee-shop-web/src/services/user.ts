@@ -47,6 +47,18 @@ function getStatus(value: unknown): User['status'] {
   return undefined
 }
 
+function readAddressFromAddresses(value: unknown): User['address'] {
+  if (!Array.isArray(value) || value.length === 0) return null
+
+  const address = value.filter(
+    (item): item is Record<string, unknown> =>
+      item !== null && typeof item === 'object' && !Array.isArray(item),
+  )
+  if (!address.length) return null
+
+  return address[0] as User['address']
+}
+
 export async function fetchUser(
   getToken?: () => Promise<string | null>,
 ): Promise<
@@ -100,50 +112,7 @@ export async function fetchUser(
     readString(payload.avatarUrl) ??
     readString(payload.avatar_url) ??
     readString(payload.picture)
-  const addressCandidates = [
-    payload.address,
-    payload.shippingAddress,
-    payload.shipping_address,
-  ]
-  const addressPayload = (addressCandidates.find(
-    (candidate) =>
-      candidate !== null &&
-      typeof candidate === 'object' &&
-      !Array.isArray(candidate),
-  ) ?? null) as Record<string, unknown> | null
-  const address = addressPayload
-    ? {
-        firstName:
-          readString(addressPayload.firstName) ??
-          readString(addressPayload.first_name),
-        lastName:
-          readString(addressPayload.lastName) ??
-          readString(addressPayload.last_name),
-        phoneNumber:
-          readString(addressPayload.phoneNumber) ??
-          readString(addressPayload.phone_number),
-        addressLine:
-          readString(addressPayload.addressLine) ??
-          readString(addressPayload.address_line) ??
-          readString(addressPayload.address) ??
-          readString(addressPayload.line1) ??
-          readString(addressPayload.street),
-        district: readString(addressPayload.district),
-        ward: readString(addressPayload.ward),
-        city: readString(addressPayload.city),
-        postalCode:
-          readString(addressPayload.postalCode) ??
-          readString(addressPayload.postal_code) ??
-          readString(addressPayload.zipCode) ??
-          readString(addressPayload.zip_code),
-        isDefault:
-          typeof addressPayload.isDefault === 'boolean'
-            ? addressPayload.isDefault
-            : typeof addressPayload.is_default === 'boolean'
-              ? addressPayload.is_default
-              : null,
-      }
-    : null
+  const address = readAddressFromAddresses(payload.addresses)
   const role = getRole(payload.role)
   const status = getStatus(payload.status)
   const user: User = {
