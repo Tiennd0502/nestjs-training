@@ -63,13 +63,20 @@ export const PageContent = () => {
       ? categoryId
       : null
 
+  const normalizedStatus =
+    status &&
+    PRODUCT_STATUS_OPTIONS.some((option) => option.value === status) &&
+    status !== PRODUCT_STATUS_OPTIONS[0].value
+      ? status
+      : null
+
   const { products, meta, isLoading, isError, errorMessage, refetch } =
     useProducts({
       page,
       limit,
       search: search.trim(),
       categoryId: normalizedCategoryId ?? undefined,
-      status: status ?? undefined,
+      status: normalizedStatus ?? undefined,
     })
 
   const totalPages = Math.max(1, meta?.pageCount ?? 1)
@@ -204,7 +211,7 @@ export const PageContent = () => {
               classNameTrigger="h-12 rounded-full"
               placeholder="All statuses"
               options={PRODUCT_STATUS_OPTIONS}
-              selected={status ?? PRODUCT_STATUS_OPTIONS[0].value}
+              selected={normalizedStatus ?? PRODUCT_STATUS_OPTIONS[0].value}
               onValueChange={handleProductStatusChange}
             />
           </div>

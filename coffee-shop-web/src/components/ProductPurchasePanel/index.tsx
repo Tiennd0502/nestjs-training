@@ -37,6 +37,7 @@ export function ProductPurchasePanel({
       .join(' • ')
 
     addItem({
+      variantId: product.variants[0]?.id ?? '',
       productId: product.id,
       name: productName,
       meta,

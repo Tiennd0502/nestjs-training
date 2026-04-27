@@ -567,9 +567,9 @@ const PageContent = () => {
                 <Input
                   className="h-14"
                   label="Base Price"
-                  type="number"
-                  min={0.01}
-                  step={0.01}
+                  type="text"
+                  inputMode="decimal"
+                  placeholder="e.g. 24.95"
                   startIcon={<DollarIcon className="size-4" />}
                   disabled={isSubmitting}
                   errorMessage={errors.price?.message}
@@ -744,7 +744,7 @@ const PageContent = () => {
             </div>
           </div>
           <div className="mt-5">
-            <h2 className="text-xl font-semibold tracking-[0.18em] text-muted-foreground uppercase">
+            <h2 className="text-xl leading-none font-medium text-on-surface-variant">
               Primary Tasting Notes
             </h2>
             <div className="mt-4 rounded-2xl border border-outline-variant/30 bg-surface-container px-5 py-5">

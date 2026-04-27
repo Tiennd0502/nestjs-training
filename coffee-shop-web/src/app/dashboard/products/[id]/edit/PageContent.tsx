@@ -646,7 +646,7 @@ const EditProductForm = ({ product, productId }: EditProductFormProps) => {
             </div>
           </div>
           <div className="mt-5">
-            <h2 className="text-xl font-semibold tracking-[0.18em] text-muted-foreground uppercase">
+            <h2 className="text-xl leading-none font-medium text-on-surface-variant">
               Primary Tasting Notes
             </h2>
             <div className="mt-4 rounded-2xl border border-outline-variant/30 bg-surface-container px-5 py-5">

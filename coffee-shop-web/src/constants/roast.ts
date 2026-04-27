@@ -1,8 +1,8 @@
 import { type OptionItem } from '@/types/common'
 import { ROAST_LEVEL } from '@/types/product'
 
-export const ROAST_PRICE_MIN = 0
-export const ROAST_PRICE_MAX = 10000
+export const ROAST_PRICE_MIN = 5
+export const ROAST_PRICE_MAX = 250
 export const ROAST_DEFAULT_PRICE_RANGE: [number, number] = [
   ROAST_PRICE_MIN,
   ROAST_PRICE_MAX,
@@ -10,10 +10,10 @@ export const ROAST_DEFAULT_PRICE_RANGE: [number, number] = [
 
 export const ROAST_SORT_VALUE = {
   CURATED: 'curated',
-  NAME_ASC: 'name-asc',
-  NAME_DESC: 'name-desc',
-  PRICE_ASC: 'price-asc',
-  PRICE_DESC: 'price-desc',
+  PRICE_ASC: 'PRICE_ASC',
+  PRICE_DESC: 'PRICE_DESC',
+  NAME_ASC: 'NAME_ASC',
+  NAME_DESC: 'NAME_DESC',
 } as const
 
 export type RoastSortValue =

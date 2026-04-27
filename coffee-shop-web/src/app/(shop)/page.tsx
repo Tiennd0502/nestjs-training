@@ -1,56 +1,31 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowRight, Quote, ShoppingCart } from 'lucide-react'
+import { ArrowRight, Quote } from 'lucide-react'
 
 import { buttonVariants } from '@/components/ui/button'
+import { EMPTY_IMAGE } from '@/constants/images'
+import { shopRoastDetailPath } from '@/constants/routes'
+import { fetchProducts } from '@/services/product'
+import { PRODUCT_STATUS } from '@/types/product'
+import { formatPrice } from '@/utils/common'
+import { mapProductToRoastCollection } from '@/utils/product'
 import { cn } from '@/utils/styles'
 
 export const metadata: Metadata = {
-  title: 'Node Brew | The Sensory Experience',
+  title: 'CoffeeHub | The Sensory Experience',
   description:
     'Precision-roasted beans for the deep-work state. Artisanal roasting meets modern tech culture.',
 }
 
 const IMG = {
   hero: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDPPmKkkjtFk1zjJtYFiW3ZrtYvEJvoEvUKAHSByCs3dWjf3HjxktwVvo3w7Lzawswhf6NRjqWQI5BvAwTQDRZpCdtyyTlpBRzp_7OHl7iAzaS5kuZj1ZRlZI_tjL40Rb2QL-k_25Kde1ifNBXSGzWrS69IurLVwJVg-SH3DrlIu0Hc-WlUMj9AWfsn_EanAqgrUoYhJwCJ0pucb2CF00qJU9FmRaQYElk4Ftg9DpDwMqCqbCsYaPHgQLMJUpM4PsKudI4uJ95v29k',
-  p1: 'https://lh3.googleusercontent.com/aida-public/AB6AXuA0ngZCuIkhGMVirQTIbqtvfqarQ6-b4am3esJOzM2TSdTr84lLHbLlhkT5ZBHMGQgfls4_95hLTBZb464-5Qcamdz4bdtNWwv85SUsugdUY0fTAn12kPSPUQBxQZwlp8zcAnISquJWCjCmrKHUhV4gks0swGFcTLKbGVFVyJLeBy6XtWOjROa2ylkENkFS22a59JgxpfkzOpu3jDAutGavF13QKQp9vKb6vCZVdyYUMzDYQuf5tnefPSj4RN3DcZjuBQFbR5yrCvE',
-  p2: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDpXWA03QVmnTMGlS0CCwNECiyqH8bl4kLmvb2-RL3nssvCM6NeKHr7fD3hwOZIFIyzel8Ff85TiRC-yIUS9Y64gGY7CTxUfdk1oPS6kF_uIskxuRNxnItcr24dhLpi5ZxITzxupuPoDZPRsXxSxnUiqYh1rD0i6pYaXFNKjSZoMp0XqGjTpQARLPQ8blCOqmXfGRtH2gnUQb7apGjUwre9AfbwR5LONPwYD8L7EmTIGFe0ydL5hzmaC4M6294vAMOGvaDjTlqIrM8',
-  p3: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDbmoEdwCxEThWhvAbvLGkf1k-acHKwf9EW7xzdxCawlskNlATUHC4J4ryQUS5fMlLnAVWYStlil88Y_F60nSMxNE83CTIz3X8H0JoWXH8Xx3ns38de4JtkM6QqLtmXY7C1h0TWOBT0kbcT5AYHFyH0wNilMG1dKl7hEOkwH4DK9Hlj97pDTI9YJQJnK7c5IIY-td29Q7q3XYndRvaAxwGqnrMaYBye9UQPdmB-pBAipj-Q5wsEx7blYPYL8eXbXdKOD-6MHwgANWI',
-  p4: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAhyHZacmdpFPb6VIktqS0mWcf4s0gbFt5s4bR2TEeYnOe9QiD0QVDwo4YMzQFR9DWemzGt_uILOkVPAsHkRmtR51reHWxklJ64AHyaQKvn7tTxyvaM55EEALC4NYvtDqldjQs-R2aJBgAl_C6Ojg55Ds8f2b-JDuioobntWTf4hycebOD6BERWkslnVMMHQxCqWxq5xwp7grM_MqYQt3dHnZHCIOI2XvMrEIq2TrQdglzbA1kro7020QkFYud0Z6MA2YxMGLY1StA',
   story:
     'https://lh3.googleusercontent.com/aida-public/AB6AXuC9BDorexBYA8NL7arwKVgIe6Erq7863s7kHw1OMVCACVohIAC8eQKe3dK7qlEa92XFVctjjGmH5Xzwb1rWEq1Z7DtT-GjiRC0MvNZ6dSJtf9yIcW0qWUFIZw7nq0i4goi3s1jvnvYiux10KBjskWvqhrsh76Fjtp_wsbS3j1gNLqToV2xDvNoyz8iBpIJu7ycoAQTLjWaoJKD-beeKEE4wgaCv3I2XRlf9AOhgshvbgz1C1FeBpZ31ziP-dzutNDgXMHqmXFyhY3M',
   t1: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDg5tdL-DK7JKGrryu9-xIOfMwwJV6e9m7-G_99IDpR-D3tJTMapKcXTNIzkGvDkZmdMYv7ez0ynxDsHmDYVTi40pRR_E7ozYP5nbEVdC4sybvuuRcrZ8SueBCUMlLoGCrFCGO1ydKGWkaKpMeHWyrEWAQy29Zljf2DFTycXTeXqVGtRiE657MoavU3tUOoJdcLXm5hKieHXXefyqzsHrLTzosxsAwy5MIGffXrZmzDbOMDeffFzn1U1153l-YUqTeq-cIUonWTKFE',
   t2: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDfpsH3-PGwI8gdT6PlE0kvU9htOZf97STml1JeLtrWM-5GNBHbucIVAvVZgeZQSN-2AWnr1_DTYRkqFdLZesg226gvO8YwVW1CS_Yx4NOatQ6CA6polVK3RmGJLMPhBgUUn3nfF5lcp7j6mLZBfekir0eGMHQBPTTE4l3t24XoPx7qA5nsPoevH2iBBMwDluQz4xQ6VXD40syyCjyKblS9tv-8JQp9sFNA_y8Jn7VlmFUsyBtCPqKkTtrKYZFXoHDoPkdgtzRYyw0',
   t3: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBZbZNh5eXISI4BZaWbFKEDExHTju33qCmgaOl01NK_trXOTdPepeHp6rjAfAuWVsX8qgXpTfyK4nyBRZB8Xyk0cB-58F2WI_oM0nHqKE6H9PaliES9Q3dlJ5EtW_eUBdLPoZBMvKCZBJ-q_qQQN3tpcRiesQ9SVguwpt-x6I3lP4diOpvF-lUdrnYB00gmwaSC3-3i9jnUD7q62Kbig1707xfrIaGSxM5SoaMVbe4B7Tt-rmeXGIdzRcZXqh-OUNc6xNJ8URmZZS8',
 } as const
-
-const PRODUCTS = [
-  {
-    name: 'Dark Matter Espresso',
-    price: '$24.00',
-    meta: 'Origin: Ethiopia | Dark Roast',
-    src: IMG.p1,
-  },
-  {
-    name: 'Logic Brew Blend',
-    price: '$22.00',
-    meta: 'Origin: Colombia | Medium Roast',
-    src: IMG.p2,
-  },
-  {
-    name: 'Syntax Error Roast',
-    price: '$26.00',
-    meta: 'Origin: Kenya | Light Roast',
-    src: IMG.p3,
-  },
-  {
-    name: 'Terminal Light',
-    price: '$20.00',
-    meta: 'Origin: Brazil | Light-Medium',
-    src: IMG.p4,
-  },
-] as const
 
 const TESTIMONIALS = [
   {
@@ -63,7 +38,7 @@ const TESTIMONIALS = [
   },
   {
     quote:
-      'Node Brew isn’t just coffee; it’s an editorial experience. The packaging, the roast, the taste—it’s pure luxury.',
+      'CoffeeHub isn’t just coffee; it’s an editorial experience. The packaging, the roast, the taste—it’s pure luxury.',
     name: 'Sarah Chen',
     role: 'Creative Director',
     src: IMG.t2,
@@ -79,7 +54,20 @@ const TESTIMONIALS = [
   },
 ] as const
 
-const HomePage = () => {
+const HomePage = async () => {
+  const productsResult = await fetchProducts({
+    limit: 4,
+    page: 1,
+    status: PRODUCT_STATUS.ACTIVE,
+  })
+
+  const curatedProducts =
+    productsResult.ok === true
+      ? productsResult.products.map((p) =>
+          mapProductToRoastCollection(p, EMPTY_IMAGE),
+        )
+      : []
+
   return (
     <div className="bg-background text-on-background">
       <div className="pt-20 md:pt-24">
@@ -162,39 +150,58 @@ const HomePage = () => {
               </Link>
             </div>
             <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
-              {PRODUCTS.map((p) => (
-                <div key={p.name} className="group flex flex-col space-y-4">
-                  <div className="relative aspect-4/5 w-full overflow-hidden rounded-xl bg-surface-container-low">
-                    <Image
-                      src={p.src}
-                      alt={p.name}
-                      fill
-                      className="object-cover transition-transform duration-700 group-hover:scale-105"
-                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                    />
-                    <button
-                      type="button"
-                      className="absolute right-4 bottom-4 rounded-full bg-surface/90 p-3 text-primary opacity-0 shadow-sm backdrop-blur-md transition-all group-hover:translate-y-0 group-hover:opacity-100 translate-y-2"
-                      aria-label={`Add ${p.name} to cart`}
-                    >
-                      <ShoppingCart className="size-5" aria-hidden />
-                    </button>
-                  </div>
-                  <div className="space-y-1">
-                    <div className="flex items-start justify-between gap-2">
-                      <h3 className="font-headline text-lg text-on-surface">
-                        {p.name}
-                      </h3>
-                      <span className="shrink-0 font-bold text-primary">
-                        {p.price}
-                      </span>
+              {curatedProducts.length === 0 ? (
+                <p className="col-span-full text-center text-on-surface-variant md:text-left">
+                  {productsResult.ok === false
+                    ? 'Could not load featured roasts. Try again from the shop.'
+                    : 'No active roasts yet. Visit the shop to see what is in stock.'}
+                </p>
+              ) : (
+                curatedProducts.map((item) => (
+                  <Link
+                    key={item.id}
+                    href={shopRoastDetailPath(item.id)}
+                    className={cn(
+                      'group flex flex-col space-y-4 text-inherit no-underline outline-none',
+                      'transition-opacity hover:opacity-95',
+                      'focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+                    )}
+                  >
+                    <div className="relative aspect-4/5 w-full overflow-hidden rounded-xl bg-surface-container-low">
+                      <Image
+                        src={item.imageUrl}
+                        alt={item.name}
+                        fill
+                        className="object-cover transition-transform duration-700 group-hover:scale-105"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                      />
+                      {Boolean(item.badgeLabel) && (
+                        <span
+                          className={cn(
+                            'absolute top-3 left-3 rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-wide',
+                            'bg-surface-container-highest text-on-surface',
+                          )}
+                        >
+                          {item.badgeLabel}
+                        </span>
+                      )}
                     </div>
-                    <p className="text-xs tracking-wider text-on-surface-variant uppercase">
-                      {p.meta}
-                    </p>
-                  </div>
-                </div>
-              ))}
+                    <div className="space-y-1">
+                      <div className="flex items-start justify-between gap-2">
+                        <h3 className="font-headline text-lg text-on-surface">
+                          {item.name}
+                        </h3>
+                        <span className="shrink-0 font-bold text-primary">
+                          {formatPrice(item.price)}
+                        </span>
+                      </div>
+                      <p className="text-xs tracking-wider text-on-surface-variant uppercase">
+                        {item.roastMeta}
+                      </p>
+                    </div>
+                  </Link>
+                ))
+              )}
             </div>
           </div>
         </section>
@@ -226,7 +233,7 @@ const HomePage = () => {
                 <span className="text-primary">Sensory Brew</span>
               </h2>
               <p className="text-lg leading-relaxed text-on-surface-variant">
-                At Node Brew, we view coffee as a chemical catalyst for
+                At CoffeeHub, we view coffee as a chemical catalyst for
                 creativity. Our process isn&apos;t just about roasting;
                 it&apos;s about optimizing the molecular profile of every bean
                 to ensure your cognitive flow remains uninterrupted.
