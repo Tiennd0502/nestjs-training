@@ -28,6 +28,19 @@ export interface ProductVariantPayload {
   quantity: number
 }
 
+export interface ProductVariant {
+  id: string
+  productId: string
+  sku?: string
+  weight: number
+  unit: string
+  name: string
+  price: number
+  discountType: DISCOUNT_TYPE | null
+  discountValue: number | null
+  quantity: number
+}
+
 export interface ProductImagePayload {
   url: string
   isPrimary: boolean

@@ -6,21 +6,12 @@ import {
   type RoastSortValue,
 } from '@/constants/roast'
 import { ROAST_LEVEL } from '@/types/product'
-import { USER_ROLES } from '@/types/user'
 
 const ROAST_LEVEL_SET = new Set<string>(Object.values(ROAST_LEVEL))
 
-const VALID_PRODUCT_STATUSES = [
-  'DRAFT',
-  'ACTIVE',
-  'INACTIVE',
-  'ARCHIVED',
-] as const
-
-type ProductStatusParam = (typeof VALID_PRODUCT_STATUSES)[number]
-
-function isValidProductStatus(value: string): value is ProductStatusParam {
-  return (VALID_PRODUCT_STATUSES as readonly string[]).includes(value)
+export function parseOptionalQueryParam(value: string | null): string | null {
+  const v = value?.trim() ?? ''
+  return v === '' ? null : v
 }
 
 export function parseListPageParam(value: string | null): number {
@@ -40,29 +31,6 @@ export function parseListLimitParam(value: string | null): number {
   return n
 }
 
-export function parseListCategoryIdParam(value: string | null): string | null {
-  const categoryId = value?.trim()
-  if (!categoryId) return null
-  return categoryId
-}
-
-export function parseListStatusParam(
-  value: string | null,
-): ProductStatusParam | null {
-  const status = value?.trim()
-  if (!status) return null
-  return isValidProductStatus(status) ? status : null
-}
-
-export function parseUsersListRoleParam(
-  value: string | null,
-): USER_ROLES | null {
-  const v = value?.trim()
-  if (!v) return null
-  if (v === USER_ROLES.ADMIN || v === USER_ROLES.USER) return v
-  return null
-}
-
 export const urlSchema = {
   page: parseListPageParam,
   search: parseListSearchParam,
@@ -71,13 +39,19 @@ export const urlSchema = {
 
 export const userUrlSchema = {
   ...urlSchema,
-  role: parseUsersListRoleParam,
+  role: parseOptionalQueryParam,
 } as const
 
 export const productUrlSchema = {
   ...urlSchema,
-  categoryId: parseListCategoryIdParam,
-  status: parseListStatusParam,
+  categoryId: parseOptionalQueryParam,
+  status: parseOptionalQueryParam,
+} as const
+
+export const ordersUrlSchema = {
+  ...urlSchema,
+  status: parseOptionalQueryParam,
+  shippingStatus: parseOptionalQueryParam,
 } as const
 
 export function parseRoastPriceQueryParam(
@@ -108,7 +82,9 @@ export function parseRoastSortParam(value: string | null): RoastSortValue {
   if (
     v === ROAST_SORT_VALUE.CURATED ||
     v === ROAST_SORT_VALUE.PRICE_ASC ||
-    v === ROAST_SORT_VALUE.PRICE_DESC
+    v === ROAST_SORT_VALUE.PRICE_DESC ||
+    v === ROAST_SORT_VALUE.NAME_ASC ||
+    v === ROAST_SORT_VALUE.NAME_DESC
   ) {
     return v
   }
@@ -122,6 +98,6 @@ export const shopRoastsUrlSchema = {
   search: parseListSearchParam,
   minPrice: (v: string | null) => parseRoastPriceQueryParam(v, 'min'),
   maxPrice: (v: string | null) => parseRoastPriceQueryParam(v, 'max'),
-  roasts: parseRoastLevelsParam,
-  sort: parseRoastSortParam,
+  roastLevel: parseRoastLevelsParam,
+  sortBy: parseRoastSortParam,
 } as const

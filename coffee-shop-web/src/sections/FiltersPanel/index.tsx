@@ -69,7 +69,7 @@ export default function FiltersPanel({
         max={maxPrice}
         step={0.5}
         value={priceRange}
-        onValueChange={onPriceRangeChange}
+        onValueCommit={onPriceRangeChange}
         className={cn(disabled && 'pointer-events-none opacity-60')}
       />
 

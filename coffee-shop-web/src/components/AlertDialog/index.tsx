@@ -64,7 +64,7 @@ const AlertDialog = ({
       )}
       <AlertDialogContent
         data-testid={dataTestId}
-        className="max-w-md gap-0 overflow-hidden rounded-3xl border-0 bg-card p-0 text-card-foreground shadow-xl ring-1 ring-border/40 sm:max-w-lg"
+        className="max-w-md gap-0 overflow-hidden rounded-3xl border-0 p-0 bg-background text-card-foreground shadow-xl ring-1 ring-border/40 sm:max-w-lg"
       >
         <div className="relative px-6 pb-4 pt-8">
           <AlertDialogCancel
@@ -80,7 +80,7 @@ const AlertDialog = ({
             <X className="size-4" aria-hidden />
           </AlertDialogCancel>
           <AlertDialogHeader className="place-items-start gap-2 text-left sm:place-items-start sm:pr-10 sm:text-left">
-            <AlertDialogTitle className="text-lg font-bold text-foreground">
+            <AlertDialogTitle className="text-2xl font-bold text-foreground">
               {title}
             </AlertDialogTitle>
             {description && (

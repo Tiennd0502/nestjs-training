@@ -21,7 +21,7 @@ export default function Loading({
         className,
       )}
     >
-      <Spinner size={size} label={label} />
+      <Spinner size={size} label={label} className="text-primary" />
     </div>
   )
 }

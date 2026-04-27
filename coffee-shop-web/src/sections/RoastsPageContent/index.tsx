@@ -47,8 +47,8 @@ export default function RoastsPageContent() {
     search: listSearch,
     minPrice: urlMinPrice,
     maxPrice: urlMaxPrice,
-    roasts: selectedRoastLevels,
-    sort: sortBy,
+    roastLevel: selectedRoastLevels,
+    sortBy: sortBy,
   } = urlState
 
   const [searchDraft, setSearchDraft] = useState(listSearch)
@@ -100,10 +100,10 @@ export default function RoastsPageContent() {
       params.maxPrice = hi
     }
     if (selectedRoastLevels.length > 0) {
-      params.roastLevels = selectedRoastLevels.join(',')
+      params.roastLevel = selectedRoastLevels.join(',')
     }
     if (sortBy !== ROAST_SORT_VALUE.CURATED) {
-      params.sort = sortBy
+      params.sortBy = sortBy
     }
     return params
   }, [listPage, listLimit, listSearch, priceRange, selectedRoastLevels, sortBy])
@@ -139,7 +139,7 @@ export default function RoastsPageContent() {
       : [...selectedRoastLevels, value]
     updateUrl({
       page: 1,
-      roasts: next.length === 0 ? null : next.join(','),
+      roastLevel: next.length === 0 ? null : next.join(','),
     })
   }
 
@@ -152,7 +152,7 @@ export default function RoastsPageContent() {
   const handleSortByChange = (next: RoastSortValue) => {
     updateUrl({
       page: 1,
-      sort: next === ROAST_SORT_VALUE.CURATED ? null : next,
+      sortBy: next === ROAST_SORT_VALUE.CURATED ? null : next,
     })
   }
 
@@ -166,8 +166,8 @@ export default function RoastsPageContent() {
       page: 1,
       minPrice: null,
       maxPrice: null,
-      roasts: null,
-      sort: null,
+      roastLevel: null,
+      sortBy: null,
       search: null,
     })
   }
