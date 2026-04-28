@@ -1,17 +1,41 @@
 'use client'
 
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import {
   LIST_QUERY_GC_MS,
   LIST_QUERY_STALE_MS,
   PAGE_SIZE,
 } from '@/constants/common'
-import { fetchUsers, type FetchUsersOptions } from '@/services/user'
-import type { User } from '@/types/user'
+import {
+  fetchUsers,
+  type FetchUsersOptions,
+  updateUserById,
+} from '@/services/user'
+import type { User, USER_ROLES } from '@/types/user'
 import { type ResponseMeta } from '@/types/api'
 
 export type UseUsersParams = FetchUsersOptions
+
+const usersQueryRoot = ['users'] as const
+
+export function useUpdateUserRole() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (input: { id: string; role: USER_ROLES }) => {
+      const result = await updateUserById(input.id, input.role)
+      if (!result.ok) {
+        throw new Error(result.error)
+      }
+      return result.user
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: usersQueryRoot })
+    },
+  })
+}
 
 export interface UseUserResult {
   users: User[]

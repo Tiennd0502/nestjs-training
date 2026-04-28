@@ -4,7 +4,11 @@ import userEvent from '@testing-library/user-event'
 import { PageContent } from '@/app/dashboard/users/PageContent'
 import { PAGE_SIZE } from '@/constants/common'
 import { API_FALLBACK_ERRORS } from '@/constants/messages'
-import { useUsers, type UseUsersParams } from '@/hooks/useUser'
+import {
+  useUpdateUserRole,
+  useUsers,
+  type UseUsersParams,
+} from '@/hooks/useUser'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { USER_ROLES, USER_STATUS } from '@/types/user'
 
@@ -22,6 +26,7 @@ jest.mock('next/navigation', () => ({
 
 jest.mock('@/hooks/useUser', () => ({
   useUsers: jest.fn(),
+  useUpdateUserRole: jest.fn(),
 }))
 
 jest.mock('@/components/Select', () => ({
@@ -55,7 +60,9 @@ const mockUsePathname = jest.mocked(usePathname)
 const mockUseRouter = jest.mocked(useRouter)
 const mockUseSearchParams = jest.mocked(useSearchParams)
 const mockUseUsers = jest.mocked(useUsers)
+const mockUseUpdateUserRole = jest.mocked(useUpdateUserRole)
 const refetchMock = jest.fn()
+const mutateUserRoleMock = jest.fn()
 
 /** Simulated API page size in tests (response meta `limit`). */
 const MOCK_USERS_PAGE_SIZE = 4
@@ -113,7 +120,7 @@ const usersFixture = [
     firstName: 'Julian',
     lastName: 'Vance',
     name: 'Julian Vance',
-    imageUrl: 'https://i.pravatar.cc/100?img=12',
+    avatarUrl: 'https://i.pravatar.cc/100?img=12',
     role: USER_ROLES.ADMIN,
     status: USER_STATUS.ACTIVE,
   },
@@ -123,7 +130,7 @@ const usersFixture = [
     firstName: 'Elena',
     lastName: 'Rossi',
     name: 'Elena Rossi',
-    imageUrl: 'https://i.pravatar.cc/100?img=32',
+    avatarUrl: 'https://i.pravatar.cc/100?img=32',
     role: USER_ROLES.USER,
     status: USER_STATUS.ACTIVE,
   },
@@ -133,7 +140,7 @@ const usersFixture = [
     firstName: 'Marcus',
     lastName: 'Thorne',
     name: 'Marcus Thorne',
-    imageUrl: 'https://i.pravatar.cc/100?img=15',
+    avatarUrl: 'https://i.pravatar.cc/100?img=15',
     role: USER_ROLES.USER,
     status: USER_STATUS.INACTIVE,
   },
@@ -143,7 +150,7 @@ const usersFixture = [
     firstName: 'Sasha',
     lastName: 'Bloom',
     name: 'Sasha Bloom',
-    imageUrl: 'https://i.pravatar.cc/100?img=47',
+    avatarUrl: 'https://i.pravatar.cc/100?img=47',
     role: USER_ROLES.ADMIN,
     status: USER_STATUS.ACTIVE,
   },
@@ -153,7 +160,7 @@ const usersFixture = [
     firstName: 'Lena',
     lastName: 'Carter',
     name: 'Lena Carter',
-    imageUrl: 'https://i.pravatar.cc/100?img=6',
+    avatarUrl: 'https://i.pravatar.cc/100?img=6',
     role: USER_ROLES.USER,
     status: USER_STATUS.ACTIVE,
   },
@@ -163,7 +170,7 @@ const usersFixture = [
     firstName: 'Noah',
     lastName: 'Grimes',
     name: 'Noah Grimes',
-    imageUrl: 'https://i.pravatar.cc/100?img=9',
+    avatarUrl: 'https://i.pravatar.cc/100?img=9',
     role: USER_ROLES.ADMIN,
     status: USER_STATUS.INACTIVE,
   },
@@ -193,6 +200,10 @@ describe('Dashboard users page', () => {
     )
     refetchMock.mockReset()
     mockUseUsers.mockImplementation((params) => mockUsersByApiParams(params))
+    mutateUserRoleMock.mockReset()
+    mockUseUpdateUserRole.mockReturnValue({
+      mutate: mutateUserRoleMock,
+    } as unknown as ReturnType<typeof useUpdateUserRole>)
   })
 
   it('renders manage users heading with first page records', () => {

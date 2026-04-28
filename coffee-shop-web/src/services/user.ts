@@ -152,3 +152,23 @@ export async function fetchUsers(
   const { data, meta } = result.data
   return { ok: true, users: data, meta }
 }
+
+export async function updateUserById(
+  id: string,
+  role: USER_ROLES,
+  options: Pick<FetchUsersOptions, 'getToken'> = {},
+): Promise<
+  { ok: true; user: User } | { ok: false; error: string; status?: number }
+> {
+  const result = await apiClient.patch<Response<User>>(
+    `${API_ROUTES.USERS}/${id}`,
+    { role },
+    {
+      getToken: options.getToken,
+      fallbackError: API_FALLBACK_ERRORS.USER_UPDATE,
+    },
+  )
+  if (!result.ok) return result
+
+  return { ok: true, user: result.data.data }
+}

@@ -2,10 +2,15 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { Download, Printer, UserPlus } from 'lucide-react'
+import { toast } from 'sonner'
+
+// Types
+import type { USER_ROLES, User } from '@/types/user'
 
 // Constants
 import { ROUTES } from '@/constants/routes'
 import { SEARCH_URL_DEBOUNCE_MS } from '@/constants/common'
+import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@/constants/messages'
 import {
   ROLE_FILTER_OPTIONS,
   USERS_DASHBOARD_STATS,
@@ -13,7 +18,7 @@ import {
 } from '@/constants/user'
 
 // Hooks
-import { useUsers } from '@/hooks/useUser'
+import { useUpdateUserRole, useUsers } from '@/hooks/useUser'
 import { useUrlState } from '@/hooks/useUrlState'
 
 // Components
@@ -76,12 +81,35 @@ export const PageContent = () => {
   const totalPages = Math.max(1, meta?.pageCount ?? 1)
   const totalCount = meta?.totalCount ?? users.length
   const showingCount = users.length
+  const [pendingRoleUserId, setPendingRoleUserId] = useState<string | null>(
+    null,
+  )
+  const [optimisticRoles, setOptimisticRoles] = useState<
+    Partial<Record<string, USER_ROLES>>
+  >({})
+  const { mutate: updateUserRoleMutate } = useUpdateUserRole()
 
   useEffect(() => {
     if (page > totalPages) {
       updateUrl({ page: totalPages })
     }
   }, [page, totalPages, updateUrl])
+
+  useEffect(() => {
+    setOptimisticRoles((current) => {
+      let hasChanged = false
+      const next = { ...current }
+      users.forEach((user) => {
+        const userId = user.id
+        if (!userId) return
+        if (next[userId] && next[userId] === user.role) {
+          delete next[userId]
+          hasChanged = true
+        }
+      })
+      return hasChanged ? next : current
+    })
+  }, [users])
 
   const handleRoleChange = (value: unknown) => {
     if (typeof value !== 'string') return
@@ -93,6 +121,39 @@ export const PageContent = () => {
 
   const handleQueryChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchInput(event.target.value)
+  }
+
+  const handleUserRoleUpdate = (user: User, nextRole: USER_ROLES) => {
+    const userId = user.id
+    if (!userId) return
+
+    setOptimisticRoles((current) => ({ ...current, [userId]: nextRole }))
+    setPendingRoleUserId(userId)
+    updateUserRoleMutate(
+      { id: userId, role: nextRole },
+      {
+        onSuccess: () => {
+          toast.success(SUCCESS_MESSAGES.USER_ROLE_UPDATED)
+        },
+        onError: (error) => {
+          setOptimisticRoles((current) => {
+            const next = { ...current }
+            delete next[userId]
+            return next
+          })
+          toast.error(
+            error instanceof Error
+              ? error.message
+              : ERROR_MESSAGES.NETWORK_ERROR,
+          )
+        },
+        onSettled: () => {
+          setPendingRoleUserId((current) =>
+            current === userId ? null : current,
+          )
+        },
+      },
+    )
   }
 
   return (
@@ -194,7 +255,17 @@ export const PageContent = () => {
             columns={USERS_TABLE_COLUMNS}
             data={users}
             getRowKey={(user, index) => user.id ?? `user-${index}`}
-            renderRow={(user) => <UserTableRow user={user} />}
+            renderRow={(user) => (
+              <UserTableRow
+                user={
+                  user.id && optimisticRoles[user.id]
+                    ? { ...user, role: optimisticRoles[user.id] }
+                    : user
+                }
+                onRequestRoleChange={handleUserRoleUpdate}
+                isRoleDisabled={pendingRoleUserId === user.id}
+              />
+            )}
           />
         )}
 

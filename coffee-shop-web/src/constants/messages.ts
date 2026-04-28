@@ -51,6 +51,7 @@ export const API_FALLBACK_ERRORS = {
   IMAGE_UPLOAD: 'Could not upload image',
   USERS_LOAD: 'Could not load users',
   USER_DELETE: 'Could not delete user',
+  USER_UPDATE: 'Could not update user',
   PROFILE_LOAD: 'Could not load profile',
   ORDER_CREATE: 'Could not place order',
   ORDER_DELETE: 'Could not delete order',
@@ -70,6 +71,7 @@ export const SUCCESS_MESSAGES = {
   ORDER_DELETED: 'Order removed',
   ORDER_STATUS_UPDATED: 'Order status updated',
   ORDER_SHIPPING_STATUS_UPDATED: 'Shipping status updated',
+  USER_ROLE_UPDATED: 'User role updated',
   DRAFT_DISCARDED: 'Draft discarded',
 }
 

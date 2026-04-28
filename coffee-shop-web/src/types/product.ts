@@ -19,6 +19,7 @@ export enum PRODUCT_STATUS {
 export type ProductStatus = PRODUCT_STATUS
 
 export interface ProductVariantPayload {
+  id?: string
   sku?: string
   weight: number
   unit: string

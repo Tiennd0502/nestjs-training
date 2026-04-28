@@ -11,6 +11,11 @@ export const ROLES = {
 
 export const DEFAULT_USER_PUBLIC_ROLE = ROLES.USER
 
+export const ROLES_OPTIONS = [
+  { value: ROLES.USER, label: 'User' },
+  { value: ROLES.ADMIN, label: 'Admin' },
+] as const
+
 export const ROLE_FILTER_OPTIONS = [
   'All Roles',
   ...Object.values(USER_ROLES).map((role) => role.toString()),

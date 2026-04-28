@@ -1,6 +1,6 @@
 'use client'
 
-import { Pencil, Trash2 } from 'lucide-react'
+import { ChevronDown, Pencil, Trash2 } from 'lucide-react'
 
 // Types
 import type { User } from '@/types/user'
@@ -10,16 +10,33 @@ import { USER_ROLES, USER_STATUS } from '@/types/user'
 import { Avatar } from '@/components/Avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { ROLES_OPTIONS } from '@/constants/user'
 
 // Utils
 import { getNameInitials } from '@/utils/common'
 import { cn } from '@/utils/styles'
 
-export function UserTableRow({ user }: { user: User }) {
+export interface UserTableRowProps {
+  user: User
+  onRequestRoleChange?: (user: User, nextRole: USER_ROLES) => void
+  isRoleDisabled?: boolean
+}
+
+export function UserTableRow({
+  user,
+  onRequestRoleChange,
+  isRoleDisabled = false,
+}: UserTableRowProps) {
   const name = `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim()
   const initials = getNameInitials(user.firstName, user.lastName)
   const email = user.email ?? ''
-  const imageUrl = user.imageUrl ?? ''
+  const imageUrl = user.avatarUrl ?? ''
   const rowRole = user.role ?? USER_ROLES.USER
   const status = user.status ?? USER_STATUS.INACTIVE
   const isActive = status === USER_STATUS.ACTIVE
@@ -37,16 +54,51 @@ export function UserTableRow({ user }: { user: User }) {
         </div>
       </td>
       <td className="px-6 py-4">
-        <Badge
-          className={cn(
-            'h-7 px-3 text-[0.65rem] tracking-[0.16em] uppercase',
-            isAdmin
-              ? 'bg-foreground text-background'
-              : 'bg-primary/20 text-primary',
-          )}
-        >
-          {rowRole}
-        </Badge>
+        {onRequestRoleChange ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              disabled={isRoleDisabled}
+              aria-label={`Change role for ${name || email || 'user'}`}
+              className="inline-flex"
+            >
+              <Badge
+                className={cn(
+                  'h-7 cursor-pointer px-3 text-[0.65rem] tracking-[0.16em] uppercase transition hover:opacity-90',
+                  isAdmin
+                    ? 'bg-foreground text-background'
+                    : 'bg-primary/20 text-primary',
+                )}
+              >
+                {rowRole}
+                <ChevronDown className="ml-1 size-3" aria-hidden />
+              </Badge>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="center" className="min-w-32">
+              {ROLES_OPTIONS.map((nextRole) => (
+                <DropdownMenuItem
+                  key={nextRole.value}
+                  disabled={isRoleDisabled || nextRole.value === rowRole}
+                  onClick={() =>
+                    onRequestRoleChange(user, nextRole.value as USER_ROLES)
+                  }
+                >
+                  {nextRole.label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <Badge
+            className={cn(
+              'h-7 px-3 text-[0.65rem] tracking-[0.16em] uppercase',
+              isAdmin
+                ? 'bg-foreground text-background'
+                : 'bg-primary/20 text-primary',
+            )}
+          >
+            {rowRole}
+          </Badge>
+        )}
       </td>
       <td className="px-6 py-4">
         <span
