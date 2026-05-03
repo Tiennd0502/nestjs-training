@@ -20,19 +20,19 @@ const HeaderDashboard = ({ className }: HeaderDashboardProps) => {
   return (
     <header
       className={cn(
-        'flex-1 max-h-fit items-center bg-background justify-center gap-3 rounded-none border-b px-5 py-6 shadow-xl shadow-on-surface/5 my-auto sticky top-0 z-40',
+        'sticky top-0 z-40 my-auto flex min-w-0 w-full max-h-fit flex-1 items-center justify-center gap-3 rounded-none border-b bg-background px-5 py-6 shadow-xl shadow-on-surface/5',
         className,
       )}
     >
-      <div className="flex justify-between items-center gap-6 sm:gap-2 md:gap-3">
-        <div className="flex items-center gap-6">
-          <SidebarTrigger className="size-6 inline-block" />
+      <div className="flex min-w-0 w-full items-center justify-between gap-3 sm:gap-2 md:gap-3">
+        <div className="flex min-w-0 flex-1 items-center gap-3 sm:gap-6">
+          <SidebarTrigger className="inline-block size-6 shrink-0" />
           <SearchInput
             aria-label="Search products"
-            containerClassName="h-9 min-w-[250px] w-auto"
+            containerClassName="h-9 min-w-0 w-full max-w-md"
           />
         </div>
-        <div className="flex items-end justify-end gap-10">
+        <div className="flex shrink-0 items-end justify-end gap-4 sm:gap-10">
           <ThemeToggle className="h-8 w-8" />
           <SignedIn>
             <div className="shrink-0">

@@ -18,14 +18,14 @@ export const PRODUCTS_TABLE_COLUMNS: TableColumn[] = [
   {
     key: 'category',
     label: 'Category',
-    className: 'w-[18%] px-6 py-4 text-center',
+    className: 'w-[22%] min-w-0 px-6 py-4 text-center align-middle',
   },
-  { key: 'price', label: 'Price', className: 'w-[14%] px-6 py-4 text-center' },
-  { key: 'stock', label: 'Stock', className: 'w-[10%] px-6 py-4 text-center' },
+  { key: 'price', label: 'Price', className: 'w-[13%] px-6 py-4 text-center' },
+  { key: 'stock', label: 'Stock', className: 'w-[9%] text-center' },
   {
     key: 'status',
     label: 'Status',
-    className: 'w-[12%] px-6 py-4 text-center',
+    className: 'w-[11%] text-center',
   },
   {
     key: 'actions',

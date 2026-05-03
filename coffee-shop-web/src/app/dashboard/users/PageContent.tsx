@@ -11,11 +11,7 @@ import type { USER_ROLES, User } from '@/types/user'
 import { ROUTES } from '@/constants/routes'
 import { SEARCH_URL_DEBOUNCE_MS } from '@/constants/common'
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@/constants/messages'
-import {
-  ROLE_FILTER_OPTIONS,
-  USERS_DASHBOARD_STATS,
-  USERS_TABLE_COLUMNS,
-} from '@/constants/user'
+import { ROLE_FILTER_OPTIONS, USERS_TABLE_COLUMNS } from '@/constants/user'
 
 // Hooks
 import { useUpdateUserRole, useUsers } from '@/hooks/useUser'
@@ -27,7 +23,6 @@ import Table from '@/components/Table'
 import { PaginationBar } from '@/components/Pagination'
 import { Select } from '@/components/Select'
 import { SearchInput } from '@/components/SearchInput'
-import StatsCards from '@/components/StatsCards'
 import { Button } from '@/components/ui/button'
 import { UserTableRow } from '@/sections/UserTableRow'
 
@@ -188,19 +183,19 @@ export const PageContent = () => {
         </div>
       </header>
 
-      <StatsCards items={USERS_DASHBOARD_STATS} />
+      {/* <StatsCards items={USERS_DASHBOARD_STATS} /> */}
 
       <section className="overflow-hidden rounded-3xl border border-outline-variant/40 bg-card">
-        <div className="flex flex-col gap-3 border-b border-outline-variant/30 p-4 md:flex-row lg:items-center lg:justify-between">
+        <div className="flex min-w-0 flex-col gap-3 border-b border-outline-variant/30 p-4 md:flex-row md:flex-wrap md:items-center md:gap-3 lg:justify-between">
           <SearchInput
             ref={searchInputRef}
             value={searchInput}
             onChange={handleQueryChange}
             placeholder="Filter by name or email..."
             aria-label="Filter users by name or email"
-            containerClassName="h-12 bg-surface-container-high w-full md:max-w-md"
+            containerClassName="h-12 bg-surface-container-high w-full md:w-auto md:min-w-0 md:max-w-md md:flex-1"
           />
-          <div className="flex flex-wrap items-center justify-end gap-3">
+          <div className="flex min-w-0 flex-wrap items-center justify-end gap-3">
             <div className="min-w-40">
               <Select
                 classNameTrigger="rounded-full capitalize"

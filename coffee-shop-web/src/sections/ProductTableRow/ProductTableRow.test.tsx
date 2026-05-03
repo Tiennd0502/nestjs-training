@@ -71,4 +71,43 @@ describe('ProductTableRow', () => {
       screen.getByRole('button', { name: /delete test product/i }),
     ).toBeDisabled()
   })
+
+  it('shows full category label in badge (wraps instead of clipping)', () => {
+    const categoryName = 'Ground Coffee'
+
+    render(
+      <table>
+        <tbody>
+          <tr>
+            <ProductTableRow
+              product={baseProduct}
+              categoryOptions={[{ value: 'cat-1', label: categoryName }]}
+            />
+          </tr>
+        </tbody>
+      </table>,
+    )
+
+    expect(screen.getByText(categoryName)).toBeVisible()
+  })
+
+  it('sets title on product name for long labels', () => {
+    const longName = 'A'.repeat(120)
+
+    render(
+      <table>
+        <tbody>
+          <tr>
+            <ProductTableRow
+              product={{ ...baseProduct, name: longName }}
+              categoryOptions={[{ value: 'cat-1', label: 'Cat' }]}
+            />
+          </tr>
+        </tbody>
+      </table>,
+    )
+
+    const nameEl = screen.getByText(longName)
+    expect(nameEl).toHaveAttribute('title', longName)
+  })
 })

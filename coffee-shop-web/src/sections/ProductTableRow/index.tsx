@@ -82,6 +82,7 @@ export function ProductTableRow({
   const stock = readProductStock(product)
   const price = getProductListPrice(product)
   const imageUrl = getProductPrimaryImageUrl(product)
+  const subtitle = `${origin} • ${roastLevel}`
 
   return (
     <>
@@ -99,18 +100,28 @@ export function ProductTableRow({
               </AvatarFallback>
             </Avatar>
           </div>
-          <div className="min-w-0 space-y-0.5 text-left">
-            <p className="font-semibold leading-tight text-foreground">
+          <div className="min-w-0 flex-1 space-y-0.5 text-left">
+            <p
+              title={productName}
+              className="truncate font-semibold leading-tight text-foreground"
+            >
               {productName}
             </p>
-            <p className="text-sm text-muted-foreground">
-              {origin} • {roastLevel}
+            <p
+              title={subtitle}
+              className="line-clamp-2 text-sm text-muted-foreground"
+            >
+              {subtitle}
             </p>
           </div>
         </div>
       </td>
-      <td className="px-6 py-4 text-center">
-        <Badge variant="secondary" className="h-7 px-6 text-sm font-semibold">
+      <td className="min-w-0 px-6 py-4 align-middle text-center">
+        <Badge
+          variant="secondary"
+          title={categoryLabel}
+          className="box-border inline-flex h-auto min-h-7 w-full max-w-full flex-wrap justify-center whitespace-normal break-words rounded-2xl px-4 py-1.5 text-center text-xs lg:text-sm font-semibold leading-snug"
+        >
           {categoryLabel}
         </Badge>
       </td>

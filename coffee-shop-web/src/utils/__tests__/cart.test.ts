@@ -9,6 +9,7 @@ import type { CartItem } from '@/types/cart'
 const cartItemsFixture: CartItem[] = [
   {
     id: 'line-1',
+    variantId: 'line-1',
     productId: 'product-1',
     name: 'Ethiopian Yirgacheffe',
     meta: 'Light Roast',
@@ -18,6 +19,7 @@ const cartItemsFixture: CartItem[] = [
   },
   {
     id: 'line-2',
+    variantId: 'line-2',
     productId: 'product-2',
     name: 'Precision Gooseneck Kettle',
     meta: 'Matte Black',

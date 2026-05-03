@@ -91,11 +91,19 @@ export function OrderTableRow({
 
   return (
     <>
-      <td className="px-6 py-4">
-        <p className="font-mono text-sm text-muted-foreground">{displayId}</p>
+      <td className="min-w-0 px-6 py-4">
+        <p
+          title={displayId}
+          className="truncate font-mono text-sm text-muted-foreground"
+        >
+          {displayId}
+        </p>
       </td>
-      <td className="px-6 py-4">
-        <p className="text-sm font-medium text-foreground">
+      <td className="min-w-0 px-6 py-4">
+        <p
+          title={formatOrderListDate(order.createdAt)}
+          className="truncate text-sm font-medium text-foreground"
+        >
           {formatOrderListDate(order.createdAt)}
         </p>
       </td>
@@ -203,7 +211,7 @@ export function OrderTableRow({
         </p>
       </td>
       <td className="px-6 py-4">
-        <div className="flex justify-end gap-1">
+        <div className="flex justify-center gap-1">
           <Button
             type="button"
             size="icon"

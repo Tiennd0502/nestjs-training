@@ -87,12 +87,12 @@ export const ORDERS_TABLE_COLUMNS: TableColumn[] = [
   {
     key: 'orderId',
     label: 'Order ID',
-    className: 'w-[23%] min-w-[7rem] px-6 py-4',
+    className: 'w-[23%] min-w-0 px-6 py-4',
   },
   {
     key: 'date',
     label: 'Date',
-    className: 'w-[14%] min-w-[8rem] px-6 py-4',
+    className: 'w-[14%] min-w-0 px-6 py-4',
   },
   {
     key: 'customer',
@@ -102,7 +102,7 @@ export const ORDERS_TABLE_COLUMNS: TableColumn[] = [
   {
     key: 'status',
     label: 'Status',
-    className: 'w-[12%] px-6 py-4 text-center',
+    className: 'w-[16%] min-w-[84px] text-center',
   },
   // {
   //   key: 'shippingStatus',
@@ -112,12 +112,12 @@ export const ORDERS_TABLE_COLUMNS: TableColumn[] = [
   {
     key: 'total',
     label: 'Total',
-    className: 'w-[12%] px-6 py-4 text-center',
+    className: 'w-[12%] text-center',
   },
   {
     key: 'actions',
     label: 'Actions',
-    className: 'w-[12%] px-6 py-4 text-right',
+    className: 'w-[12%] text-center',
   },
 ]
 

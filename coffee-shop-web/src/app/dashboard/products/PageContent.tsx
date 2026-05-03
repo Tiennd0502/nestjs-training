@@ -112,7 +112,7 @@ export const PageContent = () => {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex min-w-0 flex-col gap-6">
       <AlertDialog
         data-testid="modal-confirm-delete-product"
         open={pendingDelete !== null}
@@ -188,15 +188,15 @@ export const PageContent = () => {
       </header>
 
       <section className="overflow-hidden rounded-3xl border border-outline-variant/40 bg-card">
-        <div className="flex flex-col gap-3 border-b border-outline-variant/30 p-4 md:flex-row lg:items-center lg:justify-between">
+        <div className="flex min-w-0 flex-col gap-3 border-b border-outline-variant/30 p-4 md:flex-row md:flex-wrap md:items-center md:gap-3 lg:justify-between">
           <SearchInput
             value={search}
             onChange={handleQueryChange}
             placeholder="Filter by product name..."
             aria-label="Filter products by name"
-            containerClassName="h-12 bg-surface-container-high w-full md:max-w-md"
+            containerClassName="h-12 bg-surface-container-high w-full md:w-auto md:min-w-0 md:max-w-md md:flex-1"
           />
-          <div className="w-full flex gap-4 md:w-80 md:max-w-80">
+          <div className="flex w-full min-w-0 gap-4 md:w-72 md:max-w-80 md:shrink-0">
             <Select
               classNameTrigger="h-12 rounded-full"
               placeholder="All categories"
@@ -206,7 +206,7 @@ export const PageContent = () => {
               onValueChange={handleCategoryChange}
             />
           </div>
-          <div className="w-full flex gap-4 md:w-50 md:max-w-50">
+          <div className="flex w-full min-w-0 gap-4 md:w-52 md:max-w-56 md:shrink-0">
             <Select
               classNameTrigger="h-12 rounded-full"
               placeholder="All statuses"
@@ -215,7 +215,7 @@ export const PageContent = () => {
               onValueChange={handleProductStatusChange}
             />
           </div>
-          <div className="flex items-center justify-end gap-3">
+          <div className="flex shrink-0 items-center justify-end gap-3">
             <Button
               disabled
               variant="outline"

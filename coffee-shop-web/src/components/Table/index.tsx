@@ -23,12 +23,12 @@ export default function Table<T>({
   getRowKey,
   renderRow,
   emptyMessage = 'No data available.',
-  tableClassName = 'w-full min-w-[700px] table-fixed text-left',
+  tableClassName = 'w-full table-fixed text-left',
   headerClassName = 'bg-surface-container text-xs font-semibold tracking-[0.14em] text-muted-foreground uppercase',
   emptyRowClassName = 'px-6 py-12 text-center text-muted-foreground',
 }: TableProps<T>) {
   return (
-    <div className="overflow-x-auto">
+    <div className="w-full min-w-0">
       <table className={tableClassName}>
         <thead className={headerClassName}>
           <tr>

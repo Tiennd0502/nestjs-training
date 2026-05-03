@@ -133,4 +133,22 @@ describe('OrderTableRow', () => {
       screen.getByRole('button', { name: /Delete order #SB-9281/i }),
     ).toBeDisabled()
   })
+
+  it('sets title on truncated order id display', () => {
+    const longNumber = `SB-${'9'.repeat(40)}`
+    const order = makeOrder({ orderNumber: longNumber })
+
+    render(
+      <table>
+        <tbody>
+          <tr>
+            <OrderTableRow order={order} />
+          </tr>
+        </tbody>
+      </table>,
+    )
+
+    const idCell = screen.getByText(`#${longNumber}`)
+    expect(idCell).toHaveAttribute('title', `#${longNumber}`)
+  })
 })

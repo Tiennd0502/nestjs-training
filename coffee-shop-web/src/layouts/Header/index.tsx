@@ -18,6 +18,7 @@ import { Menu } from '@/components/Menu'
 import { SearchInput } from '@/components/SearchInput'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { UserDropdown } from '@/components/UserDropdown'
+import { Badge } from '@/components/ui/badge'
 import { buttonVariants } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -28,6 +29,9 @@ import {
 
 // Hooks
 import { useAuth } from '@/hooks/useAuth'
+
+// Store
+import { useCartStore } from '@/store/useCartStore'
 
 // Utils
 import { cn } from '@/utils/styles'
@@ -40,6 +44,11 @@ export interface ShopHeaderProps {
 const Header = ({ className, menu = MENU }: ShopHeaderProps) => {
   const router = useRouter()
   const { user } = useAuth()
+  const cartItemCount = useCartStore((s) => s.items?.length ?? 0)
+  const cartAriaLabel =
+    cartItemCount > 0
+      ? `Shopping cart, ${cartItemCount} items`
+      : 'Shopping cart'
 
   return (
     <header
@@ -74,11 +83,21 @@ const Header = ({ className, menu = MENU }: ShopHeaderProps) => {
             href={ROUTES.CART}
             className={cn(
               buttonVariants({ variant: 'ghost', size: 'icon' }),
-              'shrink-0 text-primary',
+              'relative shrink-0 text-primary',
             )}
-            aria-label="Shopping cart"
+            aria-label={cartAriaLabel}
           >
-            <ShoppingCart className="size-6" aria-hidden />
+            <span className="relative inline-flex">
+              <ShoppingCart className="size-6" aria-hidden />
+              {Boolean(cartItemCount > 0) && (
+                <Badge
+                  className="absolute -right-2 -top-2 flex h-5 min-w-5 justify-center border-0 px-1 py-0 text-xs"
+                  aria-hidden
+                >
+                  {cartItemCount}
+                </Badge>
+              )}
+            </span>
           </Link>
 
           <SignedOut>

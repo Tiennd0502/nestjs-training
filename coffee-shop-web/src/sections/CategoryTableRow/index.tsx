@@ -54,8 +54,11 @@ export function CategoryTableRow({
           </div>
         </div>
       </td>
-      <td className="px-6 py-4">
-        <code className="rounded-md bg-muted px-2 py-0.5 text-sm text-muted-foreground">
+      <td className="min-w-0 px-6 py-4">
+        <code
+          title={category.slug?.trim() ? category.slug : undefined}
+          className="block max-w-full truncate rounded-md bg-muted px-2 py-0.5 text-left text-sm text-muted-foreground"
+        >
           {category.slug || '—'}
         </code>
       </td>

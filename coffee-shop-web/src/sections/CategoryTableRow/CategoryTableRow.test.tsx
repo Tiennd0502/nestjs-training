@@ -62,4 +62,23 @@ describe('CategoryTableRow', () => {
     ).toBeDisabled()
     expect(onRequestDelete).not.toHaveBeenCalled()
   })
+
+  it('exposes full slug via title on slug cell when slug is non-empty', () => {
+    const longSlug = 'very-long-category-slug-for-truncation-testing'
+
+    render(
+      <table>
+        <tbody>
+          <tr>
+            <CategoryTableRow
+              category={{ ...activeCategory, slug: longSlug }}
+            />
+          </tr>
+        </tbody>
+      </table>,
+    )
+
+    const slugCode = screen.getByText(longSlug)
+    expect(slugCode).toHaveAttribute('title', longSlug)
+  })
 })

@@ -48,8 +48,18 @@ export function UserTableRow({
         <div className="flex min-w-0 items-center gap-3">
           <Avatar size="lg" name={initials} src={imageUrl} alt={name} />
           <div className="min-w-0 flex-1 space-y-0.5">
-            <p className="truncate font-semibold text-foreground">{name}</p>
-            <p className="truncate text-sm text-muted-foreground">{email}</p>
+            <p
+              title={name || undefined}
+              className="truncate font-semibold text-foreground"
+            >
+              {name}
+            </p>
+            <p
+              title={email || undefined}
+              className="truncate text-sm text-muted-foreground"
+            >
+              {email}
+            </p>
           </div>
         </div>
       </td>

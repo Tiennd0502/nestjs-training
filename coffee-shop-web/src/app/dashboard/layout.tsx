@@ -6,6 +6,7 @@ import {
 import { TooltipProvider } from '@/components/ui/tooltip'
 import Sidebar from '@/components/Sidebar'
 import HeaderDashboard from '@/layouts/Header/HeaderDashboard'
+import FooterDashboard from '@/layouts/Footer/FooterDashboard'
 
 export default function DashboardLayout({
   children,
@@ -22,9 +23,10 @@ export default function DashboardLayout({
         >
           <Sidebar />
         </ContainerSidebar>
-        <SidebarInset className="bg-muted min-h-svh w-full h-full relative">
+        <SidebarInset className="relative h-full min-h-svh min-w-0 w-full bg-muted">
           <HeaderDashboard />
-          <div className="flex-1 p-6">{children}</div>
+          <div className="min-w-0 flex-1 p-6">{children}</div>
+          <FooterDashboard />
         </SidebarInset>
       </SidebarProvider>
     </TooltipProvider>

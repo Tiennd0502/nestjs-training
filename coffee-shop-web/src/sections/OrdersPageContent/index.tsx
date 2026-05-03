@@ -261,17 +261,17 @@ export default function OrdersPageContent() {
       <StatsCards items={statsItems} />
 
       <section className="overflow-hidden rounded-3xl border border-outline-variant/40 bg-card">
-        <div className="flex flex-col gap-3 border-b border-outline-variant/30 p-4 md:flex-row md:flex-wrap lg:items-center lg:justify-between">
+        <div className="flex min-w-0 flex-col gap-3 border-b border-outline-variant/30 p-4 md:flex-row md:flex-wrap md:items-center md:gap-3 lg:justify-between">
           <SearchInput
             ref={searchInputRef}
             value={searchInput}
             onChange={handleQueryChange}
             placeholder="Search orders..."
             aria-label="Search orders"
-            containerClassName="h-12 bg-surface-container-high w-full md:max-w-sm"
+            containerClassName="h-12 bg-surface-container-high w-full md:w-auto md:min-w-0 md:max-w-sm md:flex-1"
           />
-          <div className="flex flex-wrap items-center justify-end gap-3">
-            <div className="w-full flex gap-4 md:w-50 md:max-w-80">
+          <div className="flex min-w-0 flex-wrap items-center justify-end gap-3">
+            <div className="flex w-full min-w-0 gap-4 md:w-72 md:max-w-80 md:shrink-0">
               <Select
                 classNameTrigger="h-12 rounded-full"
                 placeholder="All statuses"
@@ -355,7 +355,6 @@ export default function OrdersPageContent() {
               />
             )}
             emptyMessage="No orders found."
-            tableClassName="w-full min-w-[960px] table-fixed text-left"
           />
         )}
 

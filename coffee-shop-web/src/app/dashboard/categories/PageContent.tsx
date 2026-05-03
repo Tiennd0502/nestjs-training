@@ -170,16 +170,16 @@ export const PageContent = () => {
       </header>
 
       <section className="overflow-hidden rounded-3xl border border-outline-variant/40 bg-card">
-        <div className="flex flex-col gap-3 border-b border-outline-variant/30 p-4 md:flex-row lg:items-center lg:justify-between">
+        <div className="flex min-w-0 flex-col gap-3 border-b border-outline-variant/30 p-4 md:flex-row md:flex-wrap md:items-center md:gap-3 lg:justify-between">
           <SearchInput
             ref={searchInputRef}
             value={searchInput}
             onChange={handleQueryChange}
             placeholder="Filter by name or slug..."
             aria-label="Filter categories by name or slug"
-            containerClassName="h-12 bg-surface-container-high w-full md:max-w-md"
+            containerClassName="h-12 bg-surface-container-high w-full md:w-auto md:min-w-0 md:max-w-md md:flex-1"
           />
-          <div className="flex flex-wrap items-center justify-end gap-3">
+          <div className="flex shrink-0 flex-wrap items-center justify-end gap-3">
             <Button
               disabled
               variant="outline"

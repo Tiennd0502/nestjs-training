@@ -28,7 +28,12 @@ export function ProfileOrderTableRow({
 
   return (
     <>
-      <td className="px-8 py-8 font-medium text-on-surface">{displayId}</td>
+      <td
+        title={displayId}
+        className="min-w-0 truncate px-8 py-8 font-medium text-on-surface"
+      >
+        {displayId}
+      </td>
       <td className="px-8 py-8 text-on-surface-variant">
         {formatOrderListDate(order.createdAt)}
       </td>
