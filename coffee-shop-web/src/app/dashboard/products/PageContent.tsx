@@ -33,8 +33,8 @@ import { productUrlSchema } from '@/utils/url'
 import { cn } from '@/utils/styles'
 import { useUrlState } from '@/hooks/useUrlState'
 import { Select } from '@/components/Select'
-import { Spinner } from '@/components/ui/spinner'
 import type { Product } from '@/types/product'
+import Loading from '@/components/Loading'
 
 const ALL_CATEGORIES_VALUE = 'all-categories'
 
@@ -239,7 +239,7 @@ export const PageContent = () => {
 
         {isLoading ? (
           <div className="px-6 py-12 text-center text-muted-foreground">
-            <Spinner size="lg" />
+            <Loading />
           </div>
         ) : isError ? (
           <div className="flex flex-col items-center gap-4 px-6 py-12 text-center">

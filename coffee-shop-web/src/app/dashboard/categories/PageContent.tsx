@@ -31,6 +31,7 @@ import { CategoryTableRow } from '@/sections/CategoryTableRow'
 // Utils
 import { urlSchema } from '@/utils/url'
 import { cn } from '@/utils/styles'
+import Loading from '@/components/Loading'
 
 interface PendingDelete {
   id: string
@@ -203,7 +204,7 @@ export const PageContent = () => {
 
         {isLoading ? (
           <div className="px-6 py-12 text-center text-muted-foreground">
-            Loading categories...
+            <Loading />
           </div>
         ) : isError ? (
           <div className="flex flex-col items-center gap-4 px-6 py-12 text-center">

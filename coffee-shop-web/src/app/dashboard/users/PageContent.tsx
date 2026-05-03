@@ -28,6 +28,7 @@ import { UserTableRow } from '@/sections/UserTableRow'
 
 // Utils
 import { userUrlSchema } from '@/utils/url'
+import Loading from '@/components/Loading'
 
 export const PageContent = () => {
   const { state, update: updateUrl } = useUrlState(userUrlSchema)
@@ -231,7 +232,7 @@ export const PageContent = () => {
 
         {isLoading ? (
           <div className="px-6 py-12 text-center text-muted-foreground">
-            Loading users...
+            <Loading />
           </div>
         ) : isError ? (
           <div className="flex flex-col items-center gap-4 px-6 py-12 text-center">

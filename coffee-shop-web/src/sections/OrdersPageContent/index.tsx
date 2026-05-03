@@ -12,7 +12,6 @@ import { SearchInput } from '@/components/SearchInput'
 import { Select } from '@/components/Select'
 import StatsCards from '@/components/StatsCards'
 import { Button } from '@/components/ui/button'
-import { Spinner } from '@/components/ui/spinner'
 import { SEARCH_URL_DEBOUNCE_MS } from '@/constants/common'
 import {
   DIALOG_MESSAGES,
@@ -39,6 +38,7 @@ import { OrderDetailModal } from '@/sections/OrderDetailModal'
 import { OrderTableRow } from '@/sections/OrderTableRow'
 import { buildOrderDashboardStats } from '@/utils/order'
 import { ordersUrlSchema } from '@/utils/url'
+import Loading from '@/components/Loading'
 
 export default function OrdersPageContent() {
   const { state, update: updateUrl } = useUrlState(ordersUrlSchema)
@@ -311,12 +311,8 @@ export default function OrdersPageContent() {
         </div>
 
         {isLoading ? (
-          <div className="flex justify-center px-6 py-12 text-muted-foreground">
-            <Spinner
-              size="lg"
-              label="Loading orders"
-              className="text-primary"
-            />
+          <div className="px-6 py-12 text-center text-muted-foreground">
+            <Loading />
           </div>
         ) : isError ? (
           <div className="flex flex-col items-center gap-4 px-6 py-12 text-center">

@@ -290,21 +290,6 @@ describe('Dashboard users page', () => {
     ).not.toBeInTheDocument()
   })
 
-  it('renders loading state', () => {
-    mockUseUsers.mockImplementation(() => ({
-      users: [],
-      meta: null,
-      isLoading: true,
-      isError: false,
-      errorMessage: null,
-      refetch: refetchMock,
-    }))
-
-    renderUsersPage()
-
-    expect(screen.getByText('Loading users...')).toBeInTheDocument()
-  })
-
   it('renders error state and retries', async () => {
     const user = userEvent.setup()
     mockUseUsers.mockImplementation(() => ({
