@@ -40,6 +40,7 @@ function makeOrder(overrides: Partial<Order> = {}): Order {
       postalCode: '700000',
     },
     items: [],
+    deletedAt: null,
     createdAt: '2023-10-24T12:00:00.000Z',
     updatedAt: '2023-10-24T12:00:00.000Z',
     ...overrides,
@@ -132,6 +133,42 @@ describe('OrderTableRow', () => {
     expect(
       screen.getByRole('button', { name: /Delete order #SB-9281/i }),
     ).toBeDisabled()
+  })
+
+  it('locks status and delete actions for deleted order but still allows view', async () => {
+    const user = userEvent.setup()
+    const order = makeOrder({ deletedAt: '2026-01-02T00:00:00.000Z' })
+    const onRequestView = jest.fn()
+    const onRequestDelete = jest.fn()
+
+    render(
+      <table>
+        <tbody>
+          <tr>
+            <OrderTableRow
+              order={order}
+              onRequestView={onRequestView}
+              onRequestDelete={onRequestDelete}
+            />
+          </tr>
+        </tbody>
+      </table>,
+    )
+
+    expect(
+      screen.getByRole('button', { name: /Change order status for #SB-9281/i }),
+    ).toBeDisabled()
+    expect(
+      screen.getByRole('button', { name: /Delete order #SB-9281/i }),
+    ).toBeDisabled()
+
+    await user.click(
+      screen.getByRole('button', { name: /View order #SB-9281/i }),
+    )
+
+    expect(onRequestView).toHaveBeenCalledTimes(1)
+    expect(onRequestView).toHaveBeenCalledWith(order)
+    expect(onRequestDelete).not.toHaveBeenCalled()
   })
 
   it('sets title on truncated order id display', () => {

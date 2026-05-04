@@ -331,11 +331,16 @@ export default function OrdersPageContent() {
             columns={ORDERS_TABLE_COLUMNS}
             data={orders}
             getRowKey={(order, index) => order.id ?? `order-${index}`}
+            resolveRowClassName={(order) =>
+              order.deletedAt ? 'bg-muted-foreground/20' : ''
+            }
             renderRow={(order) => (
               <OrderTableRow
                 order={order}
-                isDeleteDisabled={isDeletePending}
-                isStatusDisabled={pendingStatusOrderId === order.id}
+                isDeleteDisabled={isDeletePending || Boolean(order.deletedAt)}
+                isStatusDisabled={
+                  pendingStatusOrderId === order.id || Boolean(order.deletedAt)
+                }
                 isShippingStatusDisabled={
                   pendingShippingStatusOrderId === order.id
                 }

@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react'
 
+import { cn } from '@/utils/styles'
+
 export interface TableColumn {
   key: string
   label: ReactNode
@@ -15,6 +17,7 @@ export interface TableProps<T> {
   tableClassName?: string
   headerClassName?: string
   emptyRowClassName?: string
+  resolveRowClassName?: (item: T, index: number) => string
 }
 
 export default function Table<T>({
@@ -26,6 +29,7 @@ export default function Table<T>({
   tableClassName = 'w-full table-fixed text-left',
   headerClassName = 'bg-surface-container text-xs font-semibold tracking-[0.14em] text-muted-foreground uppercase',
   emptyRowClassName = 'px-6 py-12 text-center text-muted-foreground',
+  resolveRowClassName,
 }: TableProps<T>) {
   return (
     <div className="w-full min-w-0">
@@ -43,7 +47,10 @@ export default function Table<T>({
           {data.length > 0 ? (
             data.map((item, index) => (
               <tr
-                className={index % 2 === 0 ? 'bg-card' : 'bg-background'}
+                className={cn(
+                  index % 2 === 0 ? 'bg-card' : 'bg-background',
+                  resolveRowClassName?.(item, index),
+                )}
                 key={getRowKey(item, index)}
               >
                 {renderRow(item, index)}

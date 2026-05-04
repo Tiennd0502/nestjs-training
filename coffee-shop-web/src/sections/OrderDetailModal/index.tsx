@@ -24,7 +24,6 @@ import {
   AlertDialog,
   AlertDialogCancel,
   AlertDialogContent,
-  AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
@@ -57,7 +56,7 @@ export function OrderDetailModal({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent
         data-testid="order-detail-modal"
-        className="max-w-3xl"
+        className="max-h-[85vh] max-w-4xl grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden"
       >
         <AlertDialogCancel
           aria-label="Close order details"
@@ -71,16 +70,9 @@ export function OrderDetailModal({
           <AlertDialogTitle className="text-2xl font-bold text-foreground">
             Order Details
           </AlertDialogTitle>
-          <AlertDialogDescription className="text-sm text-muted-foreground">
-            Review order information for{' '}
-            <span className="font-semibold text-foreground">
-              {order.orderNumber || order.id}
-            </span>
-            .
-          </AlertDialogDescription>
         </AlertDialogHeader>
 
-        <div className="grid gap-4 text-sm">
+        <div className="grid min-h-0 gap-4 overflow-y-auto pr-1 text-sm">
           <div className="grid gap-2 rounded-xl border p-4 md:grid-cols-2">
             <p>
               <span className="text-muted-foreground">Order ID: </span>

@@ -33,7 +33,7 @@ import { productUrlSchema } from '@/utils/url'
 import { cn } from '@/utils/styles'
 import { useUrlState } from '@/hooks/useUrlState'
 import { Select } from '@/components/Select'
-import type { Product } from '@/types/product'
+import { PRODUCT_STATUS, type Product } from '@/types/product'
 import Loading from '@/components/Loading'
 
 const ALL_CATEGORIES_VALUE = 'all-categories'
@@ -258,6 +258,11 @@ export const PageContent = () => {
             columns={PRODUCTS_TABLE_COLUMNS}
             data={products}
             getRowKey={(product, index) => product.id ?? `product-${index}`}
+            resolveRowClassName={(product) =>
+              product.status === PRODUCT_STATUS.ARCHIVED
+                ? 'bg-muted-foreground/20'
+                : ''
+            }
             renderRow={(product) => (
               <ProductTableRow
                 product={product}

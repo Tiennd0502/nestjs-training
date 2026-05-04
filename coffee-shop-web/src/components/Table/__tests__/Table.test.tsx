@@ -87,4 +87,30 @@ describe('Table', () => {
     const table = container.querySelector('table')
     expect(table?.className).toContain('custom-table-class')
   })
+
+  it('applies resolveRowClassName to each row', () => {
+    const data: Row[] = [
+      { id: '1', label: 'First' },
+      { id: '2', label: 'Second' },
+    ]
+
+    render(
+      <Table<Row>
+        columns={columns}
+        data={data}
+        getRowKey={(row) => row.id}
+        resolveRowClassName={(row) => (row.id === '2' ? 'bg-muted/30' : '')}
+        renderRow={(row) => (
+          <>
+            <td>{row.id}</td>
+            <td>{row.label}</td>
+          </>
+        )}
+      />,
+    )
+
+    const rows = screen.getAllByRole('row')
+    expect(rows[1]).not.toHaveClass('bg-muted/30')
+    expect(rows[2]).toHaveClass('bg-muted/30')
+  })
 })

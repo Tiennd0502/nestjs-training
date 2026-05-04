@@ -68,6 +68,10 @@ export function OrderTableRow({
       .trim()
   const avatarFallback = initials || '?'
   const statusP = getOrderStatusPresentation(order.status)
+  const isOrderDeleted = Boolean(order.deletedAt)
+  const isStatusActionDisabled =
+    isOrderDeleted || isDeleteDisabled || isStatusDisabled
+  const isDeleteActionDisabled = isOrderDeleted || isDeleteDisabled
   // const shipping = getShippingStatusPresentation(order.shippingStatus)
   const nextOrderStatuses = ORDER_TRANSITIONS[order.status]
   // const nextShippingStatuses = SHIPPING_TRANSITIONS[order.shippingStatus]
@@ -124,13 +128,16 @@ export function OrderTableRow({
         {nextOrderStatuses.length > 0 ? (
           <DropdownMenu>
             <DropdownMenuTrigger
-              disabled={isStatusDisabled}
+              disabled={isStatusActionDisabled}
               aria-label={`Change order status for ${displayId}`}
               className="inline-flex"
             >
               <Badge
                 className={cn(
-                  'h-7 cursor-pointer px-3 text-[0.65rem] font-semibold uppercase transition hover:opacity-90',
+                  'h-7 px-3 text-[0.65rem] font-semibold uppercase',
+                  isStatusActionDisabled
+                    ? 'cursor-not-allowed opacity-70'
+                    : 'cursor-pointer transition hover:opacity-90',
                   statusP.badgeClassName,
                 )}
               >
@@ -142,7 +149,7 @@ export function OrderTableRow({
               {nextOrderStatuses.map((nextStatus) => (
                 <DropdownMenuItem
                   key={nextStatus}
-                  disabled={isStatusDisabled}
+                  disabled={isStatusActionDisabled}
                   onClick={() => onRequestStatusChange?.(order, nextStatus)}
                 >
                   {getOrderStatusLabel(nextStatus)}
@@ -228,11 +235,13 @@ export function OrderTableRow({
             size="icon"
             variant="ghost"
             className="size-9"
-            disabled={isDeleteDisabled}
+            disabled={isDeleteActionDisabled}
             onClick={() => onRequestDelete?.(order)}
             title={
-              isDeleteDisabled
-                ? 'Delete order in progress'
+              isDeleteActionDisabled
+                ? isOrderDeleted
+                  ? 'Deleted order cannot be modified'
+                  : 'Delete order in progress'
                 : 'Delete this order'
             }
             aria-label={`Delete order ${displayId}`}

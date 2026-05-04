@@ -56,4 +56,5 @@ export interface Order extends Omit<OrderPayload, 'shippingAddress'> {
   user: User
   createdAt: string
   updatedAt: string
+  deletedAt: string | null
 }
