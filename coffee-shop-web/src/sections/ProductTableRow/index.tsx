@@ -79,6 +79,7 @@ export function ProductTableRow({
   const roastLevel = formatRoastLevel(product.roastLevel)
   const origin = product.origin?.trim() || 'Unknown origin'
   const status = product.status ?? PRODUCT_STATUS.DRAFT
+  const isArchived = status === PRODUCT_STATUS.ARCHIVED
   const stock = readProductStock(product)
   const price = getProductListPrice(product)
   const imageUrl = getProductPrimaryImageUrl(product)
@@ -120,7 +121,7 @@ export function ProductTableRow({
         <Badge
           variant="secondary"
           title={categoryLabel}
-          className="box-border inline-flex h-auto min-h-7 w-full max-w-full flex-wrap justify-center whitespace-normal break-words rounded-2xl px-4 py-1.5 text-center text-xs lg:text-sm font-semibold leading-snug"
+          className="box-border inline-flex h-auto min-h-7 w-full max-w-full flex-wrap justify-center whitespace-normal wrap-break-word rounded-2xl px-4 py-1.5 text-center text-xs lg:text-sm font-semibold leading-snug"
         >
           {categoryLabel}
         </Badge>
@@ -151,12 +152,12 @@ export function ProductTableRow({
             href={dashboardProductEditPath(product.id)}
             className={cn(
               buttonVariants({ variant: 'ghost', size: 'icon-xs' }),
-              !product.id && 'pointer-events-none opacity-50',
+              (!product.id || isArchived) && 'pointer-events-none opacity-50',
             )}
             aria-label={`Edit ${productName}`}
-            aria-disabled={!product.id}
+            aria-disabled={!product.id || isArchived}
             onClick={(e) => {
-              if (!product.id) e.preventDefault()
+              if (!product.id || isArchived) e.preventDefault()
             }}
           >
             <Pencil className="size-4" aria-hidden />
@@ -166,9 +167,9 @@ export function ProductTableRow({
             size="icon-xs"
             variant="ghost"
             aria-label={`Delete ${productName}`}
-            disabled={!onRequestDelete || !product.id}
+            disabled={!onRequestDelete || !product.id || isArchived}
             onClick={() => {
-              if (!product.id || !onRequestDelete) return
+              if (!product.id || !onRequestDelete || isArchived) return
               onRequestDelete(product)
             }}
           >

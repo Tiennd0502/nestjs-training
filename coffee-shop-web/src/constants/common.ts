@@ -1,4 +1,4 @@
-export const PAGE_SIZE = 8
+export const PAGE_SIZE = 12
 export const LIST_QUERY_STALE_MS = 60_000
 export const LIST_QUERY_GC_MS = 300_000
 

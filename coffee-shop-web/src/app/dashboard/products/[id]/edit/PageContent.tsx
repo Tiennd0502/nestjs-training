@@ -122,7 +122,7 @@ const EditProductForm = ({ product, productId }: EditProductFormProps) => {
     reset,
     setValue,
     watch,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<EditProductFormValues>({
     resolver: zodResolver(editProductFormSchema),
     defaultValues: EDIT_FORM_DEFAULTS,
@@ -145,6 +145,34 @@ const EditProductForm = ({ product, productId }: EditProductFormProps) => {
 
   const roastLevel = watch('roastLevel')
   const isSubmitting = isUpdatePending || isUploadingImages
+  const initialTastingNotes = parseTastingNotesString(product.tastingNotes)
+  const initialIsListedOnStorefront = product.status === PRODUCT_STATUS.ACTIVE
+  const { primaryUrl: initialPrimaryUrl, galleryItems: initialGalleryItems } =
+    splitProductImagesForGallery(product)
+  const hasStatusChanged = isListedOnStorefront !== initialIsListedOnStorefront
+  const hasTastingNotesChanged =
+    tastingNotes.length !== initialTastingNotes.length ||
+    tastingNotes.some((note, index) => note !== initialTastingNotes[index])
+  const hasPrimaryImageChanged =
+    avatarImage !== null || serverPrimaryUrl !== initialPrimaryUrl
+  const hasGalleryChanged =
+    galleryImages.length > 0 ||
+    existingGalleryItems.length !== initialGalleryItems.length ||
+    existingGalleryItems.some((item, index) => {
+      const initialItem = initialGalleryItems[index]
+      if (!initialItem) return true
+      return (
+        item.id !== initialItem.id ||
+        item.url !== initialItem.url ||
+        item.name !== initialItem.name
+      )
+    })
+  const hasUnsavedChanges =
+    isDirty ||
+    hasStatusChanged ||
+    hasTastingNotesChanged ||
+    hasPrimaryImageChanged ||
+    hasGalleryChanged
 
   const handleResetChanges = () => {
     reset(mapProductToEditFormValues(product))
@@ -314,6 +342,16 @@ const EditProductForm = ({ product, productId }: EditProductFormProps) => {
     const { addImages, removeImageIds, updateImages } =
       buildProductUpdateImageDiff(product.images, finalImages)
 
+    let nextStatus = PRODUCT_STATUS.DRAFT
+    if (isListedOnStorefront) {
+      nextStatus = PRODUCT_STATUS.ACTIVE
+    } else if (
+      product.status === PRODUCT_STATUS.ACTIVE ||
+      product.status === PRODUCT_STATUS.INACTIVE
+    ) {
+      nextStatus = PRODUCT_STATUS.INACTIVE
+    }
+
     const updatePayload: ProductUpdatePayload = {
       categoryId: data.categoryId,
       name: data.name.trim(),
@@ -321,9 +359,7 @@ const EditProductForm = ({ product, productId }: EditProductFormProps) => {
       roastLevel: data.roastLevel,
       isOrganic: data.isOrganic,
       isFairTrade: data.isFairTrade,
-      status: isListedOnStorefront
-        ? PRODUCT_STATUS.ACTIVE
-        : PRODUCT_STATUS.DRAFT,
+      status: nextStatus,
       tastingNotes: tastingNotes.join(', '),
       origin: data.origin.trim(),
       processingMethod: data.processingMethod.trim(),
@@ -386,7 +422,7 @@ const EditProductForm = ({ product, productId }: EditProductFormProps) => {
             type="button"
             variant="ghost"
             className="w-auto px-4 text-muted-foreground"
-            disabled={isSubmitting}
+            disabled={isSubmitting || !hasUnsavedChanges}
             onClick={handleResetChanges}
           >
             Reset changes
@@ -394,7 +430,7 @@ const EditProductForm = ({ product, productId }: EditProductFormProps) => {
           <Button
             type="button"
             className="w-auto px-8"
-            disabled={isSubmitting}
+            disabled={isSubmitting || !hasUnsavedChanges}
             loading={isSubmitting}
             onClick={handleSubmit(onSubmit)}
           >
