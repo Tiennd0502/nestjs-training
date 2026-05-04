@@ -32,5 +32,6 @@ export interface User {
 
 export interface ClerkUser extends User {
   fullName: string | null
+  imageUrl: string | null
   primaryEmailAddress?: { emailAddress: string } | null
 }

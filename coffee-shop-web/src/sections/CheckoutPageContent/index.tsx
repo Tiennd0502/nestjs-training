@@ -36,7 +36,7 @@ import {
   type PaymentMethod,
 } from '@/types/checkout'
 import Loading from '@/components/Loading'
-import type { Order, OrderPayload } from '@/types/order'
+import type { OrderPayload } from '@/types/order'
 import { DELIVERY_SPEED } from '@/constants/order'
 import { formatPrice } from '@/utils/common'
 
@@ -316,7 +316,7 @@ const CheckoutPageContent = () => {
       },
       {
         onSuccess: (data) => {
-          setItemSnapshots(data?.data as Order)
+          setItemSnapshots(data)
           clearCart()
           toast.success('Order placed successfully', {
             description: `Total charged: $${normalizedTotal}`,

@@ -37,7 +37,7 @@ export function CategoryTableRow({
           <div className="flex min-w-0 flex-wrap items-center gap-2">
             <p
               className={cn(
-                'truncate font-semibold text-foreground',
+                'truncate font-semibold text-foreground text-center',
                 isDeleted && 'text-muted-foreground line-through',
               )}
             >
@@ -46,7 +46,7 @@ export function CategoryTableRow({
             {isDeleted ? (
               <Badge
                 variant="secondary"
-                className="h-6 shrink-0 text-[0.6rem] uppercase tracking-wider"
+                className="h-6 shrink-0 text-[0.6rem] uppercase tracking-wider text-center"
               >
                 Archived
               </Badge>
@@ -57,15 +57,15 @@ export function CategoryTableRow({
       <td className="min-w-0 px-6 py-4">
         <code
           title={category.slug?.trim() ? category.slug : undefined}
-          className="block max-w-full truncate rounded-md bg-muted px-2 py-0.5 text-left text-sm text-muted-foreground"
+          className="block max-w-full truncate rounded-md bg-muted px-2 py-0.5 text-sm text-center text-muted-foreground"
         >
           {category.slug || '—'}
         </code>
       </td>
-      <td className="px-6 py-4 text-sm text-muted-foreground truncate">
+      <td className="px-6 py-4 text-sm text-muted-foreground truncate text-center">
         {formatTs(category.createdAt)}
       </td>
-      <td className="px-6 py-4 text-sm text-muted-foreground truncate">
+      <td className="px-6 py-4 text-sm text-muted-foreground truncate text-center">
         {formatTs(category.updatedAt)}
       </td>
       <td className="min-w-0 px-6 py-4">

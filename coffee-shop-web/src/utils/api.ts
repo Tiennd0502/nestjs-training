@@ -38,7 +38,7 @@ export function resolveProfilePresentation(
   const email =
     user?.email ?? clerkUser?.primaryEmailAddress?.emailAddress ?? ''
 
-  const imageSrc = user?.imageUrl ?? clerkUser?.imageUrl ?? fallbackImage
+  const imageSrc = user?.avatarUrl ?? clerkUser?.imageUrl ?? fallbackImage
 
   return { displayName, email, imageSrc }
 }

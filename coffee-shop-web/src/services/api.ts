@@ -143,7 +143,7 @@ export class ApiClient {
 
       let data: TResponse
       try {
-        data = (await response.json()) as TResponse
+        data = (await response.json()).data as TResponse
       } catch {
         data = {} as TResponse
       }
