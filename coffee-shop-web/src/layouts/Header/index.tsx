@@ -6,7 +6,7 @@ import { SignedIn, SignedOut } from '@clerk/nextjs'
 import { Menu as MenuIcon, ShoppingCart } from 'lucide-react'
 
 // Constants
-import { MENU } from '@/constants/nav'
+import { MENU, MENU_DISABLED_HINT } from '@/constants/nav'
 import { ROUTES } from '@/constants/routes'
 
 // Types
@@ -143,15 +143,31 @@ const Header = ({ className, menu = MENU }: ShopHeaderProps) => {
                 <MenuIcon className="size-5" aria-hidden />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="min-w-44">
-                {menu.map((item) => (
-                  <DropdownMenuItem
-                    key={item.href + item.label}
-                    className="cursor-pointer"
-                    onClick={() => router.push(item.href)}
-                  >
-                    {item.label}
-                  </DropdownMenuItem>
-                ))}
+                {menu.map((item) => {
+                  const isDisabled = Boolean(item.disabled)
+
+                  return (
+                    <DropdownMenuItem
+                      key={item.href + item.label}
+                      className={cn(
+                        isDisabled
+                          ? 'cursor-not-allowed opacity-60'
+                          : 'cursor-pointer',
+                      )}
+                      disabled={isDisabled}
+                      onClick={() => {
+                        if (isDisabled) {
+                          return
+                        }
+                        router.push(item.href)
+                      }}
+                    >
+                      {isDisabled
+                        ? `${item.label} - ${MENU_DISABLED_HINT}`
+                        : item.label}
+                    </DropdownMenuItem>
+                  )
+                })}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>

@@ -62,13 +62,13 @@ export function CategoryTableRow({
           {category.slug || '—'}
         </code>
       </td>
-      <td className="px-6 py-4 text-sm text-muted-foreground">
+      <td className="px-6 py-4 text-sm text-muted-foreground truncate">
         {formatTs(category.createdAt)}
       </td>
-      <td className="px-6 py-4 text-sm text-muted-foreground">
+      <td className="px-6 py-4 text-sm text-muted-foreground truncate">
         {formatTs(category.updatedAt)}
       </td>
-      <td className="px-6 py-4">
+      <td className="min-w-0 px-6 py-4">
         <div className="flex justify-end gap-1">
           {!isDeleted && category.id ? (
             <Link

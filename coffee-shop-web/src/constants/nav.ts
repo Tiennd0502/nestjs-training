@@ -11,7 +11,7 @@ import {
   Tags,
 } from 'lucide-react'
 
-import { type MenuItem } from '@/types/menu'
+import { type DashboardMenuItem, type MenuItem } from '@/types/menu'
 import { ROUTES } from './routes'
 
 export const USER_DROPDOWNS = (isAdmin?: boolean, isDashboard?: boolean) => [
@@ -51,12 +51,26 @@ export const USER_DROPDOWNS_LENGTH = USER_DROPDOWNS.length
 export const MENU: MenuItem[] = [
   { label: 'Shop', href: '/', match: 'exact' },
   { label: 'Roasts', href: '/roasts', match: 'prefix' },
-  { label: 'Brew Guides', href: '/brew-guides', match: 'prefix' },
-  { label: 'Subscriptions', href: '/subscriptions', match: 'prefix' },
-  { label: 'Contact', href: '/contact', match: 'prefix' },
+  {
+    label: 'Brew Guides',
+    href: '/brew-guides',
+    match: 'prefix',
+    disabled: true,
+  },
+  {
+    label: 'Subscriptions',
+    href: '/subscriptions',
+    match: 'prefix',
+    disabled: true,
+  },
+  { label: 'Contact', href: '/contact', match: 'prefix', disabled: true },
 ]
 
-export const DASHBOARD_MENU = [
+export const MENU_DISABLED_HINT = 'Coming soon'
+
+export const DASHBOARD_DISABLED_HINT = 'Coming soon'
+
+export const DASHBOARD_MENU: DashboardMenuItem[] = [
   {
     label: 'Dashboard',
     href: ROUTES.DASHBOARD,
@@ -80,6 +94,7 @@ export const DASHBOARD_MENU = [
     href: '/dashboard/favorites',
     icon: Heart,
     match: 'prefix',
+    disabled: true,
   },
   {
     label: 'Orders',
@@ -98,5 +113,6 @@ export const DASHBOARD_MENU = [
     href: '/dashboard/settings',
     icon: Settings,
     match: 'prefix',
+    disabled: true,
   },
 ]

@@ -27,12 +27,16 @@ export const USERS_TABLE_COLUMNS: TableColumn[] = [
     label: 'User',
     className: 'w-[46%] min-w-0 px-6 py-4',
   },
-  { key: 'role', label: 'Role', className: 'w-[14%] px-6 py-4' },
-  { key: 'status', label: 'Status', className: 'w-[18%] px-6 py-4' },
+  { key: 'role', label: 'Role', className: 'w-[14%] min-w-0 text-center' },
+  {
+    key: 'status',
+    label: 'Status',
+    className: 'w-[18%] min-w-[65px] text-center',
+  },
   {
     key: 'actions',
     label: 'Actions',
-    className: 'w-[22%] px-6 py-4 text-right',
+    className: 'w-[22%] min-w-0 text-center',
   },
 ]
 

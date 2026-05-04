@@ -14,7 +14,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
-import { DASHBOARD_MENU } from '@/constants/nav'
+import { DASHBOARD_DISABLED_HINT, DASHBOARD_MENU } from '@/constants/nav'
 import { ROUTES } from '@/constants/routes'
 import { cn } from '@/utils/styles'
 
@@ -55,29 +55,46 @@ const Sidebar = () => {
               <SidebarMenu className="gap-1">
                 {DASHBOARD_MENU.map((item) => {
                   const Icon = item.icon
+                  const isDisabled = Boolean(item.disabled)
                   const isActive =
-                    item.match === 'exact'
+                    !isDisabled &&
+                    (item.match === 'exact'
                       ? pathname === item.href
                       : pathname === item.href ||
-                        pathname.startsWith(`${item.href}/`)
+                        pathname.startsWith(`${item.href}/`))
 
                   return (
                     <SidebarMenuItem key={item.href}>
                       <SidebarMenuButton
                         isActive={isActive}
                         render={
-                          <Link
-                            className="h-12 w-full rounded-full px-4"
-                            href={item.href}
-                            aria-current={isActive ? 'page' : undefined}
-                          />
+                          isDisabled ? undefined : (
+                            <Link
+                              className="h-12 w-full rounded-full px-4"
+                              href={item.href}
+                              aria-current={isActive ? 'page' : undefined}
+                            />
+                          )
                         }
-                        tooltip={item.label}
+                        tooltip={
+                          isDisabled
+                            ? `${item.label} - ${DASHBOARD_DISABLED_HINT}`
+                            : item.label
+                        }
+                        aria-disabled={isDisabled}
+                        aria-label={
+                          isDisabled
+                            ? `${item.label} - ${DASHBOARD_DISABLED_HINT}`
+                            : item.label
+                        }
+                        tabIndex={isDisabled ? -1 : undefined}
                         className={cn(
                           'w-full rounded-full px-4 transition-colors',
                           'group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:p-4! group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center',
                           'data-active:bg-sidebar-primary data-active:text-sidebar-primary-foreground data-active:hover:bg-sidebar-primary data-active:hover:text-sidebar-primary-foreground',
-                          'text-sidebar-foreground/80 hover:text-sidebar-foreground',
+                          isDisabled
+                            ? 'cursor-not-allowed text-sidebar-foreground/50'
+                            : 'text-sidebar-foreground/80 hover:text-sidebar-foreground',
                         )}
                         size="lg"
                       >

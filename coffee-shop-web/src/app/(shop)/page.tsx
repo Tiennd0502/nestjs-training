@@ -5,6 +5,7 @@ import { ArrowRight, Quote } from 'lucide-react'
 
 import { buttonVariants } from '@/components/ui/button'
 import { EMPTY_IMAGE } from '@/constants/images'
+import { MENU, MENU_DISABLED_HINT } from '@/constants/nav'
 import { shopRoastDetailPath } from '@/constants/routes'
 import { fetchProducts } from '@/services/product'
 import { PRODUCT_STATUS } from '@/types/product'
@@ -54,6 +55,18 @@ const TESTIMONIALS = [
   },
 ] as const
 
+const disabledActionClassName =
+  'w-auto cursor-not-allowed rounded-full px-10 py-6 text-lg font-bold opacity-60'
+
+const HOME_DISABLED_ACTIONS = {
+  BREW_GUIDES: MENU.some(
+    (item) => item.href === '/brew-guides' && item.disabled === true,
+  ),
+  ETHICAL_SOURCE: MENU.some(
+    (item) => item.href === '/contact' && item.disabled === true,
+  ),
+} as const
+
 const HomePage = async () => {
   const productsResult = await fetchProducts({
     limit: 4,
@@ -97,15 +110,29 @@ const HomePage = async () => {
                 >
                   Shop The Collection
                 </Link>
-                <Link
-                  href="/brew-guides"
-                  className={cn(
-                    buttonVariants({ variant: 'outline', size: 'xl' }),
-                    'w-auto rounded-full border-0 bg-surface-container-highest px-10 py-6 text-lg font-bold text-primary hover:bg-surface-container-high',
-                  )}
-                >
-                  Brew Guides
-                </Link>
+                {HOME_DISABLED_ACTIONS.BREW_GUIDES ? (
+                  <span
+                    aria-disabled="true"
+                    tabIndex={-1}
+                    className={cn(
+                      buttonVariants({ variant: 'outline', size: 'xl' }),
+                      'w-auto rounded-full border-0 bg-surface-container-highest px-10 py-6 text-lg font-bold text-primary hover:bg-surface-container-high',
+                      disabledActionClassName,
+                    )}
+                  >
+                    Brew Guides - {MENU_DISABLED_HINT}
+                  </span>
+                ) : (
+                  <Link
+                    href="/brew-guides"
+                    className={cn(
+                      buttonVariants({ variant: 'outline', size: 'xl' }),
+                      'w-auto rounded-full border-0 bg-surface-container-highest px-10 py-6 text-lg font-bold text-primary hover:bg-surface-container-high',
+                    )}
+                  >
+                    Brew Guides
+                  </Link>
+                )}
               </div>
             </div>
             <div className="relative flex flex-1 justify-center lg:justify-end">
@@ -244,15 +271,29 @@ const HomePage = async () => {
                 chocolate, berry, and computational clarity.
               </p>
               <div className="pt-4 md:pt-8">
-                <Link
-                  href="/contact"
-                  className={cn(
-                    buttonVariants({ variant: 'outline', size: 'lg' }),
-                    'w-auto rounded-full border-2 border-primary px-10 py-6 font-bold text-primary hover:bg-primary hover:text-on-primary',
-                  )}
-                >
-                  Our Ethical Source
-                </Link>
+                {HOME_DISABLED_ACTIONS.ETHICAL_SOURCE ? (
+                  <span
+                    aria-disabled="true"
+                    tabIndex={-1}
+                    className={cn(
+                      buttonVariants({ variant: 'outline', size: 'lg' }),
+                      'w-auto rounded-full border-2 border-primary px-10 py-6 font-bold text-primary hover:bg-primary hover:text-on-primary',
+                      disabledActionClassName,
+                    )}
+                  >
+                    Our Ethical Source - {MENU_DISABLED_HINT}
+                  </span>
+                ) : (
+                  <Link
+                    href="/contact"
+                    className={cn(
+                      buttonVariants({ variant: 'outline', size: 'lg' }),
+                      'w-auto rounded-full border-2 border-primary px-10 py-6 font-bold text-primary hover:bg-primary hover:text-on-primary',
+                    )}
+                  >
+                    Our Ethical Source
+                  </Link>
+                )}
               </div>
             </div>
           </div>

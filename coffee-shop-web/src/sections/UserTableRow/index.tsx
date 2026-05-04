@@ -63,7 +63,7 @@ export function UserTableRow({
           </div>
         </div>
       </td>
-      <td className="px-6 py-4">
+      <td className="min-w-0 text-center">
         {onRequestRoleChange ? (
           <DropdownMenu>
             <DropdownMenuTrigger
@@ -110,7 +110,7 @@ export function UserTableRow({
           </Badge>
         )}
       </td>
-      <td className="px-6 py-4">
+      <td className="min-w-[65px] text-center">
         <span
           className={cn(
             'inline-flex items-center gap-2 text-sm font-medium',
@@ -127,8 +127,8 @@ export function UserTableRow({
           {status}
         </span>
       </td>
-      <td className="px-6 py-4">
-        <div className="flex justify-end gap-1">
+      <td className="min-w-0">
+        <div className="flex justify-center gap-1">
           <Button size="icon-xs" variant="ghost" aria-label={`Edit ${name}`}>
             <Pencil className="size-4" aria-hidden />
           </Button>

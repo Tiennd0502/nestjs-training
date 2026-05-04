@@ -14,11 +14,25 @@ const desktopNavLinkClass = (active: boolean) =>
       : 'text-muted-foreground hover:text-foreground',
   )
 
-const renderDesktopNavLink = (
-  item: MenuItem,
-  pathname: string,
-  isActive: boolean,
-) => {
+const disabledDesktopNavClass = cn(
+  'relative whitespace-nowrap pb-1 text-sm font-medium px-2.5 py-4',
+  'cursor-not-allowed text-muted-foreground/60',
+)
+
+const renderDesktopNavLink = (item: MenuItem, isActive: boolean) => {
+  if (item.disabled) {
+    return (
+      <span
+        key={item.href + item.label}
+        className={disabledDesktopNavClass}
+        aria-disabled="true"
+        tabIndex={-1}
+      >
+        {item.label}
+      </span>
+    )
+  }
+
   return (
     <Link
       key={item.href + item.label}
@@ -49,11 +63,12 @@ export const Menu = ({ className, items }: DesktopMainNavProps) => {
     >
       {items.map((item) => {
         const isActive =
-          item.match === 'exact'
+          !item.disabled &&
+          (item.match === 'exact'
             ? pathname === item.href
-            : pathname === item.href || pathname.startsWith(`${item.href}/`)
+            : pathname === item.href || pathname.startsWith(`${item.href}/`))
 
-        return renderDesktopNavLink(item, pathname, isActive)
+        return renderDesktopNavLink(item, isActive)
       })}
     </nav>
   )

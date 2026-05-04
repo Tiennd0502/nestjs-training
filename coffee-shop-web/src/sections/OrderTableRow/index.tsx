@@ -120,7 +120,7 @@ export function OrderTableRow({
           </p>
         </div>
       </td>
-      <td className="px-6 py-4 text-center">
+      <td className="min-w-0 text-center">
         {nextOrderStatuses.length > 0 ? (
           <DropdownMenu>
             <DropdownMenuTrigger
