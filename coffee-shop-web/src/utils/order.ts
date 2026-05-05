@@ -1,7 +1,7 @@
 import { Banknote, Package, Truck } from 'lucide-react'
 
 import type { StatCardItem } from '@/components/StatsCards'
-import type { ResponseMeta } from '@/types/api'
+import type { ApiErrorResponse, ErrorDetail, ResponseMeta } from '@/types/api'
 import { ORDER_STATUS, SHIPPING_STATUS, type Order } from '@/types/order'
 
 import { formatPrice } from './common'
@@ -150,4 +150,163 @@ export function buildOrderDashboardStats(
       footnoteTone: 'muted',
     },
   ]
+}
+
+// --- Place-order API: line errors keyed to cart rows (checkout) ---
+
+const ITEM_FIELD_PATTERN = /^items\[(\d+)]/
+
+type ItemFieldErrorWithLineContext = ErrorDetail & {
+  submitLineId?: string
+  submitProductId?: string
+}
+
+export interface SubmitLineRef {
+  id: string
+  productId: string
+}
+
+/**
+ * Tags `items[n]` API errors with `submitLineId` / `submitProductId` from the
+ * cart lines sent in that request (stable keys for UI after remove/reorder).
+ */
+export const tagItemErrorsWithLineRefs = (
+  errors: ErrorDetail[],
+  linesAtSubmit: readonly SubmitLineRef[],
+): ItemFieldErrorWithLineContext[] =>
+  errors.map((error) => {
+    const field = error.field
+    if (!field) {
+      return error
+    }
+
+    const match = ITEM_FIELD_PATTERN.exec(field)
+    if (!match) {
+      return error
+    }
+
+    const apiIndex = Number.parseInt(match[1] ?? '', 10)
+    if (
+      !Number.isFinite(apiIndex) ||
+      apiIndex < 0 ||
+      apiIndex >= linesAtSubmit.length
+    ) {
+      return error
+    }
+
+    const line = linesAtSubmit[apiIndex]
+    if (!line) {
+      return error
+    }
+
+    return {
+      ...error,
+      submitLineId: line.id,
+      submitProductId: line.productId,
+    }
+  })
+
+/**
+ * Maps `items[n]` errors onto current summary row indices using line id +
+ * product id when present; otherwise falls back to API index (legacy).
+ */
+export const mapItemFieldErrorsToLineMessages = (
+  errors: ErrorDetail[] | undefined,
+  items: readonly SubmitLineRef[],
+): string[] => {
+  if (!errors?.length) {
+    return []
+  }
+
+  const next: string[] = []
+
+  for (const error of errors) {
+    const field = error.field
+    if (!field) {
+      continue
+    }
+
+    const match = ITEM_FIELD_PATTERN.exec(field)
+    if (!match) {
+      continue
+    }
+
+    const apiIndex = Number.parseInt(match[1] ?? '', 10)
+    if (!Number.isFinite(apiIndex)) {
+      continue
+    }
+
+    const message = error.message ?? error.description
+    if (!message) {
+      continue
+    }
+
+    const row = error as ItemFieldErrorWithLineContext
+    if (row.submitLineId !== undefined) {
+      const displayIndex = items.findIndex(
+        (item) =>
+          item.id === row.submitLineId &&
+          (row.submitProductId === undefined ||
+            item.productId === row.submitProductId),
+      )
+      if (displayIndex === -1) {
+        continue
+      }
+      next[displayIndex] = message
+      continue
+    }
+
+    if (apiIndex >= 0 && apiIndex < items.length) {
+      next[apiIndex] = message
+    }
+  }
+
+  return next
+}
+
+/** Line-level quantity messages keyed by cart line `id` (stable after reorder/remove). */
+export const mapItemFieldErrorsToLineIdMessages = (
+  errors: ErrorDetail[] | undefined,
+  items: readonly SubmitLineRef[],
+): Record<string, string> => {
+  const byIndex = mapItemFieldErrorsToLineMessages(errors, items)
+  const byLineId: Record<string, string> = {}
+  for (let i = 0; i < items.length; i++) {
+    const line = items[i]
+    const message = byIndex[i]
+    if (line && message) {
+      byLineId[line.id] = message
+    }
+  }
+  return byLineId
+}
+
+export const omitSubmitErrorsForRemovedLine = (
+  response: ApiErrorResponse | null,
+  lineId: string,
+  productId: string,
+): ApiErrorResponse | null => {
+  if (!response?.errors?.length) {
+    return response
+  }
+
+  const filtered = response.errors.filter((err) => {
+    const row = err as ItemFieldErrorWithLineContext
+    if (row.submitLineId !== lineId) {
+      return true
+    }
+    if (row.submitProductId === undefined) {
+      return false
+    }
+    return row.submitProductId !== productId
+  })
+
+  if (filtered.length === response.errors.length) {
+    return response
+  }
+
+  return {
+    ...response,
+    errors: filtered,
+  }
 }

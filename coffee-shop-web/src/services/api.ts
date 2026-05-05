@@ -1,4 +1,5 @@
 import { ERROR_MESSAGES } from '@/constants/messages'
+import type { ApiErrorResponse } from '@/types/api'
 
 type TokenGetter = () => Promise<string | null>
 
@@ -12,7 +13,12 @@ export interface ApiRequestOptions {
 
 export type ApiResult<T> =
   | { ok: true; data: T; status: number }
-  | { ok: false; error: string; status?: number }
+  | {
+      ok: false
+      error: string
+      status?: number
+      errorResponse?: ApiErrorResponse
+    }
 
 export class ApiClient {
   private buildUrlWithQuery(
@@ -30,43 +36,57 @@ export class ApiClient {
     return next.toString()
   }
 
-  private pickFirstErrorsEntryMessage(
-    root: Record<string, unknown>,
-  ): string | null {
+  private parseErrorResponse(body: unknown): ApiErrorResponse | null {
+    if (!body || typeof body !== 'object') return null
+
+    const root = body as Record<string, unknown>
+    const statusCode = root.statusCode
+    const message = root.message
     const errors = root.errors
-    if (!Array.isArray(errors) || errors.length === 0) return null
-    const first = errors[0]
-    if (!first || typeof first !== 'object') return null
-    const entry = first as Record<string, unknown>
-    const description =
-      typeof entry.description === 'string' ? entry.description.trim() : ''
-    const message =
-      typeof entry.message === 'string' ? entry.message.trim() : ''
-    const combined = description || message
-    return combined || null
+
+    if (typeof statusCode !== 'number' || typeof message !== 'string') {
+      return null
+    }
+    if (!Array.isArray(errors)) {
+      return null
+    }
+
+    return {
+      statusCode,
+      message,
+      errors,
+    }
   }
 
-  private async readErrorMessage(
+  private async readErrorPayload(
     response: globalThis.Response,
     fallback: string,
-  ): Promise<string> {
+  ): Promise<{ message: string; errorResponse?: ApiErrorResponse }> {
     try {
       const body: unknown = await response.json()
+      const errorResponse = this.parseErrorResponse(body)
+      if (errorResponse) {
+        const first = errorResponse.errors?.[0]
+        const description = first?.description?.trim()
+        const message = first?.message?.trim()
+        return {
+          message: description ?? message ?? errorResponse.message ?? fallback,
+          errorResponse,
+        }
+      }
+
       if (body && typeof body === 'object') {
         const root = body as Record<string, unknown>
-        if (response.status === 400) {
-          const fromErrors = this.pickFirstErrorsEntryMessage(root)
-          if (fromErrors) return fromErrors
-        }
         const message = root.message ?? root.error
         if (typeof message === 'string' && message.trim()) {
-          return message.trim()
+          return { message: message.trim() }
         }
       }
     } catch {
       // Keep fallback when body is empty or non-JSON.
     }
-    return fallback
+
+    return { message: fallback }
   }
 
   private async createHeaders(
@@ -84,27 +104,51 @@ export class ApiClient {
     return headers
   }
 
-  async get<T>(url: string, options: ApiRequestOptions): Promise<ApiResult<T>> {
-    const { getToken, query, fallbackError } = options
-    const headers = await this.createHeaders(getToken)
-    const urlWithQuery = this.buildUrlWithQuery(url, query)
+  private async request<TResponse>({
+    url,
+    method = 'GET',
+    body,
+    fallbackError,
+    getToken,
+    query,
+    parseSuccess,
+  }: {
+    url: string
+    method?: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE'
+    body?: unknown
+    fallbackError: string
+    getToken?: TokenGetter
+    query?: Record<string, QueryValue>
+    parseSuccess: (response: globalThis.Response) => Promise<TResponse>
+  }): Promise<ApiResult<TResponse>> {
+    const headers = await this.createHeaders(getToken, {
+      jsonBody: body !== undefined,
+    })
+    const requestUrl = this.buildUrlWithQuery(url, query)
 
     try {
-      const response = await fetch(urlWithQuery, {
+      const response = await fetch(requestUrl, {
+        method,
         headers,
         credentials: 'include',
+        body: body !== undefined ? JSON.stringify(body) : undefined,
       })
+
       if (!response.ok) {
+        const errorPayload = await this.readErrorPayload(
+          response,
+          `${fallbackError} (${response.status})`,
+        )
+
         return {
           ok: false,
-          error: await this.readErrorMessage(
-            response,
-            `${fallbackError} (${response.status})`,
-          ),
+          error: errorPayload.message,
           status: response.status,
+          errorResponse: errorPayload.errorResponse,
         }
       }
-      const data = (await response.json()) as T
+
+      const data = await parseSuccess(response)
       return { ok: true, data, status: response.status }
     } catch (error) {
       return {
@@ -113,6 +157,18 @@ export class ApiClient {
           error instanceof Error ? error.message : ERROR_MESSAGES.NETWORK_ERROR,
       }
     }
+  }
+
+  async get<T>(url: string, options: ApiRequestOptions): Promise<ApiResult<T>> {
+    const { getToken, query, fallbackError } = options
+
+    return this.request<T>({
+      url,
+      getToken,
+      query,
+      fallbackError,
+      parseSuccess: async (response) => (await response.json()) as T,
+    })
   }
 
   async post<TResponse>(
@@ -121,41 +177,21 @@ export class ApiClient {
     options: Omit<ApiRequestOptions, 'query'>,
   ): Promise<ApiResult<TResponse>> {
     const { getToken, fallbackError } = options
-    const headers = await this.createHeaders(getToken, { jsonBody: true })
 
-    try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers,
-        credentials: 'include',
-        body: JSON.stringify(body),
-      })
-      if (!response.ok) {
-        return {
-          ok: false,
-          error: await this.readErrorMessage(
-            response,
-            `${fallbackError} (${response.status})`,
-          ),
-          status: response.status,
+    return this.request<TResponse>({
+      url,
+      method: 'POST',
+      body,
+      getToken,
+      fallbackError,
+      parseSuccess: async (response) => {
+        try {
+          return (await response.json()).data as TResponse
+        } catch {
+          return {} as TResponse
         }
-      }
-
-      let data: TResponse
-      try {
-        data = (await response.json()).data as TResponse
-      } catch {
-        data = {} as TResponse
-      }
-
-      return { ok: true, data, status: response.status }
-    } catch (error) {
-      return {
-        ok: false,
-        error:
-          error instanceof Error ? error.message : ERROR_MESSAGES.NETWORK_ERROR,
-      }
-    }
+      },
+    })
   }
 
   async patch<TResponse>(
@@ -164,41 +200,21 @@ export class ApiClient {
     options: Omit<ApiRequestOptions, 'query'>,
   ): Promise<ApiResult<TResponse>> {
     const { getToken, fallbackError } = options
-    const headers = await this.createHeaders(getToken, { jsonBody: true })
 
-    try {
-      const response = await fetch(url, {
-        method: 'PATCH',
-        headers,
-        credentials: 'include',
-        body: JSON.stringify(body),
-      })
-      if (!response.ok) {
-        return {
-          ok: false,
-          error: await this.readErrorMessage(
-            response,
-            `${fallbackError} (${response.status})`,
-          ),
-          status: response.status,
+    return this.request<TResponse>({
+      url,
+      method: 'PATCH',
+      body,
+      getToken,
+      fallbackError,
+      parseSuccess: async (response) => {
+        try {
+          return (await response.json()) as TResponse
+        } catch {
+          return {} as TResponse
         }
-      }
-
-      let data: TResponse
-      try {
-        data = (await response.json()) as TResponse
-      } catch {
-        data = {} as TResponse
-      }
-
-      return { ok: true, data, status: response.status }
-    } catch (error) {
-      return {
-        ok: false,
-        error:
-          error instanceof Error ? error.message : ERROR_MESSAGES.NETWORK_ERROR,
-      }
-    }
+      },
+    })
   }
 
   async put<TResponse>(
@@ -207,41 +223,21 @@ export class ApiClient {
     options: Omit<ApiRequestOptions, 'query'>,
   ): Promise<ApiResult<TResponse>> {
     const { getToken, fallbackError } = options
-    const headers = await this.createHeaders(getToken, { jsonBody: true })
 
-    try {
-      const response = await fetch(url, {
-        method: 'PUT',
-        headers,
-        credentials: 'include',
-        body: JSON.stringify(body),
-      })
-      if (!response.ok) {
-        return {
-          ok: false,
-          error: await this.readErrorMessage(
-            response,
-            `${fallbackError} (${response.status})`,
-          ),
-          status: response.status,
+    return this.request<TResponse>({
+      url,
+      method: 'PUT',
+      body,
+      getToken,
+      fallbackError,
+      parseSuccess: async (response) => {
+        try {
+          return (await response.json()) as TResponse
+        } catch {
+          return {} as TResponse
         }
-      }
-
-      let data: TResponse
-      try {
-        data = (await response.json()) as TResponse
-      } catch {
-        data = {} as TResponse
-      }
-
-      return { ok: true, data, status: response.status }
-    } catch (error) {
-      return {
-        ok: false,
-        error:
-          error instanceof Error ? error.message : ERROR_MESSAGES.NETWORK_ERROR,
-      }
-    }
+      },
+    })
   }
 
   async delete(
@@ -249,42 +245,27 @@ export class ApiClient {
     options: Omit<ApiRequestOptions, 'query'>,
   ): Promise<ApiResult<undefined>> {
     const { getToken, fallbackError } = options
-    const headers = await this.createHeaders(getToken)
 
-    try {
-      const response = await fetch(url, {
-        method: 'DELETE',
-        headers,
-        credentials: 'include',
-      })
-      if (!response.ok) {
-        return {
-          ok: false,
-          error: await this.readErrorMessage(
-            response,
-            `${fallbackError} (${response.status})`,
-          ),
-          status: response.status,
+    return this.request<undefined>({
+      url,
+      method: 'DELETE',
+      getToken,
+      fallbackError,
+      parseSuccess: async (response) => {
+        const raw = await response.text()
+        if (!raw.trim()) {
+          return undefined
         }
-      }
 
-      const raw = await response.text()
-      if (raw.trim()) {
         try {
           JSON.parse(raw) as unknown
         } catch {
           // Ignore non-JSON success bodies.
         }
-      }
 
-      return { ok: true, data: undefined, status: response.status }
-    } catch (error) {
-      return {
-        ok: false,
-        error:
-          error instanceof Error ? error.message : ERROR_MESSAGES.NETWORK_ERROR,
-      }
-    }
+        return undefined
+      },
+    })
   }
 }
 export const apiClient = new ApiClient()

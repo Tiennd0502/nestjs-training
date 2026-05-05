@@ -10,6 +10,7 @@ export interface QuantityProps {
   onChange: (value: number) => void
   min?: number
   max?: number
+  disabled?: boolean
   className?: string
 }
 
@@ -18,21 +19,24 @@ export function Quantity({
   onChange,
   min = 1,
   max = Number.POSITIVE_INFINITY,
+  disabled = false,
   className,
 }: QuantityProps) {
   const nextDecrease = Math.max(min, value - 1)
   const nextIncrease = Math.min(max, value + 1)
-  const disableDecrease = value <= min
-  const disableIncrease = value >= max
+  const disableDecrease = disabled || value <= min
+  const disableIncrease = disabled || value >= max
 
   return (
     <div
       className={cn(
         'inline-flex h-13 items-center rounded-full border border-outline-variant/80 bg-surface-container-low/90 px-1 dark:bg-surface-container-high/80',
+        disabled && 'pointer-events-none opacity-60',
         className,
       )}
       role="group"
       aria-label="Quantity controls"
+      aria-disabled={disabled}
     >
       <Button
         type="button"

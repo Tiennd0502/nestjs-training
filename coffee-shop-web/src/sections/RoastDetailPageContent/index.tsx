@@ -12,13 +12,15 @@ import { ProductReviewsSection } from '@/components/ProductReviewsSection'
 import { ProductTrustRow } from '@/components/ProductTrustRow'
 import { Button } from '@/components/ui/button'
 
-import { SERIES_KICKER } from '@/constants/product'
 import { EMPTY_IMAGE } from '@/constants/images'
+import { OUT_OF_STOCK_LABEL } from '@/constants/order'
+import { SERIES_KICKER } from '@/constants/product'
 import { useProductById } from '@/hooks/useProduct'
+import { type ProductImage } from '@/types/product'
 import { formatPrice } from '@/utils/common'
+import { isProductOutOfStock } from '@/utils/inventory'
 import { getProductListPrice } from '@/utils/product'
 import { cn } from '@/utils/styles'
-import { type ProductImage } from '@/types/product'
 
 const ROASTS_LIST_HREF = '/roasts'
 
@@ -90,6 +92,7 @@ export default function RoastDetailPageContent() {
   const productImages = [...product.images].sort(
     (a, b) => a.sortOrder - b.sortOrder,
   )
+  const isOutOfStock = isProductOutOfStock(product)
 
   return (
     <div className={cn('min-w-0 w-full', 'bg-background text-on-surface')}>
@@ -104,7 +107,20 @@ export default function RoastDetailPageContent() {
         </nav>
 
         <div className="grid gap-12 md:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] md:items-start md:gap-16">
-          <div className="space-y-5" data-testid="product-detail-gallery">
+          <div
+            className="relative space-y-5"
+            data-testid="product-detail-gallery"
+          >
+            {isOutOfStock ? (
+              <span
+                className={cn(
+                  'absolute top-3 left-3 z-10 rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-wide',
+                  'bg-surface-container-highest text-on-surface',
+                )}
+              >
+                {OUT_OF_STOCK_LABEL}
+              </span>
+            ) : null}
             <Carousel
               className="max-w-xl md:max-w-none"
               slideAreaClassName="aspect-square w-full overflow-hidden rounded-3xl bg-surface-container shadow-sm"

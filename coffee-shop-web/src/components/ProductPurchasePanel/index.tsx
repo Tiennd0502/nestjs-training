@@ -10,6 +10,10 @@ import { Button } from '@/components/ui/button'
 import { ROUTES } from '@/constants/routes'
 import { useCartStore } from '@/store/useCartStore'
 import type { Product } from '@/types/product'
+import {
+  getPrimaryVariantQuantity,
+  isProductOutOfStock,
+} from '@/utils/inventory'
 import { cn } from '@/utils/styles'
 
 export interface ProductPurchasePanelProps {
@@ -24,10 +28,15 @@ export function ProductPurchasePanel({
   const router = useRouter()
   const { addItem } = useCartStore()
   const productName = product.name
-  const maxQuantity = product.variants[0]?.quantity ?? 1
+  const maxQuantity = getPrimaryVariantQuantity(product)
+  const isOutOfStock = isProductOutOfStock(product)
   const [quantity, setQuantity] = useState(1)
 
   const handleAddToCart = () => {
+    if (isOutOfStock) {
+      return
+    }
+
     const primaryImage = [...product.images]
       .sort((a, b) => a.sortOrder - b.sortOrder)
       .find((image) => Boolean(image.url))
@@ -68,14 +77,16 @@ export function ProductPurchasePanel({
         <Quantity
           value={quantity}
           min={1}
-          max={maxQuantity}
+          max={Math.max(maxQuantity, 1)}
           onChange={setQuantity}
+          disabled={isOutOfStock}
         />
 
         <Button
           type="button"
           className="flex-1 h-14 w-auto w-max-content rounded-2xl text-base font-bold shadow-md"
           onClick={handleAddToCart}
+          disabled={isOutOfStock}
         >
           <ShoppingCart className="size-4" aria-hidden />
           Add to Cart

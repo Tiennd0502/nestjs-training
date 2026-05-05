@@ -18,6 +18,8 @@ import { CheckoutPaymentMethod } from '@/components/CheckoutPaymentMethod'
 import { Input } from '@/components/Input'
 import { Button } from '@/components/ui/button'
 import { CLERK_SESSION_TEMPLATE } from '@/constants/common'
+import { ERROR_MESSAGES } from '@/constants/messages'
+import { CHECKOUT_PLACE_ORDER_BLOCKED_MESSAGE } from '@/constants/order'
 import { ROUTES } from '@/constants/routes'
 import { useAuth } from '@/hooks/useAuth'
 import { useCreateOrder } from '@/hooks/useOrder'
@@ -28,6 +30,7 @@ import {
   type MapboxAddressSuggestion,
 } from '@/services/mapboxGeocode'
 import { useCartStore } from '@/store/useCartStore'
+import type { ApiErrorResponse } from '@/types/api'
 import type { CartTotals } from '@/types/cart'
 import {
   PAYMENT_METHOD,
@@ -38,7 +41,13 @@ import {
 import Loading from '@/components/Loading'
 import type { OrderPayload } from '@/types/order'
 import { DELIVERY_SPEED } from '@/constants/order'
+import {
+  mapItemFieldErrorsToLineIdMessages,
+  omitSubmitErrorsForRemovedLine,
+  tagItemErrorsWithLineRefs,
+} from '@/utils/order'
 import { formatPrice } from '@/utils/common'
+import { isCartItemOutOfStock } from '@/utils/inventory'
 
 type CheckoutFieldErrors = Partial<Record<keyof CheckoutFormValues, string>>
 
@@ -64,6 +73,9 @@ const CheckoutPageContent = () => {
 
   const [values, setValues] = useState<CheckoutFormValues>(DEFAULT_VALUES)
   const [fieldErrors, setFieldErrors] = useState<CheckoutFieldErrors>({})
+  const [submitErrors, setSubmitErrors] = useState<ApiErrorResponse | null>(
+    null,
+  )
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [selectedShippingMethodId, setSelectedShippingMethodId] = useState(
     DELIVERY_SPEED[0]?.id ?? '',
@@ -88,12 +100,15 @@ const CheckoutPageContent = () => {
     refetch,
     clearCart,
     setItemSnapshots,
+    removeItem,
   } = useCartStore()
   const { mutate: createOrder } = useCreateOrder()
 
   const hasItems = items.length > 0
+  const hasOutOfStockItems = items.some(isCartItemOutOfStock)
   // const showCardFields = values.paymentMethod === PAYMENT_METHOD.STRIPE
-  const isPlaceOrderDisabled = isLoading || isSubmitting || !hasItems
+  const isPlaceOrderDisabled =
+    isLoading || isSubmitting || !hasItems || hasOutOfStockItems
   const selectedShippingMethod = DELIVERY_SPEED.find(
     (method) => method.id === selectedShippingMethodId,
   )
@@ -269,6 +284,7 @@ const CheckoutPageContent = () => {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    setSubmitErrors(null)
 
     const result = parseCheckoutValues(values)
     if (!result.success) {
@@ -288,6 +304,17 @@ const CheckoutPageContent = () => {
     setFieldErrors({})
     setIsSubmitting(true)
 
+    const orderItems = items.map((item) => ({
+      variantId: item.variantId,
+      productId: item.productId,
+      quantity: item.quantity,
+      unitPrice: item.unitPrice,
+    }))
+    const linesAtSubmit = items.map((item) => ({
+      id: item.id,
+      productId: item.productId,
+    }))
+
     const orderPayload: OrderPayload = {
       shippingAddress: {
         firstName: result.data.firstName,
@@ -301,12 +328,7 @@ const CheckoutPageContent = () => {
       },
       paymentMethod: result.data.paymentMethod,
       shippingMethodId: selectedShippingMethodId,
-      items: items.map((item) => ({
-        variantId: item.variantId,
-        productId: item.productId,
-        quantity: item.quantity,
-        unitPrice: item.unitPrice,
-      })),
+      items: orderItems,
     }
 
     createOrder(
@@ -317,31 +339,90 @@ const CheckoutPageContent = () => {
       {
         onSuccess: (data) => {
           setItemSnapshots(data)
-          clearCart()
+          setSubmitErrors(null)
           toast.success('Order placed successfully', {
             description: `Total charged: $${normalizedTotal}`,
           })
           setIsSubmitting(false)
           router.push(ROUTES.ORDER_SUCCESS)
+
+          setTimeout(() => {
+            clearCart()
+          }, 200)
         },
         onError: (error) => {
           setIsSubmitting(false)
-          const message =
-            error instanceof Error ? error.message : 'Unknown error'
-          const isInsufficientStockError = /insufficient stock/i.test(message)
-          const firstProductName = items[0]?.name?.trim()
-          const stockDescription = firstProductName
-            ? `"${firstProductName}" is out of stock. Please update your cart and try again.`
-            : 'Some items are out of stock. Please update your cart and try again.'
-          toast.error('Unable to place order', {
-            description: isInsufficientStockError ? stockDescription : message,
-          })
-          if (isInsufficientStockError) {
-            router.push(ROUTES.CART)
+          const defaultMessage =
+            error instanceof Error
+              ? error.message
+              : ERROR_MESSAGES.SOMETHING_WENT_WRONG
+
+          const responseData = (error as { response?: { data?: unknown } })
+            .response?.data
+
+          if (responseData && typeof responseData === 'object') {
+            const data = responseData as Partial<ApiErrorResponse>
+            const rawErrors = Array.isArray(data.errors) ? data.errors : []
+            setSubmitErrors({
+              statusCode:
+                typeof data.statusCode === 'number' ? data.statusCode : 400,
+              message:
+                typeof data.message === 'string'
+                  ? data.message
+                  : defaultMessage,
+              errors: tagItemErrorsWithLineRefs(rawErrors, linesAtSubmit),
+            })
+            return
           }
+
+          setSubmitErrors({
+            statusCode: 400,
+            message: defaultMessage,
+            errors: [],
+          })
         },
       },
     )
+  }
+
+  const submitLineRefs = useMemo(
+    () => items.map((item) => ({ id: item.id, productId: item.productId })),
+    [items],
+  )
+
+  const itemQuantityErrors = useMemo(
+    () =>
+      mapItemFieldErrorsToLineIdMessages(submitErrors?.errors, submitLineRefs),
+    [submitErrors?.errors, submitLineRefs],
+  )
+
+  const hasVisibleLineSubmitErrors = useMemo(
+    () => items.some((item) => Boolean(itemQuantityErrors[item.id])),
+    [items, itemQuantityErrors],
+  )
+
+  const hasRootSubmissionError = Boolean(
+    submitErrors &&
+    (submitErrors.errors?.length ?? 0) === 0 &&
+    Boolean(submitErrors.message),
+  )
+
+  const hasBlockingItemErrors =
+    hasVisibleLineSubmitErrors || hasRootSubmissionError
+
+  const handleRemoveCheckoutLine = (lineId: string, productId: string) => {
+    removeItem(lineId)
+    setSubmitErrors((previous) => {
+      if (!previous) {
+        return null
+      }
+      const next = omitSubmitErrorsForRemovedLine(previous, lineId, productId)
+      const remainingCount = next?.errors?.length ?? 0
+      if (remainingCount === 0) {
+        return null
+      }
+      return next
+    })
   }
 
   if (isLoading) {
@@ -413,6 +494,16 @@ const CheckoutPageContent = () => {
       <h1 className="mt-3 text-4xl font-semibold text-on-surface md:text-5xl">
         Finalize Your Brew Order
       </h1>
+
+      {hasOutOfStockItems ? (
+        <div
+          className="mt-6 rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+          data-testid="checkout-out-of-stock-alert"
+          role="alert"
+        >
+          {CHECKOUT_PLACE_ORDER_BLOCKED_MESSAGE}
+        </div>
+      ) : null}
 
       <div className="mt-10 grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px]">
         <form
@@ -647,6 +738,14 @@ const CheckoutPageContent = () => {
         <CheckoutOrderSummary
           items={items}
           totals={checkoutTotals}
+          onRemoveItem={handleRemoveCheckoutLine}
+          submissionErrorMessage={
+            submitErrors?.errors?.length === 0
+              ? (submitErrors.message ?? null)
+              : null
+          }
+          itemQuantityErrors={itemQuantityErrors}
+          hasBlockingItemErrors={hasBlockingItemErrors}
           onPlaceOrder={() => {
             if (!formRef.current) {
               return

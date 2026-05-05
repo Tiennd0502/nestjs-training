@@ -5,8 +5,10 @@ import { Trash2 } from 'lucide-react'
 
 import { Quantity } from '@/components/Quantity'
 import { Button } from '@/components/ui/button'
+import { OUT_OF_STOCK_LABEL } from '@/constants/order'
 import type { CartItem } from '@/types/cart'
 import { formatCurrency } from '@/utils/cart'
+import { isCartItemOutOfStock } from '@/utils/inventory'
 import { cn } from '@/utils/styles'
 
 export interface CartLineItemProps {
@@ -25,6 +27,7 @@ export function CartLineItem({
   className,
 }: CartLineItemProps) {
   const maxQuantity = item.maxQuantity ?? 99
+  const lineOutOfStock = isCartItemOutOfStock(item)
 
   return (
     <article
@@ -49,6 +52,11 @@ export function CartLineItem({
               {item.name}
             </h3>
             <p className="text-sm text-on-surface-variant">{item.meta}</p>
+            {lineOutOfStock ? (
+              <p className="text-sm font-medium text-destructive" role="status">
+                {OUT_OF_STOCK_LABEL}
+              </p>
+            ) : null}
           </div>
           <p className="shrink-0 text-2xl font-bold text-primary">
             {formatCurrency(item.unitPrice)}
@@ -63,6 +71,7 @@ export function CartLineItem({
             onChange={(amount) => {
               onChangeQuantity(item.id, amount)
             }}
+            disabled={lineOutOfStock}
           />
 
           <Button

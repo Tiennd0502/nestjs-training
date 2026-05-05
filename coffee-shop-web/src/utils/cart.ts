@@ -7,6 +7,11 @@ export const clampQuantity = (
   quantity: number,
   maxQuantity = DEFAULT_MAX_QUANTITY,
 ): number => {
+  if (maxQuantity <= 0) {
+    if (!Number.isFinite(quantity)) return 0
+    return Math.max(0, Math.trunc(quantity))
+  }
+
   const safeMax = Math.max(1, Math.min(maxQuantity, DEFAULT_MAX_QUANTITY))
 
   if (!Number.isFinite(quantity)) return 1

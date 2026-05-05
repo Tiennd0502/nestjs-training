@@ -8,10 +8,12 @@ import AlertDialog from '@/components/AlertDialog'
 import { CartLineItem } from '@/components/CartLineItem'
 import { CartSummaryCard } from '@/components/CartSummaryCard'
 import { Button } from '@/components/ui/button'
+import { CART_CHECKOUT_BLOCKED_MESSAGE } from '@/constants/order'
 import { ROUTES } from '@/constants/routes'
 import { useCartStore } from '@/store/useCartStore'
 import type { CartItem } from '@/types/cart'
 import { formatCurrency } from '@/utils/cart'
+import { isCartItemOutOfStock } from '@/utils/inventory'
 
 export default function CartPageContent() {
   const router = useRouter()
@@ -29,7 +31,13 @@ export default function CartPageContent() {
     refetch,
   } = useCartStore()
 
+  const hasItems = items.length > 0
+  const hasOutOfStockItems = items.some(isCartItemOutOfStock)
+
   const handleCheckout = () => {
+    if (hasOutOfStockItems) {
+      return
+    }
     router.push(ROUTES.CHECKOUT)
   }
 
@@ -76,8 +84,6 @@ export default function CartPageContent() {
       </div>
     )
   }
-
-  const hasItems = items.length > 0
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 md:px-6 md:py-12">
@@ -147,6 +153,15 @@ export default function CartPageContent() {
         </section>
       ) : (
         <div className="mt-10 grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
+          {hasOutOfStockItems ? (
+            <div
+              className="lg:col-span-2 rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+              data-testid="cart-out-of-stock-alert"
+              role="alert"
+            >
+              {CART_CHECKOUT_BLOCKED_MESSAGE}
+            </div>
+          ) : null}
           <section className="space-y-4" aria-label="Cart line items">
             {items.map((item) => (
               <CartLineItem
@@ -162,7 +177,7 @@ export default function CartPageContent() {
             totals={totals}
             onCheckout={handleCheckout}
             onContinueShopping={handleContinueShopping}
-            isCheckoutDisabled={!hasItems}
+            isCheckoutDisabled={!hasItems || hasOutOfStockItems}
           />
         </div>
       )}

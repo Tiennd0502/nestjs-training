@@ -28,10 +28,6 @@ import type {
   SHIPPING_STATUS,
 } from '@/types/order'
 
-function throwIfServiceFailed(result: { ok: false; error: string }): never {
-  throw new Error(result.error)
-}
-
 export function useCreateOrder() {
   return useMutation({
     mutationFn: async (input: {
@@ -40,7 +36,9 @@ export function useCreateOrder() {
     }): Promise<Order> => {
       const result = await createOrder(input.body, { getToken: input.getToken })
       if (!result.ok) {
-        throwIfServiceFailed(result)
+        throw Object.assign(new Error(result.error.message), {
+          response: { data: result.error },
+        })
       }
       return result.order
     },
@@ -55,7 +53,7 @@ export function useDeleteOrder() {
   return useMutation({
     mutationFn: async (id: string) => {
       const result = await deleteOrder(id)
-      if (!result.ok) throwIfServiceFailed(result)
+      if (!result.ok) throw new Error(result.error)
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ordersQueryRoot })
@@ -69,7 +67,7 @@ export function useUpdateOrderStatus() {
   return useMutation({
     mutationFn: async (input: { id: string; status: ORDER_STATUS }) => {
       const result = await updateOrderStatus(input.id, input.status)
-      if (!result.ok) throwIfServiceFailed(result)
+      if (!result.ok) throw new Error(result.error)
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ordersQueryRoot })
@@ -89,7 +87,7 @@ export function useUpdateOrderShippingStatus() {
         input.id,
         input.shippingStatus,
       )
-      if (!result.ok) throwIfServiceFailed(result)
+      if (!result.ok) throw new Error(result.error)
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ordersQueryRoot })
@@ -125,7 +123,7 @@ export function useOrders(params: UseOrdersParams = {}): UseOrdersResult {
     queryKey: ordersListQueryKey(params),
     queryFn: async () => {
       const result = await fetchOrders(params)
-      if (!result.ok) throwIfServiceFailed(result)
+      if (!result.ok) throw new Error(result.error.message)
       return {
         orders: result.orders,
         meta: result.meta ?? null,

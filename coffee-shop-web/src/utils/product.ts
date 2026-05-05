@@ -1,4 +1,5 @@
 import type { UploadImageGalleryItem } from '@/components/UploadImage/Gallery'
+import { OUT_OF_STOCK_LABEL } from '@/constants/order'
 import { type RoastCollection } from '@/constants/roast'
 import type { EditProductFormValues } from '@/schemas/product'
 import {
@@ -10,6 +11,7 @@ import {
   type ProductImagePayload,
   type ProductImageUpdatePayload,
 } from '@/types/product'
+import { getPrimaryVariantQuantity } from '@/utils/inventory'
 
 export const LOW_STOCK_THRESHOLD = 10
 
@@ -55,9 +57,13 @@ export function mapProductToRoastCollection(
 ): RoastCollection {
   const price = getProductListPrice(product)
   const imageUrl = getProductPrimaryImageUrl(product) ?? placeholderImageUrl
-  const quantity = product.variants[0]?.quantity ?? 0
-  const badgeLabel =
-    quantity > 0 && quantity < LOW_STOCK_THRESHOLD ? 'Low Stock' : undefined
+  const quantity = getPrimaryVariantQuantity(product)
+  let badgeLabel: string | undefined
+  if (quantity <= 0) {
+    badgeLabel = OUT_OF_STOCK_LABEL
+  } else if (quantity < LOW_STOCK_THRESHOLD) {
+    badgeLabel = 'Low Stock'
+  }
 
   return {
     id: product.id,

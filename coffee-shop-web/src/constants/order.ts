@@ -1,6 +1,14 @@
 import type { TableColumn } from '@/components/Table'
 import { ORDER_STATUS, SHIPPING_STATUS } from '@/types/order'
 
+export const OUT_OF_STOCK_LABEL = 'Out of stock'
+
+export const CART_CHECKOUT_BLOCKED_MESSAGE =
+  'Remove or update out-of-stock items before proceeding to checkout.'
+
+export const CHECKOUT_PLACE_ORDER_BLOCKED_MESSAGE =
+  'Remove out-of-stock items from your cart before placing your order.'
+
 export const ORDERS = [
   {
     id: '#NB-94210',
