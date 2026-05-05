@@ -4,6 +4,13 @@ export enum ROAST_LEVEL {
   DARK = 'DARK',
 }
 
+export enum PRODUCT_UNIT {
+  KG = 'KG',
+  G = 'G',
+  L = 'L',
+  ML = 'ML',
+}
+
 export enum DISCOUNT_TYPE {
   PERCENT = 'PERCENT',
   FIXED = 'FIXED',
@@ -22,7 +29,7 @@ export interface ProductVariantPayload {
   id?: string
   sku?: string
   weight: number
-  unit: string
+  unit: PRODUCT_UNIT
   price: number
   discountType: DISCOUNT_TYPE | null
   discountValue: number | null
@@ -34,7 +41,7 @@ export interface ProductVariant {
   productId: string
   sku?: string
   weight: number
-  unit: string
+  unit: PRODUCT_UNIT
   name: string
   price: number
   discountType: DISCOUNT_TYPE | null
@@ -108,7 +115,7 @@ export interface ProductFormValues {
   isOrganic: boolean
   isFairTrade: boolean
   weight: number
-  unit: string
+  unit: PRODUCT_UNIT | ''
   price: number
   discountType: DISCOUNT_TYPE
   discountValue: number

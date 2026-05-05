@@ -1,8 +1,7 @@
 import { z } from 'zod'
 
 import { ERROR_MESSAGES } from '@/constants/messages'
-import { DISCOUNT_TYPE, ROAST_LEVEL } from '@/types/product'
-import { ONLY_TEXT_REGEX } from '@/utils/common'
+import { DISCOUNT_TYPE, PRODUCT_UNIT, ROAST_LEVEL } from '@/types/product'
 
 const nonNegativeNumber = (field: string) =>
   z
@@ -34,12 +33,11 @@ export const createProductFormSchema = z
     isFairTrade: z.boolean(),
     weight: greaterThanZeroNumber('Weight must be greater than 0'),
     unit: z
-      .string()
-      .trim()
-      .min(1, { message: ERROR_MESSAGES.FIELD_REQUIRED })
-      .max(10, { message: 'Unit must be at most 10 characters' })
-      .regex(ONLY_TEXT_REGEX, {
-        message: 'Unit must contain text only',
+      .union([z.literal(''), z.nativeEnum(PRODUCT_UNIT)], {
+        error: ERROR_MESSAGES.FIELD_REQUIRED,
+      })
+      .refine((value) => value !== '', {
+        message: ERROR_MESSAGES.FIELD_REQUIRED,
       }),
     price: greaterThanZeroNumber('Base price must be greater than 0'),
     discountType: z.nativeEnum(DISCOUNT_TYPE),

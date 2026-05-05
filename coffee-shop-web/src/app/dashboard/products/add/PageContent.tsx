@@ -8,6 +8,7 @@ import { toast } from 'sonner'
 
 // Types
 import type {
+  PRODUCT_UNIT,
   ProductFormValues,
   ProductImagePayload,
   ProductPayload,
@@ -17,7 +18,7 @@ import { DISCOUNT_TYPE, PRODUCT_STATUS, ROAST_LEVEL } from '@/types/product'
 // Constants
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@/constants/messages'
 import { EMPTY_IMAGE } from '@/constants/images'
-import { DISCOUNT_TYPE_OPTIONS } from '@/constants/product'
+import { DISCOUNT_TYPE_OPTIONS, UNIT_OPTIONS } from '@/constants/product'
 
 // Hooks
 import { useCategories } from '@/hooks/useCategory'
@@ -47,11 +48,7 @@ import BrainIcon from '@/components/icon/BrainIcon'
 
 // Utils
 import { normalizeNumericInput } from '@/utils/number'
-import {
-  getCategoryOptions,
-  renderProductSku,
-  toAlphaOnly,
-} from '@/utils/common'
+import { getCategoryOptions, renderProductSku } from '@/utils/common'
 
 interface LocalImage {
   url: string
@@ -291,6 +288,7 @@ const PageContent = () => {
   }
 
   const onSubmit = async (data: ProductFormValues) => {
+    if (data.unit === '') return
     if (!validateImageInputs()) return
     clearErrors()
 
@@ -322,7 +320,7 @@ const PageContent = () => {
             unit: data.unit,
           }),
           weight: Number(data.weight),
-          unit: data.unit.trim(),
+          unit: data.unit,
           price: Number(data.price),
           discountType:
             Number(data.discountValue) > 0 ? data.discountType : null,
@@ -552,17 +550,23 @@ const PageContent = () => {
                   errorMessage={errors.weight?.message}
                   {...register('weight', { setValueAs: parseFormNumber })}
                 />
-                <Input
-                  className="h-14"
-                  label="Unit"
-                  type="text"
-                  maxLength={10}
-                  placeholder="e.g. g / kg / ml"
-                  disabled={isSubmitting}
-                  errorMessage={errors.unit?.message}
-                  {...register('unit', {
-                    setValueAs: toAlphaOnly,
-                  })}
+                <Controller
+                  control={control}
+                  name="unit"
+                  render={({ field }) => (
+                    <Select
+                      label="Unit"
+                      classNameTrigger="h-14"
+                      placeholder="Select unit"
+                      options={UNIT_OPTIONS}
+                      selected={field.value}
+                      onValueChange={(value) =>
+                        field.onChange(value as PRODUCT_UNIT)
+                      }
+                      disabled={isSubmitting}
+                      errorMessage={errors.unit?.message}
+                    />
+                  )}
                 />
                 <Input
                   className="h-14"

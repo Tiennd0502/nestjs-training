@@ -13,7 +13,18 @@ export interface ResponseMeta {
 
 export interface Response<T> {
   data: T
-  error?: string
-  message?: string
   meta?: ResponseMeta
+}
+
+export interface ErrorDetail {
+  errCode: string
+  field: string
+  message: string
+  description?: string
+}
+
+export interface ApiErrorResponse {
+  statusCode: number
+  message: string
+  errors?: ErrorDetail[]
 }

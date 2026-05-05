@@ -1,5 +1,15 @@
-import { DISCOUNT_TYPE, PRODUCT_STATUS } from '@/types/product'
+import { DISCOUNT_TYPE, PRODUCT_STATUS, PRODUCT_UNIT } from '@/types/product'
 import type { TableColumn } from '@/components/Table'
+
+export const UNIT_OPTIONS: {
+  value: PRODUCT_UNIT
+  label: string
+}[] = [
+  { value: PRODUCT_UNIT.G, label: 'Grams' },
+  { value: PRODUCT_UNIT.KG, label: 'Kilograms' },
+  { value: PRODUCT_UNIT.L, label: 'Liters' },
+  { value: PRODUCT_UNIT.ML, label: 'Milliliters' },
+]
 
 export const DISCOUNT_TYPE_OPTIONS: {
   value: DISCOUNT_TYPE
