@@ -12,11 +12,7 @@ import { SearchInput } from '@/components/SearchInput'
 import Table from '@/components/Table'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { SEARCH_URL_DEBOUNCE_MS } from '@/constants/common'
-import {
-  DIALOG_MESSAGES,
-  ERROR_MESSAGES,
-  SUCCESS_MESSAGES,
-} from '@/constants/messages'
+import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@/constants/messages'
 import {
   PRODUCT_STATUS_OPTIONS,
   PRODUCTS_TABLE_COLUMNS,
@@ -124,9 +120,14 @@ export const PageContent = () => {
             setDeleteErrorMessage(null)
           }
         }}
-        title={DIALOG_MESSAGES.PRODUCT.DELETE.TITLE}
-        description={DIALOG_MESSAGES.PRODUCT.DELETE.DESCRIPTION}
-        textAction={DIALOG_MESSAGES.PRODUCT.DELETE.ACTION}
+        title="Delete Product?"
+        description={
+          <p>
+            Are you sure you want to delete <b>{pendingDelete?.name}</b>? This
+            action cannot be undone.
+          </p>
+        }
+        textAction="Delete"
         onClickAction={() => {
           const id = pendingDelete?.id
           if (!id) return

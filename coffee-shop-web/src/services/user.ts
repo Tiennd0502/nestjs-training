@@ -59,6 +59,47 @@ function readAddressFromAddresses(value: unknown): User['address'] {
   return address[0] as User['address']
 }
 
+function normalizeUserListItem(item: unknown): User | null {
+  if (!item || typeof item !== 'object' || Array.isArray(item)) return null
+
+  const payload = item as Record<string, unknown>
+  const id =
+    readString(payload.id) ??
+    readString(payload.userId) ??
+    readString(payload.user_id) ??
+    readString(payload.sub)
+
+  if (!id) return null
+
+  const firstName =
+    readString(payload.firstName) ?? readString(payload.first_name)
+  const lastName = readString(payload.lastName) ?? readString(payload.last_name)
+  const email = readString(payload.email)
+  const joined = [firstName, lastName].filter(Boolean).join(' ').trim()
+  const name = readString(payload.name) ?? (joined.length > 0 ? joined : null)
+  const imageUrl =
+    readString(payload.imageUrl) ??
+    readString(payload.image_url) ??
+    readString(payload.avatarUrl) ??
+    readString(payload.avatar_url) ??
+    readString(payload.picture)
+  const address = readAddressFromAddresses(payload.addresses)
+  const role = getRole(payload.role)
+  const status = getStatus(payload.status)
+
+  return {
+    id,
+    email,
+    firstName,
+    lastName,
+    address,
+    name,
+    avatarUrl: imageUrl,
+    role,
+    status,
+  }
+}
+
 export async function fetchUser(
   getToken?: () => Promise<string | null>,
 ): Promise<
@@ -150,7 +191,12 @@ export async function fetchUsers(
   if (!result.ok) return result
 
   const { data, meta } = result.data
-  return { ok: true, users: data, meta }
+  const rawList = Array.isArray(data) ? data : []
+  const users = rawList
+    .map(normalizeUserListItem)
+    .filter((u): u is User => u !== null)
+
+  return { ok: true, users, meta }
 }
 
 export async function updateUserById(
@@ -171,4 +217,19 @@ export async function updateUserById(
   if (!result.ok) return result
 
   return { ok: true, user: result.data.data }
+}
+
+export async function deleteUserById(
+  id: string,
+  options: Pick<FetchUsersOptions, 'getToken'> = {},
+): Promise<{ ok: true } | { ok: false; error: string; status?: number }> {
+  const trimmed = id.trim()
+  const url = `${API_ROUTES.USERS}/${encodeURIComponent(trimmed)}`
+  const result = await apiClient.delete(url, {
+    getToken: options.getToken,
+    fallbackError: API_FALLBACK_ERRORS.USER_DELETE,
+  })
+  if (!result.ok) return result
+
+  return { ok: true }
 }

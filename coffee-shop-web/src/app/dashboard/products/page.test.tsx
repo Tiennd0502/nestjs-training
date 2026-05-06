@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 
 import { PageContent } from '@/app/dashboard/products/PageContent'
 import { PAGE_SIZE } from '@/constants/common'
-import { API_FALLBACK_ERRORS, DIALOG_MESSAGES } from '@/constants/messages'
+import { API_FALLBACK_ERRORS } from '@/constants/messages'
 import { ROUTES } from '@/constants/routes'
 import { useCategories } from '@/hooks/useCategory'
 import { useDeleteProduct, useProducts } from '@/hooks/useProduct'
@@ -389,15 +389,9 @@ describe('Dashboard products page', () => {
     await user.click(
       screen.getByRole('button', { name: /delete ethiopian yirgacheffe/i }),
     )
-    expect(
-      await screen.findByText(DIALOG_MESSAGES.PRODUCT.DELETE.TITLE),
-    ).toBeInTheDocument()
+    expect(await screen.findByText('Delete Product?')).toBeInTheDocument()
 
-    await user.click(
-      screen.getByRole('button', {
-        name: DIALOG_MESSAGES.PRODUCT.DELETE.ACTION,
-      }),
-    )
+    await user.click(screen.getByRole('button', { name: /^delete$/i }))
     expect(mutateDeleteProduct).toHaveBeenCalledWith(
       'product-1',
       expect.any(Object),
@@ -411,7 +405,7 @@ describe('Dashboard products page', () => {
     await user.click(
       screen.getByRole('button', { name: /delete ethiopian yirgacheffe/i }),
     )
-    await screen.findByText(DIALOG_MESSAGES.PRODUCT.DELETE.TITLE)
+    await screen.findByText('Delete Product?')
     await user.click(screen.getByTestId('btn-cancel'))
     expect(mutateDeleteProduct).not.toHaveBeenCalled()
   })

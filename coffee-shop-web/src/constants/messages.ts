@@ -73,13 +73,13 @@ export const SUCCESS_MESSAGES = {
   ORDER_STATUS_UPDATED: 'Order status updated',
   ORDER_SHIPPING_STATUS_UPDATED: 'Shipping status updated',
   USER_ROLE_UPDATED: 'User role updated',
+  USER_DELETED: 'User removed',
   DRAFT_DISCARDED: 'Draft discarded',
 }
 
 export const DIALOG_MESSAGES = {
   CATEGORY: {
     DELETE: {
-      TITLE: 'Remove this category?',
       ACTION: 'Remove',
       DESCRIPTION: (name: string, slug: string) =>
         `This will remove ${name} (${slug}). It may still appear in this list with the Removed badge.`,
@@ -87,7 +87,6 @@ export const DIALOG_MESSAGES = {
   },
   PRODUCT: {
     DELETE: {
-      TITLE: 'Delete Product?',
       ACTION: 'Delete Product',
       DESCRIPTION:
         'Are you sure you want to delete this product? This action cannot be undone.',
@@ -95,10 +94,16 @@ export const DIALOG_MESSAGES = {
   },
   ORDER: {
     DELETE: {
-      TITLE: 'Delete order?',
       ACTION: 'Delete order',
       DESCRIPTION: (orderLabel: string) =>
         `Are you sure you want to delete order ${orderLabel}? This action cannot be undone.`,
+    },
+  },
+  USER: {
+    DELETE: {
+      ACTION: 'Delete user',
+      DESCRIPTION: (userLabel: string) =>
+        `Are you sure you want to delete ${userLabel}? This action cannot be undone.`,
     },
   },
 }

@@ -25,13 +25,17 @@ import { cn } from '@/utils/styles'
 export interface UserTableRowProps {
   user: User
   onRequestRoleChange?: (user: User, nextRole: USER_ROLES) => void
+  onRequestDelete?: (user: User) => void
   isRoleDisabled?: boolean
+  isDeleteDisabled?: boolean
 }
 
 export function UserTableRow({
   user,
   onRequestRoleChange,
+  onRequestDelete,
   isRoleDisabled = false,
+  isDeleteDisabled = false,
 }: UserTableRowProps) {
   const name = `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim()
   const initials = getNameInitials(user.firstName, user.lastName)
@@ -129,10 +133,22 @@ export function UserTableRow({
       </td>
       <td className="min-w-0">
         <div className="flex justify-center gap-1">
-          <Button size="icon-xs" variant="ghost" aria-label={`Edit ${name}`}>
+          <Button
+            disabled
+            size="icon-xs"
+            variant="ghost"
+            aria-label={`Edit ${name}`}
+          >
             <Pencil className="size-4" aria-hidden />
           </Button>
-          <Button size="icon-xs" variant="ghost" aria-label={`Delete ${name}`}>
+          <Button
+            type="button"
+            size="icon-xs"
+            variant="ghost"
+            disabled={isDeleteDisabled}
+            aria-label={`Delete ${name}`}
+            onClick={() => onRequestDelete?.(user)}
+          >
             <Trash2 className="size-4" aria-hidden />
           </Button>
         </div>

@@ -1,7 +1,12 @@
 'use client'
 
-import { keepPreviousData, useQuery } from '@tanstack/react-query'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type QueryClient,
+} from '@tanstack/react-query'
 
 import {
   LIST_QUERY_GC_MS,
@@ -9,6 +14,7 @@ import {
   PAGE_SIZE,
 } from '@/constants/common'
 import {
+  deleteUserById,
   fetchUsers,
   type FetchUsersOptions,
   updateUserById,
@@ -19,6 +25,10 @@ import { type ResponseMeta } from '@/types/api'
 export type UseUsersParams = FetchUsersOptions
 
 const usersQueryRoot = ['users'] as const
+
+function invalidateUserLists(queryClient: QueryClient) {
+  return queryClient.invalidateQueries({ queryKey: usersQueryRoot })
+}
 
 export function useUpdateUserRole() {
   const queryClient = useQueryClient()
@@ -32,7 +42,49 @@ export function useUpdateUserRole() {
       return result.user
     },
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: usersQueryRoot })
+      void invalidateUserLists(queryClient)
+    },
+  })
+}
+
+interface UsersListCache {
+  users: User[]
+  meta: ResponseMeta | null
+}
+
+export function useDeleteUser() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const result = await deleteUserById(id)
+      if (!result.ok) {
+        throw new Error(result.error)
+      }
+      return result
+    },
+    onSuccess: async (_result, deletedId) => {
+      await queryClient.cancelQueries({ queryKey: usersQueryRoot })
+
+      const deleted = String(deletedId).trim()
+      queryClient.setQueriesData<UsersListCache>(
+        { queryKey: ['users', 'list'], type: 'all' },
+        (old) => {
+          if (!old) return old
+          const users = old.users.filter(
+            (u) => String(u.id ?? '').trim() !== deleted,
+          )
+          if (users.length === old.users.length) return old
+          const meta = old.meta
+            ? {
+                ...old.meta,
+                totalCount: Math.max(0, old.meta.totalCount - 1),
+              }
+            : null
+          return { users, meta }
+        },
+      )
+      await invalidateUserLists(queryClient)
     },
   })
 }

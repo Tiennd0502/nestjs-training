@@ -13,11 +13,7 @@ import { Select } from '@/components/Select'
 import StatsCards from '@/components/StatsCards'
 import { Button } from '@/components/ui/button'
 import { SEARCH_URL_DEBOUNCE_MS } from '@/constants/common'
-import {
-  DIALOG_MESSAGES,
-  ERROR_MESSAGES,
-  SUCCESS_MESSAGES,
-} from '@/constants/messages'
+import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@/constants/messages'
 import {
   ALL_ORDER_STATUSES_VALUE,
   // ALL_SHIPPING_STATUS_VALUE,
@@ -213,11 +209,14 @@ export default function OrdersPageContent() {
             setDeleteErrorMessage(null)
           }
         }}
-        title={DIALOG_MESSAGES.ORDER.DELETE.TITLE}
-        description={DIALOG_MESSAGES.ORDER.DELETE.DESCRIPTION(
-          pendingOrderLabel,
-        )}
-        textAction={DIALOG_MESSAGES.ORDER.DELETE.ACTION}
+        title="Delete order?"
+        description={
+          <p>
+            Are you sure you want to delete <b>{pendingOrderLabel}</b>?. This
+            action cannot be undone.
+          </p>
+        }
+        textAction="Delete"
         onClickAction={() => {
           const id = pendingDelete?.id
           if (!id) return

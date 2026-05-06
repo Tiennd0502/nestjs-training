@@ -14,11 +14,12 @@ import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@/constants/messages'
 import { ROLE_FILTER_OPTIONS, USERS_TABLE_COLUMNS } from '@/constants/user'
 
 // Hooks
-import { useUpdateUserRole, useUsers } from '@/hooks/useUser'
+import { useDeleteUser, useUpdateUserRole, useUsers } from '@/hooks/useUser'
 import { useUrlState } from '@/hooks/useUrlState'
 
 // Components
 import Breadcrumb from '@/components/Breadcrumb'
+import AlertDialog from '@/components/AlertDialog'
 import Table from '@/components/Table'
 import { PaginationBar } from '@/components/Pagination'
 import { Select } from '@/components/Select'
@@ -80,10 +81,16 @@ export const PageContent = () => {
   const [pendingRoleUserId, setPendingRoleUserId] = useState<string | null>(
     null,
   )
+  const [pendingDeleteUser, setPendingDeleteUser] = useState<User | null>(null)
+  const [deleteErrorMessage, setDeleteErrorMessage] = useState<string | null>(
+    null,
+  )
   const [optimisticRoles, setOptimisticRoles] = useState<
     Partial<Record<string, USER_ROLES>>
   >({})
   const { mutate: updateUserRoleMutate } = useUpdateUserRole()
+  const { mutate: deleteUserMutate, isPending: isDeletePending } =
+    useDeleteUser()
 
   useEffect(() => {
     if (page > totalPages) {
@@ -152,8 +159,70 @@ export const PageContent = () => {
     )
   }
 
+  const handleUserDeleteRequest = (user: User) => {
+    if (!user.id) return
+    setDeleteErrorMessage(null)
+    setPendingDeleteUser(user)
+  }
+
+  const pendingDeleteLabel = (() => {
+    if (!pendingDeleteUser) {
+      return 'this user'
+    }
+    const name = [pendingDeleteUser.firstName, pendingDeleteUser.lastName]
+      .filter(
+        (part): part is string =>
+          typeof part === 'string' && part.trim().length > 0,
+      )
+      .join(' ')
+      .trim()
+    if (name.length > 0) {
+      return name
+    }
+    return pendingDeleteUser.email ?? 'this user'
+  })()
+
   return (
     <div className="flex flex-col gap-6">
+      <AlertDialog
+        data-testid="modal-confirm-delete-user"
+        open={pendingDeleteUser !== null}
+        isLoading={isDeletePending}
+        errorMessage={deleteErrorMessage}
+        onOpenChange={(open) => {
+          if (!open) {
+            setPendingDeleteUser(null)
+            setDeleteErrorMessage(null)
+          }
+        }}
+        title="Delete user?"
+        description={
+          <p>
+            Are you sure you want to delete <b>{pendingDeleteLabel}</b>? This
+            action cannot be undone.
+          </p>
+        }
+        textAction="Delete"
+        onClickAction={() => {
+          const userId = pendingDeleteUser?.id
+          if (!userId) return
+          setDeleteErrorMessage(null)
+          deleteUserMutate(userId, {
+            onSuccess: () => {
+              toast.success(SUCCESS_MESSAGES.USER_DELETED)
+              setPendingDeleteUser(null)
+              setDeleteErrorMessage(null)
+            },
+            onError: (error) => {
+              setDeleteErrorMessage(
+                error instanceof Error
+                  ? error.message
+                  : ERROR_MESSAGES.NETWORK_ERROR,
+              )
+            },
+          })
+        }}
+      />
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div className="space-y-3">
           <Breadcrumb
@@ -259,7 +328,9 @@ export const PageContent = () => {
                     : user
                 }
                 onRequestRoleChange={handleUserRoleUpdate}
+                onRequestDelete={handleUserDeleteRequest}
                 isRoleDisabled={pendingRoleUserId === user.id}
+                isDeleteDisabled={isDeletePending}
               />
             )}
           />

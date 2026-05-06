@@ -3,13 +3,19 @@ import userEvent from '@testing-library/user-event'
 
 import { PageContent } from '@/app/dashboard/users/PageContent'
 import { PAGE_SIZE } from '@/constants/common'
-import { API_FALLBACK_ERRORS } from '@/constants/messages'
 import {
+  API_FALLBACK_ERRORS,
+  ERROR_MESSAGES,
+  SUCCESS_MESSAGES,
+} from '@/constants/messages'
+import {
+  useDeleteUser,
   useUpdateUserRole,
   useUsers,
   type UseUsersParams,
 } from '@/hooks/useUser'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { toast } from 'sonner'
 import { USER_ROLES, USER_STATUS } from '@/types/user'
 
 let navQueryString = ''
@@ -25,8 +31,15 @@ jest.mock('next/navigation', () => ({
 }))
 
 jest.mock('@/hooks/useUser', () => ({
+  useDeleteUser: jest.fn(),
   useUsers: jest.fn(),
   useUpdateUserRole: jest.fn(),
+}))
+
+jest.mock('sonner', () => ({
+  toast: {
+    success: jest.fn(),
+  },
 }))
 
 jest.mock('@/components/Select', () => ({
@@ -61,8 +74,11 @@ const mockUseRouter = jest.mocked(useRouter)
 const mockUseSearchParams = jest.mocked(useSearchParams)
 const mockUseUsers = jest.mocked(useUsers)
 const mockUseUpdateUserRole = jest.mocked(useUpdateUserRole)
+const mockUseDeleteUser = jest.mocked(useDeleteUser)
+const mockToastSuccess = jest.mocked(toast.success)
 const refetchMock = jest.fn()
 const mutateUserRoleMock = jest.fn()
+const mutateDeleteUserMock = jest.fn()
 
 /** Simulated API page size in tests (response meta `limit`). */
 const MOCK_USERS_PAGE_SIZE = 4
@@ -201,9 +217,15 @@ describe('Dashboard users page', () => {
     refetchMock.mockReset()
     mockUseUsers.mockImplementation((params) => mockUsersByApiParams(params))
     mutateUserRoleMock.mockReset()
+    mutateDeleteUserMock.mockReset()
+    mockToastSuccess.mockReset()
     mockUseUpdateUserRole.mockReturnValue({
       mutate: mutateUserRoleMock,
     } as unknown as ReturnType<typeof useUpdateUserRole>)
+    mockUseDeleteUser.mockReturnValue({
+      mutate: mutateDeleteUserMock,
+      isPending: false,
+    } as unknown as ReturnType<typeof useDeleteUser>)
   })
 
   it('renders manage users heading with first page records', () => {
@@ -306,5 +328,61 @@ describe('Dashboard users page', () => {
     expect(screen.getByText(API_FALLBACK_ERRORS.USERS_LOAD)).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Retry' }))
     expect(refetchMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('opens delete dialog and confirms delete mutate', async () => {
+    const user = userEvent.setup()
+    renderUsersPage()
+
+    await user.click(screen.getByRole('button', { name: /Delete Julian/i }))
+    expect(screen.getByTestId('modal-confirm-delete-user')).toBeInTheDocument()
+    expect(screen.getByText('Delete user?')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /^delete$/i }))
+
+    expect(mutateDeleteUserMock).toHaveBeenCalledWith(
+      'u-1',
+      expect.objectContaining({
+        onSuccess: expect.any(Function),
+        onError: expect.any(Function),
+      }),
+    )
+  })
+
+  it('closes delete dialog on cancel without calling mutate', async () => {
+    const user = userEvent.setup()
+    renderUsersPage()
+
+    await user.click(screen.getByRole('button', { name: /Delete Julian/i }))
+    await user.click(screen.getByRole('button', { name: /cancel/i }))
+
+    expect(
+      screen.queryByTestId('modal-confirm-delete-user'),
+    ).not.toBeInTheDocument()
+    expect(mutateDeleteUserMock).not.toHaveBeenCalled()
+  })
+
+  it('shows delete API error in dialog and toast on success', async () => {
+    const user = userEvent.setup()
+    renderUsersPage()
+
+    await user.click(screen.getByRole('button', { name: /Delete Julian/i }))
+    await user.click(screen.getByRole('button', { name: /^delete$/i }))
+
+    const mutateArgs = mutateDeleteUserMock.mock.calls[0]?.[1] as
+      | { onError?: (error: unknown) => void; onSuccess?: () => void }
+      | undefined
+    mutateArgs?.onError?.(new Error('Cannot delete last admin'))
+    await waitFor(() => {
+      expect(screen.getByText('Cannot delete last admin')).toBeInTheDocument()
+    })
+
+    mutateArgs?.onError?.('boom')
+    await waitFor(() => {
+      expect(screen.getByText(ERROR_MESSAGES.NETWORK_ERROR)).toBeInTheDocument()
+    })
+
+    mutateArgs?.onSuccess?.()
+    expect(mockToastSuccess).toHaveBeenCalledWith(SUCCESS_MESSAGES.USER_DELETED)
   })
 })

@@ -119,6 +119,11 @@ export function useCreateProduct() {
   })
 }
 
+interface ProductsListCache {
+  products: Product[]
+  meta: ResponseMeta | null
+}
+
 export function useDeleteProduct() {
   const queryClient = useQueryClient()
 
@@ -127,8 +132,23 @@ export function useDeleteProduct() {
       const result = await deleteProduct(id)
       if (!result.ok) throwIfServiceFailed(result)
     },
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: productsQueryRoot })
+    onSuccess: async (_result, deletedId) => {
+      queryClient.setQueriesData<ProductsListCache>(
+        { queryKey: ['products', 'list'] },
+        (old) => {
+          if (!old) return old
+          const products = old.products.filter((p) => p.id !== deletedId)
+          if (products.length === old.products.length) return old
+          const meta = old.meta
+            ? {
+                ...old.meta,
+                totalCount: Math.max(0, old.meta.totalCount - 1),
+              }
+            : null
+          return { products, meta }
+        },
+      )
+      await queryClient.invalidateQueries({ queryKey: productsQueryRoot })
     },
   })
 }

@@ -61,7 +61,7 @@ export function categoryDetailQueryKey(id: string) {
 }
 
 function invalidateCategoryLists(queryClient: QueryClient) {
-  void queryClient.invalidateQueries({ queryKey: categoriesQueryRoot })
+  return queryClient.invalidateQueries({ queryKey: categoriesQueryRoot })
 }
 
 function throwIfServiceFailed(result: { ok: false; error: string }): never {
@@ -111,8 +111,15 @@ export function useCreateCategory() {
       if (!result.ok) throwIfServiceFailed(result)
       return result.category
     },
-    onSuccess: () => invalidateCategoryLists(queryClient),
+    onSuccess: () => {
+      void invalidateCategoryLists(queryClient)
+    },
   })
+}
+
+interface CategoriesListCache {
+  categories: Category[]
+  meta: ResponseMeta | null
 }
 
 export function useDeleteCategory() {
@@ -123,7 +130,24 @@ export function useDeleteCategory() {
       const result = await deleteCategory(id)
       if (!result.ok) throwIfServiceFailed(result)
     },
-    onSuccess: () => invalidateCategoryLists(queryClient),
+    onSuccess: async (_result, deletedId) => {
+      queryClient.setQueriesData<CategoriesListCache>(
+        { queryKey: ['categories', 'list'] },
+        (old) => {
+          if (!old) return old
+          const categories = old.categories.filter((c) => c.id !== deletedId)
+          if (categories.length === old.categories.length) return old
+          const meta = old.meta
+            ? {
+                ...old.meta,
+                totalCount: Math.max(0, old.meta.totalCount - 1),
+              }
+            : null
+          return { categories, meta }
+        },
+      )
+      await invalidateCategoryLists(queryClient)
+    },
   })
 }
 
@@ -173,7 +197,7 @@ export function useUpdateCategory() {
       return result.category
     },
     onSuccess: (_data, variables) => {
-      invalidateCategoryLists(queryClient)
+      void invalidateCategoryLists(queryClient)
       void queryClient.invalidateQueries({
         queryKey: categoryDetailQueryKey(variables.id.trim()),
       })

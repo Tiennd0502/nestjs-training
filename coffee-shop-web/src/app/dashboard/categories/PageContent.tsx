@@ -6,11 +6,7 @@ import { Download, Printer, Tag } from 'lucide-react'
 import { toast } from 'sonner'
 
 // Constants
-import {
-  DIALOG_MESSAGES,
-  ERROR_MESSAGES,
-  SUCCESS_MESSAGES,
-} from '@/constants/messages'
+import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@/constants/messages'
 import { ROUTES } from '@/constants/routes'
 import { SEARCH_URL_DEBOUNCE_MS } from '@/constants/common'
 import { CATEGORIES_TABLE_COLUMNS } from '@/constants/category'
@@ -108,16 +104,15 @@ export const PageContent = () => {
             setDeleteErrorMessage(null)
           }
         }}
-        title={DIALOG_MESSAGES.CATEGORY.DELETE.TITLE}
+        title="Remove this category?"
         description={
-          pendingDelete
-            ? DIALOG_MESSAGES.CATEGORY.DELETE.DESCRIPTION(
-                pendingDelete.name,
-                pendingDelete.slug,
-              )
-            : ''
+          <p>
+            This will remove <b>{pendingDelete?.name}</b> (
+            <b>{pendingDelete?.slug}</b>). It may still appear in this list with
+            the Removed badge.
+          </p>
         }
-        textAction={DIALOG_MESSAGES.CATEGORY.DELETE.ACTION}
+        textAction="Delete"
         onClickAction={() => {
           const id = pendingDelete?.id
           if (!id) return

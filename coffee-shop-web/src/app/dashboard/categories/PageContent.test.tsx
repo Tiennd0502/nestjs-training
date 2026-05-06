@@ -2,7 +2,6 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
 import { PageContent } from '@/app/dashboard/categories/PageContent'
-import { DIALOG_MESSAGES } from '@/constants/messages'
 import { ROUTES } from '@/constants/routes'
 import { useCategories, useDeleteCategory } from '@/hooks/useCategory'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
@@ -95,11 +94,9 @@ describe('Categories PageContent', () => {
     render(<PageContent />)
 
     await user.click(screen.getByRole('button', { name: /remove hello/i }))
-    expect(
-      await screen.findByText(DIALOG_MESSAGES.CATEGORY.DELETE.TITLE),
-    ).toBeInTheDocument()
+    expect(await screen.findByText('Remove this category?')).toBeInTheDocument()
 
-    await user.click(screen.getByRole('button', { name: /^remove$/i }))
+    await user.click(screen.getByRole('button', { name: /^delete$/i }))
     expect(mutateDelete).toHaveBeenCalledWith('cat-list-1', expect.any(Object))
   })
 
@@ -122,7 +119,7 @@ describe('Categories PageContent', () => {
     render(<PageContent />)
 
     await user.click(screen.getByRole('button', { name: /remove hello/i }))
-    await screen.findByText(DIALOG_MESSAGES.CATEGORY.DELETE.TITLE)
+    await screen.findByText('Remove this category?')
 
     await user.click(screen.getByRole('button', { name: /^cancel$/i }))
     expect(mutateDelete).not.toHaveBeenCalled()
@@ -152,8 +149,8 @@ describe('Categories PageContent', () => {
     render(<PageContent />)
 
     await user.click(screen.getByRole('button', { name: /remove hello/i }))
-    await screen.findByText(DIALOG_MESSAGES.CATEGORY.DELETE.TITLE)
-    await user.click(screen.getByRole('button', { name: /^remove$/i }))
+    await screen.findByText('Remove this category?')
+    await user.click(screen.getByRole('button', { name: /^delete$/i }))
 
     expect(await screen.findByText('Category in use')).toHaveAttribute(
       'role',

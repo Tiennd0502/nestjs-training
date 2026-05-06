@@ -19,7 +19,7 @@ import { Button } from '@/components/ui/button'
 
 interface AlertDialogProps {
   title: string
-  description?: string
+  description?: ReactNode
   errorMessage?: string | null
   textButton?: string
   textCancel?: string
@@ -35,7 +35,7 @@ interface AlertDialogProps {
 
 const AlertDialog = ({
   title,
-  description = '',
+  description,
   errorMessage,
   textButton = '',
   textCancel = 'Cancel',
