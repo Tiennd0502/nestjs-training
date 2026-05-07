@@ -48,10 +48,11 @@ export const PageContent = () => {
   const { categories, isLoading: isCategoryLoading } = useCategories(
     CATEGORY_QUERY_OPTIONS,
   )
+  const activeCategories = categories.filter((category) => !category.deletedAt)
 
   const categoryOptions = [
     { value: ALL_CATEGORIES_VALUE, label: 'All categories' },
-    ...getCategoryOptions(categories),
+    ...getCategoryOptions(activeCategories),
   ]
   const normalizedCategoryId =
     categoryId &&
@@ -261,7 +262,7 @@ export const PageContent = () => {
             getRowKey={(product, index) => product.id ?? `product-${index}`}
             resolveRowClassName={(product) =>
               product.status === PRODUCT_STATUS.ARCHIVED
-                ? 'bg-muted-foreground/20'
+                ? 'border-b border-border bg-muted-foreground/20'
                 : ''
             }
             renderRow={(product) => (

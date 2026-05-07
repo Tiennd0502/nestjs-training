@@ -59,6 +59,13 @@ function readAddressFromAddresses(value: unknown): User['address'] {
   return address[0] as User['address']
 }
 
+function readDeletedAt(payload: Record<string, unknown>): string | null {
+  const raw =
+    payload.deletedAt !== undefined ? payload.deletedAt : payload.deleted_at
+  if (typeof raw !== 'string' || !raw.trim()) return null
+  return raw.trim()
+}
+
 function normalizeUserListItem(item: unknown): User | null {
   if (!item || typeof item !== 'object' || Array.isArray(item)) return null
 
@@ -86,9 +93,11 @@ function normalizeUserListItem(item: unknown): User | null {
   const address = readAddressFromAddresses(payload.addresses)
   const role = getRole(payload.role)
   const status = getStatus(payload.status)
+  const deletedAt = readDeletedAt(payload)
 
   return {
     id,
+    deletedAt,
     email,
     firstName,
     lastName,
@@ -156,8 +165,10 @@ export async function fetchUser(
   const address = readAddressFromAddresses(payload.addresses)
   const role = getRole(payload.role)
   const status = getStatus(payload.status)
+  const deletedAt = readDeletedAt(payload)
   const user: User = {
     id,
+    deletedAt,
     email,
     firstName,
     lastName,

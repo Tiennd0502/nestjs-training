@@ -3,7 +3,6 @@
 import { Pencil, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 
-import { Badge } from '@/components/ui/badge'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { dashboardCategoryEditRoute } from '@/constants/routes'
 import type { Category } from '@/types/category'
@@ -32,29 +31,16 @@ export function CategoryTableRow({
 
   return (
     <>
-      <td className="min-w-0 px-6 py-4">
+      <td className="min-w-0 px-6 py-4 align-middle">
         <div className="flex min-w-0 flex-col gap-1">
           <div className="flex min-w-0 flex-wrap items-center gap-2">
-            <p
-              className={cn(
-                'truncate font-semibold text-foreground text-center',
-                isDeleted && 'text-muted-foreground line-through',
-              )}
-            >
+            <p className="truncate font-semibold text-center text-foreground">
               {category.name || '—'}
             </p>
-            {isDeleted ? (
-              <Badge
-                variant="secondary"
-                className="h-6 shrink-0 text-[0.6rem] uppercase tracking-wider text-center"
-              >
-                Archived
-              </Badge>
-            ) : null}
           </div>
         </div>
       </td>
-      <td className="min-w-0 px-6 py-4">
+      <td className="min-w-0 px-6 py-4 align-middle">
         <code
           title={category.slug?.trim() ? category.slug : undefined}
           className="block max-w-full truncate rounded-md bg-muted px-2 py-0.5 text-sm text-center text-muted-foreground"
@@ -62,13 +48,13 @@ export function CategoryTableRow({
           {category.slug || '—'}
         </code>
       </td>
-      <td className="px-6 py-4 text-sm text-muted-foreground truncate text-center">
+      <td className="px-6 py-4 align-middle text-center text-sm text-muted-foreground truncate">
         {formatTs(category.createdAt)}
       </td>
-      <td className="px-6 py-4 text-sm text-muted-foreground truncate text-center">
+      <td className="px-6 py-4 align-middle text-center text-sm text-muted-foreground truncate">
         {formatTs(category.updatedAt)}
       </td>
-      <td className="min-w-0 px-6 py-4">
+      <td className="min-w-0 px-6 py-4 align-middle">
         <div className="flex justify-end gap-1">
           {!isDeleted && category.id ? (
             <Link

@@ -64,6 +64,31 @@ describe('fetchUsers', () => {
       expect(result.users[0].firstName).toBe('Ada')
       expect(result.users[0].lastName).toBe('Lovelace')
       expect(result.users[0].role).toBe(USER_ROLES.ADMIN)
+      expect(result.users[0].deletedAt ?? null).toBeNull()
+    }
+  })
+
+  it('maps deleted_at from list items when present', async () => {
+    const deletedAt = '2026-01-02T00:00:00.000Z'
+    const fetchMock = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          {
+            id: 'u-del',
+            email: 'gone@example.com',
+            deleted_at: deletedAt,
+          },
+        ],
+      }),
+    } as globalThis.Response)
+    globalThis.fetch = fetchMock as typeof fetch
+
+    const result = await fetchUsers()
+
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.users[0].deletedAt).toBe(deletedAt)
     }
   })
 

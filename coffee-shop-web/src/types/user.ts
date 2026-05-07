@@ -10,6 +10,7 @@ export enum USER_STATUS {
 
 export interface User {
   id?: string
+  deletedAt?: string | null
   email: string | null
   firstName: string | null
   lastName: string | null

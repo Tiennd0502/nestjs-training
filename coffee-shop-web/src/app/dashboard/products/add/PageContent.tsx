@@ -109,6 +109,7 @@ const PageContent = () => {
   const { categories, isLoading: isCategoryLoading } = useCategories(
     CATEGORY_QUERY_OPTIONS,
   )
+  const activeCategories = categories.filter((category) => !category.deletedAt)
   const [avatarImage, setAvatarImage] = useState<LocalImage | null>(null)
   const [galleryImages, setGalleryImages] = useState<File[]>([])
   const [imageErrors, setImageErrors] = useState<ImageValidationErrors>({
@@ -121,7 +122,7 @@ const PageContent = () => {
     DEFAULT_TASTING_NOTES,
   )
   const [pendingNote, setPendingNote] = useState('')
-  const categoryOptions = getCategoryOptions(categories)
+  const categoryOptions = getCategoryOptions(activeCategories)
 
   const {
     register,

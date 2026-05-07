@@ -320,6 +320,11 @@ export const PageContent = () => {
             columns={USERS_TABLE_COLUMNS}
             data={users}
             getRowKey={(user, index) => user.id ?? `user-${index}`}
+            resolveRowClassName={(user) =>
+              user.deletedAt
+                ? 'border-b border-border bg-muted-foreground/20'
+                : ''
+            }
             renderRow={(user) => (
               <UserTableRow
                 user={
@@ -329,8 +334,10 @@ export const PageContent = () => {
                 }
                 onRequestRoleChange={handleUserRoleUpdate}
                 onRequestDelete={handleUserDeleteRequest}
-                isRoleDisabled={pendingRoleUserId === user.id}
-                isDeleteDisabled={isDeletePending}
+                isRoleDisabled={
+                  pendingRoleUserId === user.id || Boolean(user.deletedAt)
+                }
+                isDeleteDisabled={isDeletePending || Boolean(user.deletedAt)}
               />
             )}
           />

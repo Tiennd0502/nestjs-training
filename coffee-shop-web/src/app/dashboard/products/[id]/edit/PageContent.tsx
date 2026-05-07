@@ -97,6 +97,7 @@ const EditProductForm = ({ product, productId }: EditProductFormProps) => {
   const { categories, isLoading: isCategoryLoading } = useCategories(
     CATEGORY_QUERY_OPTIONS,
   )
+  const activeCategories = categories.filter((category) => !category.deletedAt)
 
   const [avatarImage, setAvatarImage] = useState<LocalImage | null>(null)
   const [serverPrimaryUrl, setServerPrimaryUrl] = useState<string | null>(null)
@@ -112,7 +113,7 @@ const EditProductForm = ({ product, productId }: EditProductFormProps) => {
   const [isListedOnStorefront, setIsListedOnStorefront] = useState(false)
   const [tastingNotes, setTastingNotes] = useState<string[]>([])
   const [pendingNote, setPendingNote] = useState('')
-  const categoryOptions = getCategoryOptions(categories)
+  const categoryOptions = getCategoryOptions(activeCategories)
 
   const {
     register,

@@ -87,7 +87,7 @@ export function ProductTableRow({
 
   return (
     <>
-      <td className="min-w-0 px-6 py-4">
+      <td className="min-w-0 px-6 py-4 align-middle">
         <div className="flex min-w-0 items-start gap-3">
           <div className="size-14 shrink-0 overflow-hidden rounded-sm bg-muted">
             <Avatar className="size-14 rounded-sm after:rounded-sm after:border-transparent">
@@ -126,17 +126,17 @@ export function ProductTableRow({
           {categoryLabel}
         </Badge>
       </td>
-      <td className="px-6 py-4 text-center">
+      <td className="px-6 py-4 align-middle text-center">
         <p className="text-sm font-semibold text-foreground">
           {formatPrice(price, 'en-US', 'USD')}
         </p>
       </td>
-      <td className="px-6 py-4">
+      <td className="px-6 py-4 align-middle">
         <p className="text-sm text-center font-semibold text-foreground">
           {stock}
         </p>
       </td>
-      <td className="px-6 py-4 text-center">
+      <td className="px-6 py-4 align-middle text-center">
         <Badge
           className={cn(
             'h-7 px-3 text-[0.65rem] uppercase',
@@ -146,7 +146,7 @@ export function ProductTableRow({
           {status}
         </Badge>
       </td>
-      <td className="px-6 py-4">
+      <td className="px-6 py-4 align-middle">
         <div className="flex justify-end gap-1">
           <Link
             href={dashboardProductEditPath(product.id)}

@@ -19,7 +19,7 @@ import {
 import { ROLES_OPTIONS } from '@/constants/user'
 
 // Utils
-import { getNameInitials } from '@/utils/common'
+import { formatUserListEmailForDisplay, getNameInitials } from '@/utils/common'
 import { cn } from '@/utils/styles'
 
 export interface UserTableRowProps {
@@ -39,16 +39,20 @@ export function UserTableRow({
 }: UserTableRowProps) {
   const name = `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim()
   const initials = getNameInitials(user.firstName, user.lastName)
-  const email = user.email ?? ''
+  const emailRaw = user.email ?? ''
+  const emailDisplay = formatUserListEmailForDisplay(emailRaw)
   const imageUrl = user.avatarUrl ?? ''
   const rowRole = user.role ?? USER_ROLES.USER
   const status = user.status ?? USER_STATUS.INACTIVE
   const isActive = status === USER_STATUS.ACTIVE
   const isAdmin = rowRole === USER_ROLES.ADMIN
+  const isUserDeleted = Boolean(user.deletedAt)
+  const roleChangeSubject =
+    [name.trim(), emailDisplay].find((segment) => segment.length > 0) ?? 'user'
 
   return (
     <>
-      <td className="min-w-0 px-6 py-4">
+      <td className="min-w-0 px-6 py-4 align-middle">
         <div className="flex min-w-0 items-center gap-3">
           <Avatar size="lg" name={initials} src={imageUrl} alt={name} />
           <div className="min-w-0 flex-1 space-y-0.5">
@@ -59,25 +63,28 @@ export function UserTableRow({
               {name}
             </p>
             <p
-              title={email || undefined}
+              title={emailDisplay === '' ? undefined : emailDisplay}
               className="truncate text-sm text-muted-foreground"
             >
-              {email}
+              {emailDisplay}
             </p>
           </div>
         </div>
       </td>
-      <td className="min-w-0 text-center">
+      <td className="min-w-0 px-6 py-4 align-middle text-center">
         {onRequestRoleChange ? (
           <DropdownMenu>
             <DropdownMenuTrigger
               disabled={isRoleDisabled}
-              aria-label={`Change role for ${name || email || 'user'}`}
+              aria-label={`Change role for ${roleChangeSubject}`}
               className="inline-flex"
             >
               <Badge
                 className={cn(
-                  'h-7 cursor-pointer px-3 text-[0.65rem] tracking-[0.16em] uppercase transition hover:opacity-90',
+                  'h-7 px-3 text-[0.65rem] tracking-[0.16em] uppercase transition',
+                  isRoleDisabled
+                    ? 'cursor-not-allowed opacity-70'
+                    : 'cursor-pointer hover:opacity-90',
                   isAdmin
                     ? 'bg-foreground text-background'
                     : 'bg-primary/20 text-primary',
@@ -92,9 +99,7 @@ export function UserTableRow({
                 <DropdownMenuItem
                   key={nextRole.value}
                   disabled={isRoleDisabled || nextRole.value === rowRole}
-                  onClick={() =>
-                    onRequestRoleChange(user, nextRole.value as USER_ROLES)
-                  }
+                  onClick={() => onRequestRoleChange(user, nextRole.value)}
                 >
                   {nextRole.label}
                 </DropdownMenuItem>
@@ -105,6 +110,7 @@ export function UserTableRow({
           <Badge
             className={cn(
               'h-7 px-3 text-[0.65rem] tracking-[0.16em] uppercase',
+              isRoleDisabled && 'opacity-70',
               isAdmin
                 ? 'bg-foreground text-background'
                 : 'bg-primary/20 text-primary',
@@ -114,7 +120,7 @@ export function UserTableRow({
           </Badge>
         )}
       </td>
-      <td className="min-w-[65px] text-center">
+      <td className="min-w-[65px] px-6 py-4 align-middle text-center">
         <span
           className={cn(
             'inline-flex items-center gap-2 text-sm font-medium',
@@ -131,7 +137,7 @@ export function UserTableRow({
           {status}
         </span>
       </td>
-      <td className="min-w-0">
+      <td className="min-w-0 px-6 py-4 align-middle text-center">
         <div className="flex justify-center gap-1">
           <Button
             disabled
@@ -146,6 +152,13 @@ export function UserTableRow({
             size="icon-xs"
             variant="ghost"
             disabled={isDeleteDisabled}
+            title={
+              isDeleteDisabled
+                ? isUserDeleted
+                  ? 'Deleted users cannot be modified'
+                  : 'Delete action in progress'
+                : undefined
+            }
             aria-label={`Delete ${name}`}
             onClick={() => onRequestDelete?.(user)}
           >

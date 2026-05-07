@@ -331,7 +331,9 @@ export default function OrdersPageContent() {
             data={orders}
             getRowKey={(order, index) => order.id ?? `order-${index}`}
             resolveRowClassName={(order) =>
-              order.deletedAt ? 'bg-muted-foreground/20' : ''
+              order.deletedAt
+                ? 'border-b border-border bg-muted-foreground/20'
+                : ''
             }
             renderRow={(order) => (
               <OrderTableRow

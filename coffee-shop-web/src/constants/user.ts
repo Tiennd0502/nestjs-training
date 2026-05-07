@@ -11,10 +11,13 @@ export const ROLES = {
 
 export const DEFAULT_USER_PUBLIC_ROLE = ROLES.USER
 
-export const ROLES_OPTIONS = [
-  { value: ROLES.USER, label: 'User' },
-  { value: ROLES.ADMIN, label: 'Admin' },
-] as const
+export const ROLES_OPTIONS: readonly {
+  value: USER_ROLES
+  label: string
+}[] = [
+  { value: USER_ROLES.USER, label: 'User' },
+  { value: USER_ROLES.ADMIN, label: 'Admin' },
+]
 
 export const ROLE_FILTER_OPTIONS = [
   'All Roles',

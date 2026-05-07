@@ -95,7 +95,7 @@ export function OrderTableRow({
 
   return (
     <>
-      <td className="min-w-0 px-6 py-4">
+      <td className="min-w-0 px-6 py-4 align-middle">
         <p
           title={displayId}
           className="truncate font-mono text-sm text-muted-foreground"
@@ -103,7 +103,7 @@ export function OrderTableRow({
           {displayId}
         </p>
       </td>
-      <td className="min-w-0 px-6 py-4">
+      <td className="min-w-0 px-6 py-4 align-middle">
         <p
           title={formatOrderListDate(order.createdAt)}
           className="truncate text-sm font-medium text-foreground"
@@ -111,7 +111,7 @@ export function OrderTableRow({
           {formatOrderListDate(order.createdAt)}
         </p>
       </td>
-      <td className="min-w-0 px-6 py-4">
+      <td className="min-w-0 px-6 py-4 align-middle">
         <div className="flex min-w-0 items-center gap-3">
           <Avatar className="size-10 shrink-0">
             <AvatarImage src={avatarUrl ?? EMPTY_IMAGE} alt="" />
@@ -124,7 +124,7 @@ export function OrderTableRow({
           </p>
         </div>
       </td>
-      <td className="min-w-0 text-center">
+      <td className="min-w-0 px-6 py-4 align-middle text-center">
         {nextOrderStatuses.length > 0 ? (
           <DropdownMenu>
             <DropdownMenuTrigger
@@ -212,12 +212,12 @@ export function OrderTableRow({
           </Badge>
         )}
       </td> */}
-      <td className="px-6 py-4 text-center">
+      <td className="px-6 py-4 align-middle text-center">
         <p className="text-sm font-bold text-foreground">
           {formatPrice(order.totalAmount)}
         </p>
       </td>
-      <td className="px-6 py-4">
+      <td className="px-6 py-4 align-middle">
         <div className="flex justify-center gap-1">
           <Button
             type="button"

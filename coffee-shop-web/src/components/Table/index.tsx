@@ -37,7 +37,10 @@ export default function Table<T>({
         <thead className={headerClassName}>
           <tr>
             {columns.map((column) => (
-              <th key={column.key} className={column.className ?? 'px-6 py-4'}>
+              <th
+                key={column.key}
+                className={cn('px-6 py-4 align-middle', column.className)}
+              >
                 {column.label}
               </th>
             ))}

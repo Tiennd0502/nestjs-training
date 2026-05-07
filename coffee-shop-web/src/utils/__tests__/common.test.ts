@@ -1,4 +1,8 @@
-import { formatPrice, getNameInitials } from '../common'
+import {
+  formatUserListEmailForDisplay,
+  formatPrice,
+  getNameInitials,
+} from '../common'
 
 describe('formatPrice', () => {
   it('formats en-US USD with two fraction digits', () => {
@@ -40,5 +44,40 @@ describe('getNameInitials', () => {
 
   it('trims spaces and uppercases initials', () => {
     expect(getNameInitials('  ada', 'lovelace  ')).toBe('AL')
+  })
+})
+
+describe('formatUserListEmailForDisplay', () => {
+  it('drops delete_<id>_ and joins from index 2 when length >= 3', () => {
+    expect(
+      formatUserListEmailForDisplay(
+        'deleted_63bbafb8-afc2-4122-a275-c657bcf05dae_vakevag531@justnapa.com',
+      ),
+    ).toBe('vakevag531@justnapa.com')
+    expect(
+      formatUserListEmailForDisplay(
+        'deleted_63bbafb8-afc2-4122-a275-c657bcf05dae_a_b@justnapa.com',
+      ),
+    ).toBe('a_b@justnapa.com')
+  })
+
+  it('uses index 1 when only delete_*@* (two segments)', () => {
+    expect(formatUserListEmailForDisplay('deleted_user@example.com')).toBe(
+      'user@example.com',
+    )
+  })
+
+  it('returns plain email unchanged when there is no delete prefix', () => {
+    expect(formatUserListEmailForDisplay('user@example.com')).toBe(
+      'user@example.com',
+    )
+    expect(formatUserListEmailForDisplay('hello_world@example.com')).toBe(
+      'hello_world@example.com',
+    )
+  })
+
+  it('returns empty for null or blank', () => {
+    expect(formatUserListEmailForDisplay(null)).toBe('')
+    expect(formatUserListEmailForDisplay('   ')).toBe('')
   })
 })

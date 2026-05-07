@@ -210,6 +210,11 @@ export const PageContent = () => {
             columns={CATEGORIES_TABLE_COLUMNS}
             data={categories}
             getRowKey={(row, index) => row.id ?? `category-${index}`}
+            resolveRowClassName={(row) =>
+              row.deletedAt
+                ? 'border-b border-border bg-muted-foreground/20'
+                : ''
+            }
             renderRow={(row) => (
               <CategoryTableRow
                 category={row}
