@@ -4,10 +4,10 @@ import { useCallback, useState, type MouseEvent } from 'react'
 import * as SignUp from '@clerk/elements/sign-up'
 import * as Clerk from '@clerk/elements/common'
 import Image from 'next/image'
-import { CalendarDays, Lock, Mail, User } from 'lucide-react'
+import { Lock, Mail, User } from 'lucide-react'
 
 import { useCleanClerkUrl } from '@/hooks/useCleanClerkUrl'
-import { parseSignUpStartForm } from '@/schemas/sign-up'
+import { parseSignUpStartForm } from '@/schemas/user'
 
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -20,7 +20,6 @@ import ClerkField from '../ClerkField'
 interface StartFieldErrors {
   firstName?: string
   lastName?: string
-  birthday?: string
   emailAddress?: string
   password?: string
 }
@@ -42,7 +41,6 @@ const SignUpForm = () => {
         setStartErrors({
           firstName: fieldErrors.firstName?.[0],
           lastName: fieldErrors.lastName?.[0],
-          birthday: fieldErrors.birthday?.[0],
           emailAddress: fieldErrors.emailAddress?.[0],
           password: fieldErrors.password?.[0],
         })
@@ -153,25 +151,6 @@ const SignUpForm = () => {
                                 }
                               />
                             </div>
-
-                            <ClerkField
-                              required
-                              name="birthday"
-                              label="Date of birth"
-                              placeholder=""
-                              type="date"
-                              icon={
-                                <CalendarDays className="size-4" aria-hidden />
-                              }
-                              disabled={isLoading}
-                              clientError={startErrors.birthday}
-                              onChange={() =>
-                                setStartErrors((prev) => ({
-                                  ...prev,
-                                  birthday: undefined,
-                                }))
-                              }
-                            />
 
                             <ClerkField
                               required

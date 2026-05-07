@@ -7,7 +7,7 @@ import Image from 'next/image'
 import { Lock, Mail } from 'lucide-react'
 
 import { useCleanClerkUrl } from '@/hooks/useCleanClerkUrl'
-import { parseSignInCredentialsForm } from '@/schemas/sign-in'
+import { parseSignInCredentialsForm } from '@/schemas/user'
 
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'

@@ -215,7 +215,6 @@ describe('SignUpForm', () => {
     expect(screen.getByTestId('social-buttons')).toBeInTheDocument()
     expect(within(start).getByPlaceholderText('First name')).toBeInTheDocument()
     expect(within(start).getByPlaceholderText('Last name')).toBeInTheDocument()
-    expect(within(start).getByLabelText('Date of birth')).toBeInTheDocument()
     expect(
       within(start).getByPlaceholderText('example@gmail.com'),
     ).toBeInTheDocument()
@@ -278,7 +277,6 @@ describe('SignUpForm', () => {
     const start = getStartForm()
     expect(within(start).getByPlaceholderText('First name')).toBeDisabled()
     expect(within(start).getByPlaceholderText('Last name')).toBeDisabled()
-    expect(within(start).getByLabelText('Date of birth')).toBeDisabled()
     expect(
       within(start).getByPlaceholderText('example@gmail.com'),
     ).toBeDisabled()
@@ -318,9 +316,6 @@ describe('SignUpForm', () => {
       screen.getByText(ERROR_MESSAGES.LAST_NAME_REQUIRED),
     ).toBeInTheDocument()
     expect(
-      screen.getByText(ERROR_MESSAGES.DATE_OF_BIRTH_REQUIRED),
-    ).toBeInTheDocument()
-    expect(
       screen.getByText(ERROR_MESSAGES.EMAIL_ADDRESS_REQUIRED),
     ).toBeInTheDocument()
     expect(
@@ -336,7 +331,6 @@ describe('SignUpForm', () => {
     const start = getStartForm()
     await user.type(within(start).getByPlaceholderText('First name'), 'Ada')
     await user.type(within(start).getByPlaceholderText('Last name'), 'Lovelace')
-    await user.type(within(start).getByLabelText('Date of birth'), '2000-01-15')
     await user.type(
       within(start).getByPlaceholderText('example@gmail.com'),
       'not-an-email',
