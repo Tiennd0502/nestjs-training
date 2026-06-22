@@ -31,7 +31,7 @@
     "@clerk/nextjs": "^6.30.0",
     "@clerk/themes": "^2.4.57",
     "@hookform/resolvers": "^5.2.2",
-    "@tanstack/react-query": "^5",
+    "@tanstack/react-query": "5.62.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "embla-carousel-react": "^8.6.0",

@@ -9,7 +9,7 @@ specifiers:
   '@eslint/eslintrc': ^3
   '@hookform/resolvers': ^5.2.2
   '@tailwindcss/postcss': ^4
-  '@tanstack/react-query': ^5
+  '@tanstack/react-query': 5.62.0
   '@testing-library/dom': ^10.4.0
   '@testing-library/jest-dom': ^6.9.1
   '@testing-library/react': ^16.3.2
@@ -53,7 +53,7 @@ dependencies:
   '@clerk/nextjs': 6.30.0_jjxyxfetvr6hdlq7vnho2ixmyu
   '@clerk/themes': 2.4.57_6emmfbwqxtzh24ergceii3tsaa
   '@hookform/resolvers': 5.2.2_react-hook-form@7.73.1
-  '@tanstack/react-query': 5.99.2_react@19.2.5
+  '@tanstack/react-query': 5.62.0_react@19.2.5
   class-variance-authority: 0.7.1
   clsx: 2.1.1
   embla-carousel-react: 8.6.0_react@19.2.5
@@ -2124,16 +2124,16 @@ packages:
       tailwindcss: 4.2.2
     dev: true
 
-  /@tanstack/query-core/5.99.2:
-    resolution: {integrity: sha512-1HunU0bXVsR1ZJMZbcOPE6VtaBJxsW809RE9xPe4Gz7MlB0GWwQvuTPhMoEmQ/hIzFKJ/DWAuttIe7BOaWx0tA==}
+  /@tanstack/query-core/5.62.0:
+    resolution: {integrity: sha512-sx38bGrqF9bop92AXOvzDr0L9fWDas5zXdPglxa9cuqeVSWS7lY6OnVyl/oodfXjgOGRk79IfCpgVmxrbHuFHg==}
     dev: false
 
-  /@tanstack/react-query/5.99.2_react@19.2.5:
-    resolution: {integrity: sha512-vM91UEe45QUS9ED6OklsVL15i8qKcRqNwpWzPTVWvRPRSEgDudDgHpvyTjcdlwHcrKNa80T+xXYcchT2noPnZA==}
+  /@tanstack/react-query/5.62.0_react@19.2.5:
+    resolution: {integrity: sha512-tj2ltjAn2a3fs+Dqonlvs6GyLQ/LKVJE2DVSYW+8pJ3P6/VCVGrfqv5UEchmlP7tLOvvtZcOuSyI2ooVlR5Yqw==}
     peerDependencies:
       react: ^18 || ^19
     dependencies:
-      '@tanstack/query-core': 5.99.2
+      '@tanstack/query-core': 5.62.0
       react: 19.2.5
     dev: false
 
