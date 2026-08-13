@@ -1,0 +1,35 @@
+previews:
+  generation: automatic
+
+services:
+  - type: web
+    name: coffee-shop-web
+    runtime: node
+    rootDir: coffee-shop-web
+    plan: starter
+    previewPlan: starter
+    region: singapore
+    branch: feat/coffee-shop-web
+    autoDeploy: false
+    buildCommand: npm install -g pnpm@10.34.5 && pnpm install --frozen-lockfile && pnpm build
+    startCommand: next start -p $PORT
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+        sync: false
+      - key: CLERK_SECRET_KEY
+        sync: false
+      - key: NEXT_PUBLIC_CLERK_SIGN_IN_URL
+        value: /sign-in
+      - key: NEXT_PUBLIC_CLERK_SIGN_UP_URL
+        value: /sign-up
+      - key: NEXT_PUBLIC_API_URL
+        sync: false
+      - key: NEXT_PUBLIC_IMAGE_URL
+        sync: false
+      - key: NEXT_PUBLIC_IMAGE_KEY
+        sync: false
+      - key: NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
+        sync: false
