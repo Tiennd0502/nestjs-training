@@ -44,13 +44,13 @@ beforeAll(() => {
     unobserve = jest.fn()
     disconnect = jest.fn()
     takeRecords = () => []
-  } as unknown as typeof IntersectionObserver
+  }
 
   globalThis.ResizeObserver = class {
     observe = jest.fn()
     unobserve = jest.fn()
     disconnect = jest.fn()
-  } as unknown as typeof ResizeObserver
+  }
 })
 
 const mockUseParams = jest.mocked(useParams)

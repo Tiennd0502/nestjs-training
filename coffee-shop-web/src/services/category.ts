@@ -39,19 +39,17 @@ export async function createCategory(
 
   return {
     ok: true,
-    category:
-      parsedCategory ??
-      ({
-        id: '',
-        name: body.name,
-        slug: '',
-        createdBy: null,
-        updatedBy: null,
-        deletedBy: null,
-        createdAt: null,
-        updatedAt: null,
-        deletedAt: null,
-      } as Category),
+    category: parsedCategory ?? {
+      id: '',
+      name: body.name,
+      slug: '',
+      createdBy: null,
+      updatedBy: null,
+      deletedBy: null,
+      createdAt: null,
+      updatedAt: null,
+      deletedAt: null,
+    },
   }
 }
 

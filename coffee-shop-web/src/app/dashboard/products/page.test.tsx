@@ -360,22 +360,19 @@ describe('Dashboard products page', () => {
   })
 
   it('renders empty state when list has no data', () => {
-    mockUseProducts.mockImplementation(
-      () =>
-        ({
-          products: [],
-          meta: {
-            limit: PAGE_SIZE,
-            currentPage: 1,
-            pageCount: 1,
-            totalCount: 0,
-          },
-          isLoading: false,
-          isError: false,
-          errorMessage: null,
-          refetch: refetchMock,
-        }) as ReturnType<typeof useProducts>,
-    )
+    mockUseProducts.mockImplementation(() => ({
+      products: [],
+      meta: {
+        limit: PAGE_SIZE,
+        currentPage: 1,
+        pageCount: 1,
+        totalCount: 0,
+      },
+      isLoading: false,
+      isError: false,
+      errorMessage: null,
+      refetch: refetchMock,
+    }))
 
     renderProductsPage()
 
@@ -412,17 +409,14 @@ describe('Dashboard products page', () => {
 
   it('renders error state and retries', async () => {
     const user = userEvent.setup()
-    mockUseProducts.mockImplementation(
-      () =>
-        ({
-          products: [],
-          meta: null,
-          isLoading: false,
-          isError: true,
-          errorMessage: API_FALLBACK_ERRORS.PRODUCTS_LOAD,
-          refetch: refetchMock,
-        }) as ReturnType<typeof useProducts>,
-    )
+    mockUseProducts.mockImplementation(() => ({
+      products: [],
+      meta: null,
+      isLoading: false,
+      isError: true,
+      errorMessage: API_FALLBACK_ERRORS.PRODUCTS_LOAD,
+      refetch: refetchMock,
+    }))
 
     renderProductsPage()
 

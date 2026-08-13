@@ -16,7 +16,7 @@ describe('fetchUsers', () => {
       json: async () => ({
         data: [{ id: 'u-1', email: 'user@example.com', role: 'USER' }],
       }),
-    } as globalThis.Response)
+    })
     globalThis.fetch = fetchMock as typeof fetch
 
     const result = await fetchUsers()
@@ -52,7 +52,7 @@ describe('fetchUsers', () => {
           },
         ],
       }),
-    } as globalThis.Response)
+    })
     globalThis.fetch = fetchMock as typeof fetch
 
     const result = await fetchUsers()
@@ -81,7 +81,7 @@ describe('fetchUsers', () => {
           },
         ],
       }),
-    } as globalThis.Response)
+    })
     globalThis.fetch = fetchMock as typeof fetch
 
     const result = await fetchUsers()
@@ -96,7 +96,7 @@ describe('fetchUsers', () => {
     const fetchMock = jest.fn().mockResolvedValue({
       ok: true,
       json: async () => ({ data: [] }),
-    } as globalThis.Response)
+    })
     globalThis.fetch = fetchMock as typeof fetch
 
     await fetchUsers({ page: 2, limit: 15 })
@@ -111,7 +111,7 @@ describe('fetchUsers', () => {
     const fetchMock = jest.fn().mockResolvedValue({
       ok: true,
       json: async () => ({ data: [] }),
-    } as globalThis.Response)
+    })
     globalThis.fetch = fetchMock as typeof fetch
 
     await fetchUsers({ search: '  ada  ', role: 'ADMIN' })
@@ -126,7 +126,7 @@ describe('fetchUsers', () => {
     const fetchMock = jest.fn().mockResolvedValue({
       ok: false,
       status: 403,
-    } as globalThis.Response)
+    })
     globalThis.fetch = fetchMock as typeof fetch
 
     const result = await fetchUsers()
@@ -161,7 +161,7 @@ describe('deleteUserById', () => {
       status: 204,
       json: async () => ({}),
       text: async () => '',
-    } as unknown as globalThis.Response)
+    })
     globalThis.fetch = fetchMock as typeof fetch
 
     const result = await deleteUserById('u-123')
@@ -180,7 +180,7 @@ describe('deleteUserById', () => {
       ok: false,
       status: 403,
       json: async () => ({ message: API_FALLBACK_ERRORS.USER_DELETE }),
-    } as unknown as globalThis.Response)
+    })
     globalThis.fetch = fetchMock as typeof fetch
 
     const result = await deleteUserById('u-403')

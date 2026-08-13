@@ -109,8 +109,8 @@ const InputField = React.forwardRef<HTMLElement, InputProps>(
       }
 
       if (!onChange) return
-      ;(event.target as HTMLInputElement).value = normalized
-      ;(event.currentTarget as HTMLInputElement).value = normalized
+      event.target.value = normalized
+      event.currentTarget.value = normalized
       onChange(
         event as React.ChangeEvent<HTMLInputElement> & {
           preventBaseUIHandler: () => void

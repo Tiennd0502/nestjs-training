@@ -8,7 +8,6 @@ import { toast } from 'sonner'
 
 // Types
 import type {
-  PRODUCT_UNIT,
   ProductFormValues,
   ProductImagePayload,
   ProductPayload,
@@ -561,9 +560,7 @@ const PageContent = () => {
                       placeholder="Select unit"
                       options={UNIT_OPTIONS}
                       selected={field.value}
-                      onValueChange={(value) =>
-                        field.onChange(value as PRODUCT_UNIT)
-                      }
+                      onValueChange={(value) => field.onChange(value)}
                       disabled={isSubmitting}
                       errorMessage={errors.unit?.message}
                     />

@@ -26,7 +26,7 @@ describe('category service update flows', () => {
           deletedAt: null,
         },
       }),
-    } as globalThis.Response)
+    })
     globalThis.fetch = fetchMock as typeof fetch
 
     const result = await fetchCategoryById('cat-1')
@@ -51,7 +51,7 @@ describe('category service update flows', () => {
         ok: false,
         status: 405,
         json: async () => ({ message: 'Method not allowed' }),
-      } as globalThis.Response)
+      })
       .mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -68,7 +68,7 @@ describe('category service update flows', () => {
             deletedAt: null,
           },
         }),
-      } as globalThis.Response)
+      })
     globalThis.fetch = fetchMock as typeof fetch
 
     const result = await updateCategory('cat-1', { name: 'Espresso' })
@@ -98,7 +98,7 @@ describe('category service update flows', () => {
       ok: false,
       status: 500,
       json: async () => ({ message: '' }),
-    } as globalThis.Response)
+    })
     globalThis.fetch = fetchMock as typeof fetch
 
     const result = await updateCategory('cat-1', { name: 'Failing' })

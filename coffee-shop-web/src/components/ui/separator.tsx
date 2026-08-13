@@ -12,7 +12,8 @@ type SeparatorPrimitiveProps = React.ComponentPropsWithoutRef<
   typeof SeparatorPrimitive
 >
 
-export type SeparatorProps = SeparatorPrimitiveProps & {
+export type SeparatorProps = React.ComponentPropsWithoutRef<'div'> & {
+  orientation?: SeparatorPrimitiveProps['orientation']
   /** Center label on the line; blank after trim → standard separator. Vertical uses rotated text. */
   text?: string
   textClassName?: string

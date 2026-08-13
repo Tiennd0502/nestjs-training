@@ -47,14 +47,12 @@ export async function createProduct(
 
   return {
     ok: true,
-    product:
-      parsedProduct ??
-      ({
-        id: '',
-        ...body,
-        createdAt: null,
-        updatedAt: null,
-      } as Product),
+    product: parsedProduct ?? {
+      id: '',
+      ...body,
+      createdAt: null,
+      updatedAt: null,
+    },
   }
 }
 
@@ -131,7 +129,7 @@ function parseProductFromResponse(json: unknown): Product | null {
     return data
   }
   if (isProductShape(root)) {
-    return root as unknown as Product
+    return root
   }
   return null
 }
