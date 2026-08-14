@@ -11,6 +11,17 @@ export interface ApiRequestOptions {
   fallbackError: string
 }
 
+/**
+ * Fallback token source registered once (see AuthTokenBridge) so callers that
+ * forget to pass `getToken` still get an Authorization header instead of
+ * silently sending unauthenticated requests.
+ */
+let defaultTokenGetter: TokenGetter | null = null
+
+export function setDefaultTokenGetter(getToken: TokenGetter | null) {
+  defaultTokenGetter = getToken
+}
+
 export type ApiResult<T> =
   | { ok: true; data: T; status: number }
   | {
@@ -94,7 +105,8 @@ export class ApiClient {
     options?: { jsonBody?: boolean },
   ): Promise<Headers> {
     const headers = new Headers({ Accept: 'application/json' })
-    const token = getToken ? await getToken() : null
+    const effectiveGetToken = getToken ?? defaultTokenGetter ?? undefined
+    const token = effectiveGetToken ? await effectiveGetToken() : null
     if (token) {
       headers.set('Authorization', `Bearer ${token}`)
     }
