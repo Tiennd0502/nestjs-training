@@ -1,0 +1,10 @@
+services:
+  app:
+    build:
+      target: dev
+    volumes:
+      - ./src:/app/src
+
+  postgres:
+    ports:
+      - "${DB_PORT:-5432}:5432"

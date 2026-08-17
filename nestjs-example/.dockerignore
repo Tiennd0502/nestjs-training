@@ -1,0 +1,41 @@
+# compiled output
+dist
+node_modules
+build
+coverage
+.nyc_output
+
+# git
+.git
+.gitignore
+
+# tooling / non-runtime
+test
+specs
+.claude
+.agents
+.husky
+skills-lock.json
+CLAUDE.md
+
+# logs
+logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS / editors
+.DS_Store
+.idea
+.vscode
+
+# env
+.env
+.env.*
+
+# docker
+Dockerfile
+docker-compose.yml
+.dockerignore
