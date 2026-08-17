@@ -1,0 +1,3 @@
+cd nestjs-example
+pnpm run test
+pnpm run build

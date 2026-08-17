@@ -1,0 +1,3 @@
+MSG_FILE="$PWD/$1"
+cd nestjs-example
+pnpm exec commitlint --edit "$MSG_FILE"

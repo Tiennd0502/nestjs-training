@@ -1,0 +1,2 @@
+cd nestjs-example
+pnpm exec lint-staged
