@@ -22,12 +22,22 @@
     "docker:dev": "docker compose -f docker-compose.yml -f docker-compose.dev.yml up",
     "docker:dev:down": "docker compose -f docker-compose.yml -f docker-compose.dev.yml down -v",
     "docker:prod": "docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build",
-    "docker:prod:down": "docker compose -f docker-compose.yml -f docker-compose.prod.yml down -v"
+    "docker:prod:down": "docker compose -f docker-compose.yml -f docker-compose.prod.yml down -v",
+    "migration:create": "mikro-orm migration:create",
+    "migration:up": "mikro-orm migration:up",
+    "seeder:create": "mikro-orm seeder:create",
+    "seeder:run": "mikro-orm seeder:run"
   },
   "dependencies": {
+    "@mikro-orm/core": "^7.1.11",
+    "@mikro-orm/migrations": "^7.1.11",
+    "@mikro-orm/nestjs": "^7.0.2",
+    "@mikro-orm/postgresql": "^7.1.11",
     "@nestjs/common": "^11.0.1",
+    "@nestjs/config": "^4.0.4",
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
+    "dotenv": "^17.4.2",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
   },
@@ -36,6 +46,8 @@
     "@commitlint/config-conventional": "^21.2.2",
     "@eslint/eslintrc": "^3.2.0",
     "@eslint/js": "^9.18.0",
+    "@mikro-orm/cli": "^7.1.11",
+    "@mikro-orm/seeder": "^7.1.11",
     "@nestjs/cli": "^11.0.0",
     "@nestjs/schematics": "^11.0.0",
     "@nestjs/testing": "^11.0.1",
@@ -70,6 +82,9 @@
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
+    },
+    "moduleNameMapper": {
+      "^@/(.*)$": "<rootDir>/$1"
     },
     "collectCoverageFrom": [
       "**/*.(t|j)s"
