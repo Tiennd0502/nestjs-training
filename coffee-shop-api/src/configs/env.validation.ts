@@ -39,6 +39,18 @@ export class EnvironmentVariables {
   @IsString()
   @IsNotEmpty()
   DB_PASSWORD!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  CORS_ORIGIN!: string;
+
+  @Transform(toNumber)
+  @IsInt()
+  RATE_LIMIT_WINDOW_MS!: number;
+
+  @Transform(toNumber)
+  @IsInt()
+  RATE_LIMIT_MAX_REQUESTS!: number;
 }
 
 export function validate(
