@@ -5,6 +5,7 @@
   "author": "",
   "private": true,
   "license": "UNLICENSED",
+  "packageManager": "pnpm@10.28.2",
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
@@ -23,7 +24,11 @@
     "migration:up": "mikro-orm migration:up",
     "migration:down": "mikro-orm migration:down",
     "seeder:create": "mikro-orm seeder:create",
-    "seeder:run": "mikro-orm seeder:run"
+    "seeder:run": "mikro-orm seeder:run",
+    "docker:dev": "docker compose --env-file .env.docker -f docker-compose.yml -f docker-compose.dev.yml up --build",
+    "docker:dev:down": "docker compose --env-file .env.docker -f docker-compose.yml -f docker-compose.dev.yml down",
+    "docker:prod": "docker compose --env-file .env.docker -f docker-compose.yml up -d --build",
+    "docker:prod:down": "docker compose --env-file .env.docker -f docker-compose.yml down"
   },
   "dependencies": {
     "@clerk/express": "^2.1.61",
