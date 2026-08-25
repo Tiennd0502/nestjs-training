@@ -46,7 +46,8 @@
     "dotenv": "^17.4.2",
     "helmet": "^8.3.0",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "uuid": "^14.0.2"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.2.2",
