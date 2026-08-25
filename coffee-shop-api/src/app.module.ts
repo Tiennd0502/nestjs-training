@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
@@ -10,6 +10,7 @@ import mikroOrmConfig from './configs/mikro-orm.config';
 import { validate } from './configs/env.validation';
 import { rateLimitConfig } from './configs/rate-limit.config';
 import { UserModule } from './modules/user/user.module';
+import { TransformResponseInterceptor } from './common/interceptors/transform-response.interceptor';
 
 @Module({
   imports: [
@@ -27,6 +28,10 @@ import { UserModule } from './modules/user/user.module';
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: TransformResponseInterceptor,
     },
   ],
 })

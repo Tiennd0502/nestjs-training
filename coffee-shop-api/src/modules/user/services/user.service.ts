@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Inject,
   Injectable,
@@ -12,6 +13,10 @@ import {
   type UserRepository,
 } from '../repositories/user-repository.interface';
 import { ERROR_MESSAGES } from '../../../common/constants/message.constant';
+import {
+  PaginatedResult,
+  QueryParams,
+} from '../../../common/interfaces/pagination.interface';
 
 @Injectable()
 export class UserService {
@@ -36,8 +41,15 @@ export class UserService {
     return this.userRepository.create(dto);
   }
 
-  findAll(): Promise<User[]> {
-    return this.userRepository.findAll();
+  async findAll(query: QueryParams): Promise<PaginatedResult<User>> {
+    const result = await this.userRepository.findAll(query);
+    const { totalCount, pageCount } = result.meta;
+
+    if (totalCount > 0 && query.page > pageCount) {
+      throw new BadRequestException(ERROR_MESSAGES.USER.PAGE_OUT_OF_RANGE);
+    }
+
+    return result;
   }
 
   async findOne(id: string): Promise<User> {

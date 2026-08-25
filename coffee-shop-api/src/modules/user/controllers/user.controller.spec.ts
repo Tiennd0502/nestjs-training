@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { NotFoundException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { UserController } from './user.controller';
 import { UserService } from '../services/user.service';
 import { User } from '../entities/user.entity';
@@ -70,13 +70,28 @@ describe('UserController', () => {
   });
 
   describe('findAll', () => {
-    it('delegates to UserService.findAll', async () => {
-      userService.findAll.mockResolvedValue([user]);
+    it('delegates to UserService.findAll and maps data to ResponseUserDto, passing meta through', async () => {
+      const meta = { limit: 10, currentPage: 1, pageCount: 1, totalCount: 1 };
+      userService.findAll.mockResolvedValue({ data: [user], meta });
 
-      const result = await controller.findAll();
+      const result = await controller.findAll({ page: 1, limit: 10 });
 
-      expect(userService.findAll).toHaveBeenCalled();
-      expect(result).toEqual([ResponseUserDto.fromEntity(user)]);
+      expect(userService.findAll).toHaveBeenCalledWith({
+        page: 1,
+        limit: 10,
+      });
+      expect(result).toEqual({
+        data: [ResponseUserDto.fromEntity(user)],
+        meta,
+      });
+    });
+
+    it('propagates BadRequestException', async () => {
+      userService.findAll.mockRejectedValue(new BadRequestException());
+
+      await expect(
+        controller.findAll({ page: 999, limit: 10 }),
+      ).rejects.toBeInstanceOf(BadRequestException);
     });
   });
 

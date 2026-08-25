@@ -1,5 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ConflictException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import { UserService } from './user.service';
 import { User } from '../entities/user.entity';
 import { UserRole, UserStatus } from '../../../common/enums/user.enum';
@@ -110,19 +114,60 @@ describe('UserService', () => {
   });
 
   describe('findAll', () => {
-    it('returns exactly what the repository resolves, unmodified', async () => {
+    it('forwards the pagination query to the repository and returns its result, unmodified', async () => {
       // Soft-delete exclusion is enforced by BaseEntity's default MikroORM
       // @Filter at the DB layer, not by this service — that mechanism can
       // only be genuinely verified against a real DB (see the e2e suite).
       // This test only guards against the service re-filtering or wrapping
       // the repository's result.
-      const users = [buildUser()];
-      userRepository.findAll.mockResolvedValue(users);
+      const paginatedUsers = {
+        data: [buildUser()],
+        meta: { limit: 10, currentPage: 1, pageCount: 1, totalCount: 1 },
+      };
+      userRepository.findAll.mockResolvedValue(paginatedUsers);
 
-      const result = await service.findAll();
+      const result = await service.findAll({ page: 1, limit: 10 });
 
-      expect(userRepository.findAll).toHaveBeenCalled();
-      expect(result).toBe(users);
+      expect(userRepository.findAll).toHaveBeenCalledWith({
+        page: 1,
+        limit: 10,
+      });
+      expect(result).toBe(paginatedUsers);
+    });
+
+    it('throws BadRequestException when the requested page exceeds pageCount', async () => {
+      userRepository.findAll.mockResolvedValue({
+        data: [],
+        meta: { limit: 10, currentPage: 5, pageCount: 4, totalCount: 35 },
+      });
+
+      await expect(
+        service.findAll({ page: 5, limit: 10 }),
+      ).rejects.toBeInstanceOf(BadRequestException);
+    });
+
+    it('does not throw for an in-range page equal to pageCount', async () => {
+      const paginatedUsers = {
+        data: [buildUser()],
+        meta: { limit: 10, currentPage: 4, pageCount: 4, totalCount: 35 },
+      };
+      userRepository.findAll.mockResolvedValue(paginatedUsers);
+
+      const result = await service.findAll({ page: 4, limit: 10 });
+
+      expect(result).toBe(paginatedUsers);
+    });
+
+    it('does not throw for page 1 when there is no data at all', async () => {
+      const paginatedUsers = {
+        data: [],
+        meta: { limit: 10, currentPage: 1, pageCount: 0, totalCount: 0 },
+      };
+      userRepository.findAll.mockResolvedValue(paginatedUsers);
+
+      const result = await service.findAll({ page: 1, limit: 10 });
+
+      expect(result).toBe(paginatedUsers);
     });
   });
 
