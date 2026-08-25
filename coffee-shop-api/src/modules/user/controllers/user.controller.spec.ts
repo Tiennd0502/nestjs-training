@@ -3,6 +3,7 @@ import { NotFoundException } from '@nestjs/common';
 import { UserController } from './user.controller';
 import { UserService } from '../services/user.service';
 import { User } from '../entities/user.entity';
+import { ResponseUserDto } from '../dto/response-user.dto';
 import { UserRole, UserStatus } from '../../../common/enums/user.enum';
 
 describe('UserController', () => {
@@ -64,7 +65,7 @@ describe('UserController', () => {
       const result = await controller.create(dto);
 
       expect(userService.create).toHaveBeenCalledWith(dto);
-      expect(result).toBe(user);
+      expect(result).toEqual(ResponseUserDto.fromEntity(user));
     });
   });
 
@@ -75,7 +76,7 @@ describe('UserController', () => {
       const result = await controller.findAll();
 
       expect(userService.findAll).toHaveBeenCalled();
-      expect(result).toEqual([user]);
+      expect(result).toEqual([ResponseUserDto.fromEntity(user)]);
     });
   });
 
@@ -86,7 +87,7 @@ describe('UserController', () => {
       const result = await controller.findOne('user-id-1');
 
       expect(userService.findOne).toHaveBeenCalledWith('user-id-1');
-      expect(result).toBe(user);
+      expect(result).toEqual(ResponseUserDto.fromEntity(user));
     });
 
     it('propagates NotFoundException', async () => {
@@ -101,12 +102,13 @@ describe('UserController', () => {
   describe('update', () => {
     it('delegates to UserService.update', async () => {
       const dto = { firstName: 'Janet' };
-      userService.update.mockResolvedValue({ ...user, firstName: 'Janet' });
+      const updatedUser = { ...user, firstName: 'Janet' };
+      userService.update.mockResolvedValue(updatedUser);
 
       const result = await controller.update('user-id-1', dto);
 
       expect(userService.update).toHaveBeenCalledWith('user-id-1', dto);
-      expect(result).toEqual({ ...user, firstName: 'Janet' });
+      expect(result).toEqual(ResponseUserDto.fromEntity(updatedUser));
     });
 
     it('propagates NotFoundException', async () => {
