@@ -9,6 +9,7 @@ import { AppService } from './app.service';
 import mikroOrmConfig from './configs/mikro-orm.config';
 import { validate } from './configs/env.validation';
 import { rateLimitConfig } from './configs/rate-limit.config';
+import { UserModule } from './modules/user/user.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { rateLimitConfig } from './configs/rate-limit.config';
       useFactory: rateLimitConfig,
     }),
     MikroOrmModule.forRoot(mikroOrmConfig),
+    UserModule,
   ],
   controllers: [AppController],
   providers: [
