@@ -1,98 +1,292 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Coffee Shop API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A NestJS backend for a coffee shop ordering system — Clerk-authenticated users, role-based
+access (Admin/User), and catalog management (categories, products, variants, images) backed by
+PostgreSQL via MikroORM.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Tech Stack
 
-## Description
+| Layer               | Choice                          |
+| -------------------- | -------------------------------- |
+| Runtime               | [Node.js](https://nodejs.org) v24 |
+| Language              | [TypeScript](https://www.typescriptlang.org) v5 |
+| Framework             | [NestJS](https://nestjs.com) v11 |
+| Authentication        | [Clerk](https://clerk.com) v2   |
+| Database              | [PostgreSQL](https://www.postgresql.org) v18 |
+| ORM                    | [MikroORM](https://mikro-orm.io) v6 |
+| Unit testing           | [Jest](https://jestjs.io) v30   |
+| E2E testing            | [Supertest](https://github.com/ladjs/supertest) v7 |
+| API documentation      | [Swagger / OpenAPI](https://swagger.io) *(planned)* |
+| Containerization       | [Docker](https://www.docker.com) + [Docker Compose](https://docs.docker.com/compose/) |
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Features
 
-## Project setup
+### Auth & Authorization
 
-```bash
-$ npm install
+- **Authentication** — Clerk is the source of truth for identity (client uses Clerk's prebuilt
+  Sign In/Up components); the API verifies Clerk-issued session tokens on protected routes.
+- **User sync** — Clerk webhooks (`user.created` / `user.updated` / `user.deleted`,
+  signature-verified, idempotent) keep PostgreSQL in sync with Clerk.
+- **Authorization** — role-based access control with two roles: **Admin** (manager, full CRUD on
+  users/categories/products) and **User** (barista, read-only).
+
+### Catalog Management
+
+- **User management** — CRUD with search by name/email, status filter, and pagination.
+- **Category management** — CRUD, search by name.
+- **Product management** — CRUD with multiple images per product (client uploads to ImgBB, backend
+  only stores/validates the resulting URL) and one or more variants per product; filter by
+  category/price, search by name, sort, pagination via query builder; soft-delete to preserve
+  references from historical orders.
+
+### Cross-cutting
+
+- Environment validation at startup
+- CORS allow-list
+- Helmet security headers
+- Rate limiting
+- Consistent HTTP error responses
+- Swagger-documented API
+
+## Project Structure
+
+```
+src/
+  common/                   cross-cutting, reusable across ≥2 modules
+    entities/               shared base entities (BaseEntity: id/createdAt/updatedAt/deletedAt)
+    enums/                  shared enums (UserRole, UserStatus, ...)
+    constants/              non-secret default values (DEFAULT_PORT, ...)
+    guards/                 HTTP guards (e.g. JwtAuthGuard)
+    decorators/             param/route decorators (e.g. AuthUser) 
+  configs/                  env validation, mikro-orm.config.ts, cors/rate-limit config
+  modules/<feature>/        feature modules (user implemented; auth, category, product planned)
+    controllers/            HTTP layer
+    services/               business logic, depends on the repository port (not MikroORM directly)
+    repositories/           repository interface (port) + MikroORM adapter (the only MikroORM import)
+    entities/               MikroORM entity for this feature
+    dto/                    class-validator request/response shapes
+    <feature>.module.ts     wires entity, repository, service, controller
+    <feature>.messages.ts   named constants for exception messages thrown by the service
+  migrations/               MikroORM migrations (mikro-orm migration:create/up/down)
+  app.module.ts             composition root
+  main.ts                   bootstrap: Helmet, CORS, listen
+test/
+  app.e2e-spec.ts           e2e smoke test for AppController
+  user.e2e-spec.ts          e2e coverage for /users
 ```
 
-## Compile and run the project
 
-```bash
-# development
-$ npm run start
+## ENTITY RELATIONSHIP DIAGRAM(ERD)
 
-# watch mode
-$ npm run start:dev
+```mermaid
+erDiagram
+    USER {
+        id uuid PK
+        clerk_id string
+        email string
+        role string "ADMIN | USER"
+        first_name string
+        last_name string
+        phone_number string
+        avatar_url string
+        status string "ACTIVE | INACTIVE"
+        created_at timestamp
+        updated_at timestamp
+        deleted_at timestamp
+    }
 
-# production mode
-$ npm run start:prod
+    CATEGORY {
+        id uuid PK
+        created_by uuid FK
+        updated_by uuid FK
+        deleted_by uuid FK
+        name string
+        slug string
+        created_at timestamp
+        updated_at timestamp
+        deleted_at timestamp
+    }
+
+    PRODUCT {
+        id uuid PK
+        category_id uuid FK
+        name string
+        slug string
+        description string
+        roast_level string "LIGHT | MEDIUM | DARK"
+        is_organic boolean
+        is_fair_trade boolean
+        status string "DRAFT | ACTIVE | INACTIVE | ARCHIVED"
+        tasting_notes string
+        origin string
+        processing_method string
+        created_by uuid FK
+        updated_by uuid FK
+        deleted_by uuid FK
+        created_at timestamp
+        updated_at timestamp
+        deleted_at timestamp
+    }
+
+    PRODUCT_IMAGE {
+        id uuid PK
+        product_id uuid FK
+        url string
+        is_primary boolean
+        sort_order int
+        created_at timestamp
+        updated_at timestamp
+        deleted_at timestamp
+    }
+
+    PRODUCT_VARIANT {
+        id uuid PK
+        product_id uuid FK
+        sku string
+        weight number
+        unit string
+        name string
+        price number
+        discount_type string "PERCENT | FIXED"
+        discount_value number
+        quantity int
+        created_at timestamp
+        updated_at timestamp
+        deleted_at timestamp
+    }
+
+    USER ||--o{ PRODUCT : "referenced in"
+    USER ||--o{ CATEGORY : "referenced in"
+    CATEGORY ||--o{ PRODUCT : "contains"
+    PRODUCT ||--o{ PRODUCT_IMAGE : "has"
+    PRODUCT ||--o{ PRODUCT_VARIANT : "has"
 ```
 
-## Run tests
+---
+
+## API ENDPOINTS
+
+> Base path: `/api/v1` - API docs `/api/api-docs`.
+>
+> **Auth:** 🔓 Public · 🔒 Authenticated (Clerk JWT) · 👑 Admin
+
+### Users
+
+| Method   | Path         | Auth | Description                    |
+| :------- | :----------- | :--- | :----------------------------- |
+| `GET`    | `/me`        | 🔒   | Get authenticated user profile |
+| `GET`    | `/users`     | 👑   | List all users                 |
+| `GET`    | `/users/:id` | 👑   | Get user by ID                 |
+| `POST`   | `/users`     | 👑   | Create user                    |
+| `PATCH`  | `/users/:id` | 👑   | Update user                    |
+| `DELETE` | `/users/:id` | 👑   | Soft-delete user               |
+
+### Categories
+
+| Method   | Path              | Auth | Description          |
+| :------- | :---------------- | :--- | :------------------- |
+| `GET`    | `/categories`     | 🔓   | List categories      |
+| `GET`    | `/categories/:id` | 🔓   | Get category by ID   |
+| `POST`   | `/categories`     | 👑   | Create category      |
+| `PATCH`  | `/categories/:id` | 👑   | Update category      |
+| `DELETE` | `/categories/:id` | 👑   | Soft-delete category |
+
+### Products
+
+| Method   | Path            | Auth | Description                                                    |
+| :------- | :-------------- | :--- | :------------------------------------------------------------- |
+| `GET`    | `/products`     | 🔓   | List products (filter by status, category, roast level, price) |
+| `GET`    | `/products/:id` | 🔓   | Get product by ID                                              |
+| `POST`   | `/products`     | 👑   | Create product                                                 |
+| `PATCH`  | `/products/:id` | 👑   | Update product                                                 |
+| `DELETE` | `/products/:id` | 👑   | Soft-delete product                                            |
+
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js v24
+- pnpm (version pinned via `corepack`, see `Dockerfile`)
+- Docker + Docker Compose (for running PostgreSQL, or the whole stack, in containers)
+- A [Clerk](https://clerk.com) application (publishable key, secret key, webhook signing secret)
+
+### Installation
 
 ```bash
-# unit tests
-$ npm run test
+git clone -b feat/coffee-shop-api git@gitlab.asoft-python.com:tien.nguyen/nestjs-training.git
+cd nestjs-training/coffee-shop-api
 
-# e2e tests
-$ npm run test:e2e
+pnpm install
 
-# test coverage
-$ npm run test:cov
+cp .env.example .env   # then fill in real values
+
+docker compose up -d postgres   # start PostgreSQL only, app runs on the host
+
+pnpm run migration:up
+
+pnpm run start:dev
 ```
 
-## Deployment
+### Environment Variables
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+`.env.example` lists every variable (copy it to `.env`, and to `.env.docker` if running the app
+itself inside Docker) and fill in real values. All variables below are validated at startup
+(`src/configs/env.validation.ts`) — the app refuses to boot if any required one is missing.
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+| Variable                | Description                                      |
+| ------------------------ | ------------------------------------------------- |
+| `NODE_ENV`                | `dev` \| `test` \| `production`                  |
+| `PORT`                     | HTTP port the API listens on                     |
+| `DB_HOST`                  | PostgreSQL host                                  |
+| `DB_PORT`                  | PostgreSQL port                                  |
+| `DB_NAME`                  | PostgreSQL database name                         |
+| `DB_USER`                  | PostgreSQL user                                  |
+| `DB_PASSWORD`              | PostgreSQL password                              |
+| `CLERK_SECRET_KEY`         | Clerk backend secret key                         |
+| `CLERK_PUBLISHABLE_KEY`    | Clerk publishable key                            |
+| `CLERK_WEBHOOK_SECRET`     | Clerk webhook signing secret                 |
+
+### Running Locally
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+pnpm run start          # run
+pnpm run start:dev      # watch mode
+pnpm run start:prod     # run compiled dist/main.js
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### Running with Docker
 
-## Resources
+`docker-compose.yml` is the production-ready default (app + PostgreSQL, `restart: unless-stopped`,
+healthchecks); `docker-compose.dev.yml` layers dev-only overrides on top (hot-reload volume mount,
+Postgres port exposed to the host, no auto-restart).
 
-Check out a few resources that may come in handy when working with NestJS:
+```bash
+pnpm run docker:dev        # dev: docker compose --env-file .env.docker -f docker-compose.yml -f docker-compose.dev.yml up --build
+pnpm run docker:dev:down
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+pnpm run docker:prod       # prod: docker compose --env-file .env.docker -f docker-compose.yml up -d --build
+pnpm run docker:prod:down
+```
 
-## Support
+## Database & Migrations
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+MikroORM config is centralized in `src/configs/mikro-orm.config.ts` and entity paths are
+auto-discovered via glob (`src/**/*.entity.ts`) — no manual entity registration needed. Schema
+changes are managed exclusively through migrations; automatic schema synchronization is never used
+in production.
 
-## Stay in touch
+```bash
+pnpm run migration:create   # generate a new migration from entity changes
+pnpm run migration:up       # apply pending migrations
+pnpm run migration:down     # revert the last migration
+```
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+## Testing
 
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+```bash
+pnpm run test          # unit tests
+pnpm run test:watch
+pnpm run test:cov
+pnpm run test:e2e      # e2e tests (requires a reachable PostgreSQL — e.g. `pnpm run docker:dev`)
+```
