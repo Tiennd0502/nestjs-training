@@ -3,6 +3,10 @@ import { InjectRepository } from '@mikro-orm/nestjs';
 import { EntityManager, EntityRepository } from '@mikro-orm/postgresql';
 import { User } from '../entities/user.entity';
 import { CreateUserData, UserRepository } from './user-repository.interface';
+import {
+  PaginatedResult,
+  QueryParams,
+} from '../../../common/interfaces/pagination.interface';
 
 @Injectable()
 export class MikroOrmUserRepository implements UserRepository {
@@ -24,8 +28,22 @@ export class MikroOrmUserRepository implements UserRepository {
     return this.repository.findOne({ clerkId });
   }
 
-  findAll(): Promise<User[]> {
-    return this.repository.findAll();
+  async findAll(query: QueryParams): Promise<PaginatedResult<User>> {
+    const { page, limit } = query;
+    const [data, totalCount] = await this.repository.findAndCount(
+      {},
+      { limit, offset: (page - 1) * limit },
+    );
+
+    return {
+      data,
+      meta: {
+        limit,
+        currentPage: page,
+        pageCount: Math.ceil(totalCount / limit),
+        totalCount,
+      },
+    };
   }
 
   async create(data: CreateUserData): Promise<User> {

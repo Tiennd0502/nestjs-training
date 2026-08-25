@@ -1,4 +1,8 @@
 import { User } from '../entities/user.entity';
+import {
+  PaginatedResult,
+  QueryParams,
+} from '../../../common/interfaces/pagination.interface';
 
 export const USER_REPOSITORY = Symbol('USER_REPOSITORY');
 
@@ -12,7 +16,7 @@ export interface UserRepository {
   findById(id: string): Promise<User | null>;
   findByEmail(email: string): Promise<User | null>;
   findByClerkId(clerkId: string): Promise<User | null>;
-  findAll(): Promise<User[]>;
+  findAll(query: QueryParams): Promise<PaginatedResult<User>>;
   create(data: CreateUserData): Promise<User>;
   save(user: User): Promise<void>;
 }
