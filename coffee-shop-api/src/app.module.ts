@@ -10,7 +10,9 @@ import mikroOrmConfig from './configs/mikro-orm.config';
 import { validate } from './configs/env.validation';
 import { rateLimitConfig } from './configs/rate-limit.config';
 import { UserModule } from './modules/user/user.module';
+import { WebhookModule } from './modules/webhook/webhook.module';
 import { TransformResponseInterceptor } from './common/interceptors/transform-response.interceptor';
+import { AuthProviderModule } from './common/providers/auth-provider.module';
 
 @Module({
   imports: [
@@ -20,7 +22,9 @@ import { TransformResponseInterceptor } from './common/interceptors/transform-re
       useFactory: rateLimitConfig,
     }),
     MikroOrmModule.forRoot(mikroOrmConfig),
+    AuthProviderModule,
     UserModule,
+    WebhookModule,
   ],
   controllers: [AppController],
   providers: [
