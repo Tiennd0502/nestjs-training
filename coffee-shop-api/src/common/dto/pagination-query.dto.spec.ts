@@ -70,4 +70,32 @@ describe('PaginationQueryDto', () => {
 
     expect(errors.some((error) => error.property === 'limit')).toBe(true);
   });
+
+  it('leaves search undefined when omitted, with page/limit unaffected', async () => {
+    const dto = plainToInstance(PaginationQueryDto, {});
+
+    const errors = await validate(dto);
+
+    expect(errors).toHaveLength(0);
+    expect(dto.search).toBeUndefined();
+    expect(dto.page).toBe(DEFAULT_PAGE);
+    expect(dto.limit).toBe(DEFAULT_LIMIT);
+  });
+
+  it('accepts a string search value', async () => {
+    const dto = plainToInstance(PaginationQueryDto, { search: 'espresso' });
+
+    const errors = await validate(dto);
+
+    expect(errors).toHaveLength(0);
+    expect(dto.search).toBe('espresso');
+  });
+
+  it('fails validation for a non-string search', async () => {
+    const dto = plainToInstance(PaginationQueryDto, { search: 123 });
+
+    const errors = await validate(dto);
+
+    expect(errors.some((error) => error.property === 'search')).toBe(true);
+  });
 });
