@@ -46,11 +46,11 @@ export class EnvironmentVariables {
 
   @Transform(toNumber)
   @IsInt()
-  RATE_LIMIT_WINDOW_MS!: number;
+  THROTTLE_TTL!: number;
 
   @Transform(toNumber)
   @IsInt()
-  RATE_LIMIT_MAX_REQUESTS!: number;
+  THROTTLE_LIMIT!: number;
 
   @IsString()
   @IsNotEmpty()
