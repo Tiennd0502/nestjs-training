@@ -7,8 +7,8 @@ export function rateLimitConfig(
   return {
     throttlers: [
       {
-        ttl: configService.getOrThrow<number>('RATE_LIMIT_WINDOW_MS'),
-        limit: configService.getOrThrow<number>('RATE_LIMIT_MAX_REQUESTS'),
+        ttl: configService.getOrThrow<number>('THROTTLE_TTL'),
+        limit: configService.getOrThrow<number>('THROTTLE_LIMIT'),
       },
     ],
     errorMessage: 'Too many requests, please try again later.',

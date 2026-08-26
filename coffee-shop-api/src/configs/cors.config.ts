@@ -8,5 +8,6 @@ export function corsConfig(configService: ConfigService): CorsOptions {
       .split(',')
       .map((origin) => origin.trim())
       .filter((origin) => origin.length > 0),
+    credentials: true,
   };
 }
