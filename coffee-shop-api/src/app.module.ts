@@ -17,6 +17,7 @@ import { rateLimitConfig } from './configs/rate-limit.config';
 import { UserModule } from './modules/user/user.module';
 import { WebhookModule } from './modules/webhook/webhook.module';
 import { CategoryModule } from './modules/category/category.module';
+import { ProductModule } from './modules/product/product.module';
 import { TransformResponseInterceptor } from './common/interceptors/transform-response.interceptor';
 import { ClerkAuthMiddleware } from './common/middlewares/clerk-auth.middleware';
 import { UserResolutionMiddleware } from './common/middlewares/user-resolution.middleware';
@@ -34,6 +35,7 @@ import { AuthProviderModule } from './common/providers/auth-provider.module';
     UserModule,
     WebhookModule,
     CategoryModule,
+    ProductModule,
   ],
   controllers: [AppController],
   providers: [
