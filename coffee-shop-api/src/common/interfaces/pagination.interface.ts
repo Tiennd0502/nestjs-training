@@ -8,6 +8,7 @@ export interface Meta {
 export interface QueryParams {
   page: number;
   limit: number;
+  search?: string;
 }
 
 export interface PaginatedResult<T> {
