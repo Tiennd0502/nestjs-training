@@ -8,4 +8,9 @@ export const ERROR_MESSAGES = {
   WEBHOOK: {
     INVALID_SIGNATURE: 'Invalid webhook signature',
   },
+  AUTH: {
+    UNAUTHENTICATED: 'Authentication required',
+    INACTIVE_ACCOUNT: 'Account is inactive',
+    FORBIDDEN: 'You do not have permission to perform this action',
+  },
 } as const;
