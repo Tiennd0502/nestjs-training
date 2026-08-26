@@ -28,4 +28,30 @@ export const ERROR_MESSAGES = {
     NOT_FOUND: 'Product not found',
     NAME_EXISTS: 'Product name already exists',
   },
+  EXCEPTION: {
+    BAD_REQUEST: 'Bad request',
+    UNAUTHORIZED: 'Unauthorized',
+    FORBIDDEN: 'Forbidden',
+    ITEM_NOT_FOUND: 'Item not found',
+    CONFLICT: 'Conflict',
+    VALIDATION_FAILED: 'Validation failed',
+    SYSTEM_ERROR: 'System error',
+    INTERNAL_ERROR: 'An unexpected error occurred. Please try again later.',
+  },
+} as const;
+
+export const ERROR_DESCRIPTIONS = {
+  CATEGORY: {
+    NAME_EXISTS:
+      'A category with this name already exists. Please choose a different name.',
+    NOT_FOUND: 'The category might have been deleted, or the id is incorrect.',
+  },
+  USER: {
+    EMAIL_EXISTS: 'An account with this email already exists.',
+    CLERK_ID_EXISTS: 'An account linked to this Clerk id already exists.',
+    NOT_FOUND_BY_ID:
+      'The user might have been deleted, or the id is incorrect.',
+    NOT_FOUND_BY_CLERK_ID:
+      'The user might have been deleted, or the clerk id is incorrect.',
+  },
 } as const;

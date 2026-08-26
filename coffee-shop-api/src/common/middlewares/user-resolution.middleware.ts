@@ -1,15 +1,11 @@
-import {
-  Inject,
-  Injectable,
-  NestMiddleware,
-  NotFoundException,
-} from '@nestjs/common';
+import { Inject, Injectable, NestMiddleware } from '@nestjs/common';
 import type { NextFunction, Request, Response } from 'express';
 import { UserService } from '../../modules/user/services/user.service';
 import {
   AUTH_PROVIDER,
   type AuthProvider,
 } from '../providers/auth-provider.interface';
+import { ItemNotFoundException } from '../exceptions/base.exception';
 
 @Injectable()
 export class UserResolutionMiddleware implements NestMiddleware {
@@ -25,7 +21,7 @@ export class UserResolutionMiddleware implements NestMiddleware {
       try {
         req.user = await this.userService.findByClerkId(userId);
       } catch (err) {
-        if (!(err instanceof NotFoundException)) {
+        if (!(err instanceof ItemNotFoundException)) {
           next(err as Error);
           return;
         }

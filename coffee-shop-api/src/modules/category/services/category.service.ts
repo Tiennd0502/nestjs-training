@@ -1,9 +1,4 @@
-import {
-  ConflictException,
-  Inject,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { Category } from '../entities/category.entity';
 import { CreateCategoryDto } from '../dto/create-category.dto';
 import { UpdateCategoryDto } from '../dto/update-category.dto';
@@ -12,12 +7,20 @@ import {
   type CategoryRepository,
   type FindOptions,
 } from '../repositories/category-repository.interface';
-import { ERROR_MESSAGES } from '../../../common/constants/message.constant';
+import {
+  ERROR_MESSAGES,
+  ERROR_DESCRIPTIONS,
+} from '../../../common/constants/message.constant';
+import { ERROR_CODES } from '../../../common/constants/error-code.constant';
 import {
   PaginatedResult,
   QueryParams,
 } from '../../../common/interfaces/pagination.interface';
 import { slugFrom } from '../../../common/utils/slug.util';
+import {
+  DuplicateResourceException,
+  ItemNotFoundException,
+} from '../../../common/exceptions/base.exception';
 
 @Injectable()
 export class CategoryService {
@@ -31,7 +34,12 @@ export class CategoryService {
       includeDeleted: true,
     });
     if (existing) {
-      throw new ConflictException(ERROR_MESSAGES.CATEGORY.NAME_EXISTS);
+      throw new DuplicateResourceException({
+        errCode: ERROR_CODES.CATEGORY.NAME_EXISTS,
+        field: 'name',
+        message: ERROR_MESSAGES.CATEGORY.NAME_EXISTS,
+        description: ERROR_DESCRIPTIONS.CATEGORY.NAME_EXISTS,
+      });
     }
 
     return this.categoryRepository.create({
@@ -50,7 +58,12 @@ export class CategoryService {
   async findOne(id: string, options?: FindOptions): Promise<Category> {
     const category = await this.categoryRepository.findById(id, options);
     if (!category) {
-      throw new NotFoundException(ERROR_MESSAGES.CATEGORY.NOT_FOUND);
+      throw new ItemNotFoundException({
+        errCode: ERROR_CODES.CATEGORY.NOT_FOUND,
+        field: 'id',
+        message: ERROR_MESSAGES.CATEGORY.NOT_FOUND,
+        description: ERROR_DESCRIPTIONS.CATEGORY.NOT_FOUND,
+      });
     }
 
     return category;
@@ -64,7 +77,13 @@ export class CategoryService {
         includeDeleted: true,
       });
       if (existing && existing.id !== id) {
-        throw new ConflictException(ERROR_MESSAGES.CATEGORY.NAME_EXISTS);
+        throw new DuplicateResourceException({
+          errCode: ERROR_CODES.CATEGORY.NAME_EXISTS,
+          field: 'name',
+          message: ERROR_MESSAGES.CATEGORY.NAME_EXISTS,
+          description:
+            'A category with this name already exists. Please choose a different name.',
+        });
       }
 
       category.name = dto.name;

@@ -1,13 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import {
-  BadRequestException,
-  ConflictException,
-  NotFoundException,
-} from '@nestjs/common';
 import { UserService } from './user.service';
 import { User } from '../entities/user.entity';
 import { UserRole, UserStatus } from '../../../common/enums/user.enum';
 import { USER_REPOSITORY } from '../repositories/user-repository.interface';
+import {
+  DuplicateResourceException,
+  ItemNotFoundException,
+  InvalidRequestException,
+} from '../../../common/exceptions/base.exception';
 
 describe('UserService', () => {
   let service: UserService;
@@ -80,21 +80,21 @@ describe('UserService', () => {
       expect(result).toBe(created);
     });
 
-    it('throws ConflictException on duplicate email', async () => {
+    it('throws DuplicateResourceException on duplicate email', async () => {
       userRepository.findByEmail.mockResolvedValue(buildUser());
 
       await expect(service.create(dto)).rejects.toBeInstanceOf(
-        ConflictException,
+        DuplicateResourceException,
       );
       expect(userRepository.create).not.toHaveBeenCalled();
     });
 
-    it('throws ConflictException on duplicate clerkId', async () => {
+    it('throws DuplicateResourceException on duplicate clerkId', async () => {
       userRepository.findByEmail.mockResolvedValue(null);
       userRepository.findByClerkId.mockResolvedValue(buildUser());
 
       await expect(service.create(dto)).rejects.toBeInstanceOf(
-        ConflictException,
+        DuplicateResourceException,
       );
       expect(userRepository.create).not.toHaveBeenCalled();
     });
@@ -135,7 +135,7 @@ describe('UserService', () => {
       expect(result).toBe(paginatedUsers);
     });
 
-    it('throws BadRequestException when the requested page exceeds pageCount', async () => {
+    it('throws InvalidRequestException when the requested page exceeds pageCount', async () => {
       userRepository.findAll.mockResolvedValue({
         data: [],
         meta: { limit: 10, currentPage: 5, pageCount: 4, totalCount: 35 },
@@ -143,7 +143,7 @@ describe('UserService', () => {
 
       await expect(
         service.findAll({ page: 5, limit: 10 }),
-      ).rejects.toBeInstanceOf(BadRequestException);
+      ).rejects.toBeInstanceOf(InvalidRequestException);
     });
 
     it('does not throw for an in-range page equal to pageCount', async () => {
@@ -182,11 +182,11 @@ describe('UserService', () => {
       expect(result).toBe(user);
     });
 
-    it('throws NotFoundException when the repository has no match (covers both a missing id and a soft-deleted one, since soft-delete filtering happens at the MikroORM/DB layer, not here)', async () => {
+    it('throws ItemNotFoundException when the repository has no match (covers both a missing id and a soft-deleted one, since soft-delete filtering happens at the MikroORM/DB layer, not here)', async () => {
       userRepository.findById.mockResolvedValue(null);
 
       await expect(service.findOne('missing-id')).rejects.toBeInstanceOf(
-        NotFoundException,
+        ItemNotFoundException,
       );
     });
   });
@@ -202,12 +202,12 @@ describe('UserService', () => {
       expect(result).toBe(user);
     });
 
-    it('throws NotFoundException for a non-matching clerkId', async () => {
+    it('throws ItemNotFoundException for a non-matching clerkId', async () => {
       userRepository.findByClerkId.mockResolvedValue(null);
 
       await expect(
         service.findByClerkId('missing-clerk-id'),
-      ).rejects.toBeInstanceOf(NotFoundException);
+      ).rejects.toBeInstanceOf(ItemNotFoundException);
     });
   });
 
@@ -224,12 +224,12 @@ describe('UserService', () => {
       expect(result).toBe(user);
     });
 
-    it('throws NotFoundException for a missing id', async () => {
+    it('throws ItemNotFoundException for a missing id', async () => {
       userRepository.findById.mockResolvedValue(null);
 
       await expect(
         service.update('missing-id', { firstName: 'Janet' }),
-      ).rejects.toBeInstanceOf(NotFoundException);
+      ).rejects.toBeInstanceOf(ItemNotFoundException);
       expect(userRepository.save).not.toHaveBeenCalled();
     });
   });
@@ -245,11 +245,11 @@ describe('UserService', () => {
       expect(userRepository.save).toHaveBeenCalledWith(user);
     });
 
-    it('throws NotFoundException for a missing or already-deleted id', async () => {
+    it('throws ItemNotFoundException for a missing or already-deleted id', async () => {
       userRepository.findById.mockResolvedValue(null);
 
       await expect(service.softDelete('missing-id')).rejects.toBeInstanceOf(
-        NotFoundException,
+        ItemNotFoundException,
       );
       expect(userRepository.save).not.toHaveBeenCalled();
     });

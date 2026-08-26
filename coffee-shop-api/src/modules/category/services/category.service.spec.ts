@@ -1,8 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ConflictException, NotFoundException } from '@nestjs/common';
 import { CategoryService } from './category.service';
 import { Category } from '../entities/category.entity';
 import { CATEGORY_REPOSITORY } from '../repositories/category-repository.interface';
+import {
+  DuplicateResourceException,
+  ItemNotFoundException,
+} from '../../../common/exceptions/base.exception';
 
 describe('CategoryService', () => {
   let service: CategoryService;
@@ -65,11 +68,11 @@ describe('CategoryService', () => {
       expect(result).toBe(created);
     });
 
-    it('throws ConflictException when the name already exists, including soft-deleted rows', async () => {
+    it('throws DuplicateResourceException when the name already exists, including soft-deleted rows', async () => {
       categoryRepository.findByName.mockResolvedValue(buildCategory());
 
       await expect(service.create({ name: 'Espresso' })).rejects.toBeInstanceOf(
-        ConflictException,
+        DuplicateResourceException,
       );
       expect(categoryRepository.create).not.toHaveBeenCalled();
     });
@@ -110,11 +113,11 @@ describe('CategoryService', () => {
       expect(result).toBe(category);
     });
 
-    it('throws NotFoundException when the repository has no match', async () => {
+    it('throws ItemNotFoundException when the repository has no match', async () => {
       categoryRepository.findById.mockResolvedValue(null);
 
       await expect(service.findOne('missing-id')).rejects.toBeInstanceOf(
-        NotFoundException,
+        ItemNotFoundException,
       );
     });
   });
@@ -148,7 +151,7 @@ describe('CategoryService', () => {
       expect(category.slug).toBe('espresso');
     });
 
-    it('throws ConflictException when the new name collides with another category', async () => {
+    it('throws DuplicateResourceException when the new name collides with another category', async () => {
       const category = buildCategory();
       categoryRepository.findById.mockResolvedValue(category);
       categoryRepository.findByName.mockResolvedValue(
@@ -157,7 +160,7 @@ describe('CategoryService', () => {
 
       await expect(
         service.update('category-id-1', { name: 'Cold Brew' }),
-      ).rejects.toBeInstanceOf(ConflictException);
+      ).rejects.toBeInstanceOf(DuplicateResourceException);
       expect(categoryRepository.save).not.toHaveBeenCalled();
     });
 
@@ -174,12 +177,12 @@ describe('CategoryService', () => {
       expect(categoryRepository.save).toHaveBeenCalledWith(category);
     });
 
-    it('throws NotFoundException for a missing id', async () => {
+    it('throws ItemNotFoundException for a missing id', async () => {
       categoryRepository.findById.mockResolvedValue(null);
 
       await expect(
         service.update('missing-id', { name: 'Cold Brew' }),
-      ).rejects.toBeInstanceOf(NotFoundException);
+      ).rejects.toBeInstanceOf(ItemNotFoundException);
       expect(categoryRepository.save).not.toHaveBeenCalled();
     });
   });
@@ -195,11 +198,11 @@ describe('CategoryService', () => {
       expect(categoryRepository.save).toHaveBeenCalledWith(category);
     });
 
-    it('throws NotFoundException for a missing id', async () => {
+    it('throws ItemNotFoundException for a missing id', async () => {
       categoryRepository.findById.mockResolvedValue(null);
 
       await expect(service.remove('missing-id')).rejects.toBeInstanceOf(
-        NotFoundException,
+        ItemNotFoundException,
       );
       expect(categoryRepository.save).not.toHaveBeenCalled();
     });
