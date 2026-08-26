@@ -95,6 +95,15 @@ describe('UserController', () => {
     });
   });
 
+  describe('getCurrentUser', () => {
+    it('returns the response DTO built from the authenticated user, without calling UserService', () => {
+      const result = controller.getCurrentUser(user);
+
+      expect(result).toEqual(ResponseUserDto.fromEntity(user));
+      expect(userService.findOne).not.toHaveBeenCalled();
+    });
+  });
+
   describe('findOne', () => {
     it('delegates to UserService.findOne', async () => {
       userService.findOne.mockResolvedValue(user);

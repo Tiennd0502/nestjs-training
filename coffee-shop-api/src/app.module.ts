@@ -1,4 +1,9 @@
-import { Module } from '@nestjs/common';
+import {
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  RequestMethod,
+} from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
@@ -12,6 +17,8 @@ import { rateLimitConfig } from './configs/rate-limit.config';
 import { UserModule } from './modules/user/user.module';
 import { WebhookModule } from './modules/webhook/webhook.module';
 import { TransformResponseInterceptor } from './common/interceptors/transform-response.interceptor';
+import { ClerkAuthMiddleware } from './common/middlewares/clerk-auth.middleware';
+import { UserResolutionMiddleware } from './common/middlewares/user-resolution.middleware';
 import { AuthProviderModule } from './common/providers/auth-provider.module';
 
 @Module({
@@ -39,4 +46,11 @@ import { AuthProviderModule } from './common/providers/auth-provider.module';
     },
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer): void {
+    consumer
+      .apply(ClerkAuthMiddleware, UserResolutionMiddleware)
+      .exclude({ path: 'webhooks/clerk', method: RequestMethod.POST })
+      .forRoutes('*');
+  }
+}

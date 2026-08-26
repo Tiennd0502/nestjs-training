@@ -59,6 +59,10 @@ export class EnvironmentVariables {
   @IsString()
   @IsNotEmpty()
   CLERK_WEBHOOK_SECRET!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  CLERK_PUBLISHABLE_KEY!: string;
 }
 
 export function validate(
