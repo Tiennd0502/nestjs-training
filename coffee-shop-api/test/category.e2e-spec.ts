@@ -1,0 +1,231 @@
+import { Test, TestingModule } from '@nestjs/testing';
+import { INestApplication } from '@nestjs/common';
+import { MikroORM, RequestContext } from '@mikro-orm/core';
+import request from 'supertest';
+import { App } from 'supertest/types';
+import { getAuth } from '@clerk/express';
+import { AppModule } from './../src/app.module';
+import { UserService } from './../src/modules/user/services/user.service';
+import { CategoryService } from './../src/modules/category/services/category.service';
+import { UserRole } from './../src/common/enums/user.enum';
+import type { User } from './../src/modules/user/entities/user.entity';
+import type { Category } from './../src/modules/category/entities/category.entity';
+import { slugFrom } from './../src/common/utils/slug.util';
+
+jest.mock('@clerk/express', () => {
+  const actual: object = jest.requireActual('@clerk/express');
+  return { ...actual, getAuth: jest.fn() };
+});
+
+describe('CategoryController (e2e)', () => {
+  let app: INestApplication<App>;
+  let orm: MikroORM;
+  let userService: UserService;
+  let categoryService: CategoryService;
+  const createdUserIds: string[] = [];
+  const createdCategoryIds: string[] = [];
+
+  beforeAll(async () => {
+    const moduleFixture: TestingModule = await Test.createTestingModule({
+      imports: [AppModule],
+    }).compile();
+
+    app = moduleFixture.createNestApplication();
+    await app.init();
+
+    orm = app.get(MikroORM);
+    userService = app.get(UserService);
+    categoryService = app.get(CategoryService);
+  });
+
+  afterAll(async () => {
+    await RequestContext.create(orm.em, async () => {
+      for (const id of createdCategoryIds) {
+        await categoryService.remove(id).catch(() => undefined);
+      }
+      for (const id of createdUserIds) {
+        await userService.softDelete(id).catch(() => undefined);
+      }
+    });
+    await app.close();
+  });
+
+  beforeEach(() => {
+    (getAuth as jest.Mock).mockReturnValue({ userId: null });
+  });
+
+  const createTestUser = async (role: UserRole): Promise<User> =>
+    RequestContext.create(orm.em, async () => {
+      const clerkId = `clerk-e2e-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      const user = await userService.create({
+        clerkId,
+        email: `${clerkId}@example.com`,
+        firstName: 'E2E',
+        lastName: 'Test',
+        role,
+      });
+      createdUserIds.push(user.id);
+      return user;
+    });
+
+  const createTestCategory = async (name: string): Promise<Category> =>
+    RequestContext.create(orm.em, async () => {
+      const category = await categoryService.create({ name });
+      createdCategoryIds.push(category.id);
+      return category;
+    });
+
+  const mockSessionFor = (clerkId: string | null): void => {
+    (getAuth as jest.Mock).mockReturnValue({ userId: clerkId });
+  };
+
+  const uniqueName = (base: string): string =>
+    `${base} ${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+  describe('public GET routes', () => {
+    it('GET /categories responds 200 with the paginated envelope, no session required', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/categories')
+        .expect(200);
+
+      expect(response.body).toHaveProperty('data');
+      expect(response.body).toHaveProperty('meta');
+    });
+
+    it('GET /categories/:id responds 200 for an existing category, no session required', async () => {
+      const category = await createTestCategory(uniqueName('Espresso E2E'));
+
+      const response = await request(app.getHttpServer())
+        .get(`/categories/${category.id}`)
+        .expect(200);
+
+      expect(response.body).toEqual({
+        data: {
+          id: category.id,
+          name: category.name,
+          slug: category.slug,
+          createdAt: category.createdAt.toISOString(),
+        },
+      });
+    });
+
+    it('GET /categories/:id responds 404 for a missing category', async () => {
+      await request(app.getHttpServer())
+        .get('/categories/00000000-0000-0000-0000-000000000000')
+        .expect(404);
+    });
+  });
+
+  describe('mutating routes without a Clerk session', () => {
+    it.each([
+      ['post', '/categories'],
+      ['patch', '/categories/some-id'],
+      ['delete', '/categories/some-id'],
+    ])('%s %s responds 401', async (method, path) => {
+      await (
+        request(app.getHttpServer()) as unknown as Record<
+          string,
+          (path: string) => request.Test
+        >
+      )
+        [method](path)
+        .send({ name: 'Whatever' })
+        .expect(401);
+    });
+  });
+
+  describe('mutating routes with an authenticated non-ADMIN user', () => {
+    it('POST /categories responds 403', async () => {
+      const user = await createTestUser(UserRole.USER);
+      mockSessionFor(user.clerkId);
+
+      await request(app.getHttpServer())
+        .post('/categories')
+        .send({ name: 'Non Admin Category' })
+        .expect(403);
+    });
+  });
+
+  describe('mutating routes with an authenticated ADMIN user', () => {
+    it('POST /categories responds 201 and creates a category with a derived slug', async () => {
+      const admin = await createTestUser(UserRole.ADMIN);
+      mockSessionFor(admin.clerkId);
+      const name = uniqueName('Cold Brew E2E');
+
+      const response = await request(app.getHttpServer())
+        .post('/categories')
+        .send({ name })
+        .expect(201);
+
+      const body = response.body as { data: { id: string } };
+      createdCategoryIds.push(body.data.id);
+      expect(body.data).toMatchObject({
+        name,
+        slug: slugFrom(name),
+      });
+    });
+
+    it('POST /categories responds 409 for a duplicate name', async () => {
+      const admin = await createTestUser(UserRole.ADMIN);
+      mockSessionFor(admin.clerkId);
+      const category = await createTestCategory(uniqueName('Duplicate E2E'));
+
+      await request(app.getHttpServer())
+        .post('/categories')
+        .send({ name: category.name })
+        .expect(409);
+    });
+
+    it('PATCH /categories/:id responds 200 and updates the category', async () => {
+      const admin = await createTestUser(UserRole.ADMIN);
+      mockSessionFor(admin.clerkId);
+      const category = await createTestCategory(uniqueName('Latte E2E'));
+      const newName = uniqueName('Latte Renamed E2E');
+
+      const response = await request(app.getHttpServer())
+        .patch(`/categories/${category.id}`)
+        .send({ name: newName })
+        .expect(200);
+
+      const body = response.body as { data: unknown };
+      expect(body.data).toMatchObject({
+        name: newName,
+        slug: slugFrom(newName),
+      });
+    });
+
+    it('DELETE /categories/:id responds 204 and soft-deletes the category', async () => {
+      const admin = await createTestUser(UserRole.ADMIN);
+      mockSessionFor(admin.clerkId);
+      const category = await createTestCategory(uniqueName('Mocha E2E'));
+
+      await request(app.getHttpServer())
+        .delete(`/categories/${category.id}`)
+        .expect(204);
+
+      mockSessionFor(null);
+      await request(app.getHttpServer())
+        .get(`/categories/${category.id}`)
+        .expect(404);
+    });
+
+    it('GET /categories includes soft-deleted rows for an ADMIN caller', async () => {
+      const admin = await createTestUser(UserRole.ADMIN);
+      const category = await createTestCategory(
+        uniqueName('Deleted Visible E2E'),
+      );
+      await RequestContext.create(orm.em, () =>
+        categoryService.remove(category.id),
+      );
+      mockSessionFor(admin.clerkId);
+
+      const response = await request(app.getHttpServer())
+        .get(`/categories?search=${encodeURIComponent(category.name)}`)
+        .expect(200);
+
+      const body = response.body as { data: Array<{ id: string }> };
+      const ids = body.data.map((c) => c.id);
+      expect(ids).toContain(category.id);
+    });
+  });
+});

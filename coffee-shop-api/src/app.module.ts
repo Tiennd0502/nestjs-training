@@ -16,6 +16,7 @@ import { validate } from './configs/env.validation';
 import { rateLimitConfig } from './configs/rate-limit.config';
 import { UserModule } from './modules/user/user.module';
 import { WebhookModule } from './modules/webhook/webhook.module';
+import { CategoryModule } from './modules/category/category.module';
 import { TransformResponseInterceptor } from './common/interceptors/transform-response.interceptor';
 import { ClerkAuthMiddleware } from './common/middlewares/clerk-auth.middleware';
 import { UserResolutionMiddleware } from './common/middlewares/user-resolution.middleware';
@@ -32,6 +33,7 @@ import { AuthProviderModule } from './common/providers/auth-provider.module';
     AuthProviderModule,
     UserModule,
     WebhookModule,
+    CategoryModule,
   ],
   controllers: [AppController],
   providers: [
