@@ -17,4 +17,15 @@ export const ERROR_MESSAGES = {
     NOT_FOUND: 'Category not found',
     NAME_EXISTS: 'Category name already exists',
   },
+  PRODUCT_IMAGE: {
+    NOT_FOUND: 'Product image not found',
+  },
+  PRODUCT_VARIANT: {
+    NOT_FOUND: 'Product variant not found',
+    SKU_EXISTS: 'SKU already exists',
+  },
+  PRODUCT: {
+    NOT_FOUND: 'Product not found',
+    NAME_EXISTS: 'Product name already exists',
+  },
 } as const;
