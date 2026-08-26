@@ -5,4 +5,7 @@ export const ERROR_MESSAGES = {
     NOT_FOUND: 'User not found',
     PAGE_OUT_OF_RANGE: 'Requested page exceeds the available range',
   },
+  WEBHOOK: {
+    INVALID_SIGNATURE: 'Invalid webhook signature',
+  },
 } as const;

@@ -8,7 +8,7 @@ import { DEFAULT_PORT } from './common/constants';
 import { corsConfig } from './configs/cors.config';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { rawBody: true });
   const configService = app.get(ConfigService);
 
   app.use(helmet());

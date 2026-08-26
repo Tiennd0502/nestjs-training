@@ -51,6 +51,14 @@ export class EnvironmentVariables {
   @Transform(toNumber)
   @IsInt()
   RATE_LIMIT_MAX_REQUESTS!: number;
+
+  @IsString()
+  @IsNotEmpty()
+  CLERK_SECRET_KEY!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  CLERK_WEBHOOK_SECRET!: string;
 }
 
 export function validate(

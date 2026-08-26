@@ -1,0 +1,108 @@
+import { Test, TestingModule } from '@nestjs/testing';
+import { INestApplication } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { MikroORM, RequestContext } from '@mikro-orm/core';
+import request from 'supertest';
+import { App } from 'supertest/types';
+import { Webhook } from 'svix';
+import { AppModule } from './../src/app.module';
+import { UserService } from './../src/modules/user/services/user.service';
+
+describe('WebhookController (e2e)', () => {
+  let app: INestApplication<App>;
+  let orm: MikroORM;
+  let userService: UserService;
+  let webhookSecret: string;
+
+  beforeEach(async () => {
+    const moduleFixture: TestingModule = await Test.createTestingModule({
+      imports: [AppModule],
+    }).compile();
+
+    app = moduleFixture.createNestApplication({ rawBody: true });
+    await app.init();
+
+    orm = app.get(MikroORM);
+    userService = app.get(UserService);
+    webhookSecret = app
+      .get(ConfigService)
+      .getOrThrow<string>('CLERK_WEBHOOK_SECRET');
+  });
+
+  afterEach(async () => {
+    await app.close();
+  });
+
+  const signPayload = (
+    body: string,
+  ): { msgId: string; timestamp: string; signature: string } => {
+    const msgId = `msg-${Date.now()}`;
+    const timestampSeconds = Math.floor(Date.now() / 1000);
+    const webhook = new Webhook(webhookSecret);
+    const signature = webhook.sign(
+      msgId,
+      new Date(timestampSeconds * 1000),
+      body,
+    );
+
+    return { msgId, timestamp: String(timestampSeconds), signature };
+  };
+
+  describe('POST /webhooks/clerk', () => {
+    it('creates the local user from a validly signed user.created event', async () => {
+      const clerkId = `clerk-e2e-${Date.now()}`;
+      const email = `e2e-${Date.now()}@example.com`;
+      const body = JSON.stringify({
+        type: 'user.created',
+        data: {
+          id: clerkId,
+          email_addresses: [{ id: 'email-1', email_address: email }],
+          primary_email_address_id: 'email-1',
+          first_name: 'E2E',
+          last_name: 'Test',
+          phone_numbers: [],
+          primary_phone_number_id: null,
+          image_url: 'https://example.com/avatar.png',
+          public_metadata: {},
+        },
+      });
+      const { msgId, timestamp, signature } = signPayload(body);
+
+      await request(app.getHttpServer())
+        .post('/webhooks/clerk')
+        .set('Content-Type', 'application/json')
+        .set('svix-id', msgId)
+        .set('svix-timestamp', timestamp)
+        .set('svix-signature', signature)
+        .send(body)
+        .expect(200)
+        .expect({ data: { received: true } });
+
+      await RequestContext.create(orm.em, async () => {
+        const created = await userService.findByClerkId(clerkId);
+        expect(created.email).toBe(email);
+        expect(created.firstName).toBe('E2E');
+        expect(created.lastName).toBe('Test');
+
+        await userService.softDelete(created.id);
+      });
+    });
+
+    it('rejects a request with an invalid signature', async () => {
+      const body = JSON.stringify({
+        type: 'user.created',
+        data: { id: 'clerk-invalid-sig' },
+      });
+      const { msgId, timestamp } = signPayload(body);
+
+      await request(app.getHttpServer())
+        .post('/webhooks/clerk')
+        .set('Content-Type', 'application/json')
+        .set('svix-id', msgId)
+        .set('svix-timestamp', timestamp)
+        .set('svix-signature', 'v1,tampered-signature')
+        .send(body)
+        .expect(400);
+    });
+  });
+});
