@@ -1,0 +1,180 @@
+name: Docker CI/CD
+
+on:
+  push:
+    branches: [feat/coffee-shop-api]
+    paths: ["coffee-shop-api/**"]
+  pull_request:
+    branches: [main, feat/coffee-shop-api]
+    types: [opened, synchronize, reopened, closed]
+    paths: ["coffee-shop-api/**"]
+
+jobs:
+  test:
+    if: github.event_name != 'pull_request' || github.event.action != 'closed' || github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.merged == true && github.event.pull_request.merge_commit_sha || '' }}
+
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 10.28.2
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: coffee-shop-api/pnpm-lock.yaml
+
+      - name: Install dependencies
+        working-directory: coffee-shop-api
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        working-directory: coffee-shop-api
+        run: pnpm run lint
+
+      - name: Test
+        working-directory: coffee-shop-api
+        run: pnpm run test
+
+      - name: Build
+        working-directory: coffee-shop-api
+        run: pnpm run build
+
+  build-and-scan:
+    needs: test
+    if: github.event_name != 'pull_request' || github.event.action != 'closed' || github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.merged == true && github.event.pull_request.merge_commit_sha || '' }}
+
+      - name: Set image name (lowercase)
+        run: echo "IMAGE_NAME=$(echo ghcr.io/${{ github.repository }} | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_ENV"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build image (local only, not pushed)
+        uses: docker/build-push-action@v6
+        with:
+          context: ./coffee-shop-api
+          target: production
+          push: false
+          load: true
+          tags: ${{ env.IMAGE_NAME }}:scan
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Scan image
+        uses: aquasecurity/trivy-action@v0.24.0
+        with:
+          image-ref: ${{ env.IMAGE_NAME }}:scan
+          severity: HIGH,CRITICAL
+          exit-code: "1"
+          ignore-unfixed: true
+
+  push-develop:
+    needs: build-and-scan
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/feat/coffee-shop-api') || (github.event_name == 'pull_request' && github.event.action != 'closed' && github.event.pull_request.base.ref == 'feat/coffee-shop-api')
+    runs-on: ubuntu-latest
+    environment: develop-publish
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set image name (lowercase)
+        run: echo "IMAGE_NAME=$(echo ghcr.io/${{ github.repository }} | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_ENV"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: ./coffee-shop-api
+          target: production
+          push: true
+          tags: |
+            ${{ env.IMAGE_NAME }}:develop
+            ${{ env.IMAGE_NAME }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  push-production:
+    needs: build-and-scan
+    if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main'
+    runs-on: ubuntu-latest
+    environment: production-publish
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+
+      - name: Set image name (lowercase)
+        run: echo "IMAGE_NAME=$(echo ghcr.io/${{ github.repository }} | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_ENV"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Determine tags
+        id: meta
+        run: |
+          SHA="${{ github.event.pull_request.merge_commit_sha }}"
+          TAGS="${{ env.IMAGE_NAME }}:$SHA,${{ env.IMAGE_NAME }}:latest"
+          echo "tags=$TAGS" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: ./coffee-shop-api
+          target: production
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy-develop:
+    needs: push-develop
+    if: github.event_name == 'push' && github.ref == 'refs/heads/feat/coffee-shop-api'
+    runs-on: ubuntu-latest
+    environment: develop-deploy
+    steps:
+      - name: Trigger Render deploy
+        run: |
+          curl --fail -X POST "https://api.render.com/v1/services/${{ vars.RENDER_SERVICE_ID }}/deploys" \
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}"
+
+  deploy-production:
+    needs: push-production
+    if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main'
+    runs-on: ubuntu-latest
+    environment: ${{ vars.AUTO_DEPLOY == 'true' && 'render-auto' || 'render-manual' }}
+    steps:
+      - name: Trigger Render deploy
+        run: |
+          curl --fail -X POST "https://api.render.com/v1/services/${{ vars.RENDER_SERVICE_ID }}/deploys" \
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}"
