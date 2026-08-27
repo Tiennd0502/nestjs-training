@@ -142,7 +142,6 @@ export class ApiClient {
       const response = await fetch(requestUrl, {
         method,
         headers,
-        credentials: 'include',
         body: body !== undefined ? JSON.stringify(body) : undefined,
       })
 

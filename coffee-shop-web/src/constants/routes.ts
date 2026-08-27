@@ -33,7 +33,7 @@ export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000'
 
 export const API_ROUTES = {
-  ME: `${API_BASE_URL}/api/v1/me`,
+  ME: `${API_BASE_URL}/api/v1/users/me`,
   USERS: `${API_BASE_URL}/api/v1/users`,
   CATEGORIES: `${API_BASE_URL}/api/v1/categories`,
   PRODUCTS: `${API_BASE_URL}/api/v1/products`,
