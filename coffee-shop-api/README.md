@@ -16,7 +16,7 @@ PostgreSQL via MikroORM.
 | ORM                    | [MikroORM](https://mikro-orm.io) v6 |
 | Unit testing           | [Jest](https://jestjs.io) v30   |
 | E2E testing            | [Supertest](https://github.com/ladjs/supertest) v7 |
-| API documentation      | [Swagger / OpenAPI](https://swagger.io) *(planned)* |
+| API documentation      | [Swagger / OpenAPI](https://swagger.io)|
 | Containerization       | [Docker](https://www.docker.com) + [Docker Compose](https://docs.docker.com/compose/) |
 
 ## Features
@@ -36,8 +36,9 @@ PostgreSQL via MikroORM.
 - **Category management** — CRUD, search by name.
 - **Product management** — CRUD with multiple images per product (client uploads to ImgBB, backend
   only stores/validates the resulting URL) and one or more variants per product; filter by
-  category/price, search by name, sort, pagination via query builder; soft-delete to preserve
-  references from historical orders.
+  category, status, roast level (one or more), and price range (matches if any variant falls in
+  range), search by name/slug, sort by name or price (each product's minimum variant price),
+  pagination; soft-delete to preserve references from historical orders.
 
 ### Cross-cutting
 
@@ -55,24 +56,33 @@ src/
   common/                   cross-cutting, reusable across ≥2 modules
     entities/               shared base entities (BaseEntity: id/createdAt/updatedAt/deletedAt)
     enums/                  shared enums (UserRole, UserStatus, ...)
-    constants/              non-secret default values (DEFAULT_PORT, ...)
-    guards/                 HTTP guards (e.g. JwtAuthGuard)
-    decorators/             param/route decorators (e.g. AuthUser) 
+    constants/              non-secret default values (DEFAULT_PORT, ...) and ERROR_MESSAGES
+    guards/                 HTTP guards (AuthGuard, RolesGuard)
+    decorators/             param/route decorators (AuthUser, Roles)
+    middlewares/            ClerkAuthMiddleware, UserResolutionMiddleware
+    providers/              ClerkAuthProvider
+    interceptors/           TransformResponseInterceptor (wraps controller results in { data })
+    dto/                    shared request DTOs (PaginationQueryDto)
+    interfaces/             shared TS interfaces (pagination result shapes)
+    utils/                  small pure helpers (e.g. slug derivation)
   configs/                  env validation, mikro-orm.config.ts, cors/rate-limit config
-  modules/<feature>/        feature modules (user implemented; auth, category, product planned)
+  modules/<feature>/        feature modules (user, category, product, product-image,
+                            product-variant, webhook all implemented)
     controllers/            HTTP layer
     services/               business logic, depends on the repository port (not MikroORM directly)
     repositories/           repository interface (port) + MikroORM adapter (the only MikroORM import)
     entities/               MikroORM entity for this feature
     dto/                    class-validator request/response shapes
     <feature>.module.ts     wires entity, repository, service, controller
-    <feature>.messages.ts   named constants for exception messages thrown by the service
   migrations/               MikroORM migrations (mikro-orm migration:create/up/down)
   app.module.ts             composition root
-  main.ts                   bootstrap: Helmet, CORS, listen
+  main.ts                   bootstrap: Helmet, CORS, global ValidationPipe, listen
 test/
   app.e2e-spec.ts           e2e smoke test for AppController
   user.e2e-spec.ts          e2e coverage for /users
+  category.e2e-spec.ts      e2e coverage for /categories
+  product.e2e-spec.ts       e2e coverage for /products
+  webhook.e2e-spec.ts       e2e coverage for /webhooks/clerk
 ```
 
 
@@ -97,9 +107,6 @@ erDiagram
 
     CATEGORY {
         id uuid PK
-        created_by uuid FK
-        updated_by uuid FK
-        deleted_by uuid FK
         name string
         slug string
         created_at timestamp
@@ -120,9 +127,6 @@ erDiagram
         tasting_notes string
         origin string
         processing_method string
-        created_by uuid FK
-        updated_by uuid FK
-        deleted_by uuid FK
         created_at timestamp
         updated_at timestamp
         deleted_at timestamp
@@ -155,8 +159,6 @@ erDiagram
         deleted_at timestamp
     }
 
-    USER ||--o{ PRODUCT : "referenced in"
-    USER ||--o{ CATEGORY : "referenced in"
     CATEGORY ||--o{ PRODUCT : "contains"
     PRODUCT ||--o{ PRODUCT_IMAGE : "has"
     PRODUCT ||--o{ PRODUCT_VARIANT : "has"
@@ -168,7 +170,7 @@ erDiagram
 
 > Base path: `/api/v1` - API docs `/api/api-docs`.
 >
-> **Auth:** 🔓 Public · 🔒 Authenticated (Clerk JWT) · 👑 Admin
+> **Auth:** 🔓 Public · 🔒 Authenticated (Clerk session token) · 👑 Admin
 
 ### Users
 
@@ -195,7 +197,7 @@ erDiagram
 
 | Method   | Path            | Auth | Description                                                    |
 | :------- | :-------------- | :--- | :------------------------------------------------------------- |
-| `GET`    | `/products`     | 🔓   | List products (filter by status, category, roast level, price) |
+| `GET`    | `/products`     | 🔓   | List products (filter by category/status/roastLevel/price range, sort by name/price, search, pagination) |
 | `GET`    | `/products/:id` | 🔓   | Get product by ID                                              |
 | `POST`   | `/products`     | 👑   | Create product                                                 |
 | `PATCH`  | `/products/:id` | 👑   | Update product                                                 |
@@ -236,13 +238,16 @@ itself inside Docker) and fill in real values. All variables below are validated
 
 | Variable                | Description                                      |
 | ------------------------ | ------------------------------------------------- |
-| `NODE_ENV`                | `dev` \| `test` \| `production`                  |
+| `NODE_ENV`                | `development` \| `test` \| `production`          |
 | `PORT`                     | HTTP port the API listens on                     |
 | `DB_HOST`                  | PostgreSQL host                                  |
 | `DB_PORT`                  | PostgreSQL port                                  |
 | `DB_NAME`                  | PostgreSQL database name                         |
 | `DB_USER`                  | PostgreSQL user                                  |
 | `DB_PASSWORD`              | PostgreSQL password                              |
+| `CORS_ORIGIN`              | Allow-listed origin(s) for CORS                  |
+| `THROTTLE_TTL`             | Rate-limit window, in milliseconds               |
+| `THROTTLE_LIMIT`           | Max requests per IP per `THROTTLE_TTL` window    |
 | `CLERK_SECRET_KEY`         | Clerk backend secret key                         |
 | `CLERK_PUBLISHABLE_KEY`    | Clerk publishable key                            |
 | `CLERK_WEBHOOK_SECRET`     | Clerk webhook signing secret                 |
@@ -289,4 +294,20 @@ pnpm run test          # unit tests
 pnpm run test:watch
 pnpm run test:cov
 pnpm run test:e2e      # e2e tests (requires a reachable PostgreSQL — e.g. `pnpm run docker:dev`)
+```
+
+`test:e2e` boots the full app, so it needs its own database, separate from the one `start:dev`
+uses — otherwise e2e runs would create/soft-delete real-looking rows in your dev database.
+`test/setup-env.js` (wired in via `test/jest-e2e.json`'s `setupFiles`) loads `.env.test` before
+any application module is imported, so by the time `src/configs/mikro-orm.config.ts`'s own
+`dotenv/config` runs, the DB/Clerk variables are already set and it's a no-op for those keys
+(`dotenv` never overrides an already-set variable) — `src/` itself stays unaware that a "test env"
+concept even exists. Create your own local `.env.test` (not committed — same shape as `.env`) with
+a distinct `DB_NAME` and placeholder Clerk keys — Clerk calls made during e2e (e.g. the webhook
+module's role-sync) are expected to fail against these placeholders; the code already logs and
+swallows that failure. Create and migrate the test database once before running e2e locally:
+
+```bash
+createdb coffee_shop_test        # one-time, matches your .env.test's DB_NAME
+set -a && source .env.test && set +a && pnpm run migration:up
 ```
