@@ -8,6 +8,7 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 import { RoastLevel, ProductStatus } from '../enums/product.enum';
 
 export class UpdateProductDto {
@@ -27,6 +28,7 @@ export class UpdateProductDto {
   @MaxLength(2000)
   description?: string;
 
+  @ApiPropertyOptional({ enum: RoastLevel })
   @IsOptional()
   @IsEnum(RoastLevel)
   roastLevel?: RoastLevel;
@@ -39,6 +41,7 @@ export class UpdateProductDto {
   @IsBoolean()
   isFairTrade?: boolean;
 
+  @ApiPropertyOptional({ enum: ProductStatus })
   @IsOptional()
   @IsEnum(ProductStatus)
   status?: ProductStatus;

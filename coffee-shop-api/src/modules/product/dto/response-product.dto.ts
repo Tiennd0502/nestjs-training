@@ -1,3 +1,4 @@
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Product } from '../entities/product.entity';
 import { RoastLevel, ProductStatus } from '../enums/product.enum';
 import { ResponseProductImageDto } from '../../product-image/dto/response-product-image.dto';
@@ -8,16 +9,34 @@ export class ResponseProductDto {
   categoryId!: string;
   name!: string;
   slug!: string;
+
+  @ApiPropertyOptional({ nullable: true, type: String })
   description: string | null = null;
+
+  @ApiPropertyOptional({ enum: RoastLevel, nullable: true })
   roastLevel: RoastLevel | null = null;
+
   isOrganic!: boolean;
   isFairTrade!: boolean;
+
+  @ApiProperty({ enum: ProductStatus })
   status!: ProductStatus;
+
+  @ApiPropertyOptional({ nullable: true, type: String })
   tastingNotes: string | null = null;
+
+  @ApiPropertyOptional({ nullable: true, type: String })
   origin: string | null = null;
+
+  @ApiPropertyOptional({ nullable: true, type: String })
   processingMethod: string | null = null;
+
   createdAt!: Date;
+
+  @ApiProperty({ type: () => ResponseProductImageDto, isArray: true })
   images!: ResponseProductImageDto[];
+
+  @ApiProperty({ type: () => ResponseProductVariantDto, isArray: true })
   variants!: ResponseProductVariantDto[];
 
   static fromEntity(product: Product): ResponseProductDto {

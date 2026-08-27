@@ -1,15 +1,25 @@
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ProductVariant } from '../entities/product-variant.entity';
 import { DiscountType, ProductUnit } from '../enums/product-variant.enum';
 
 export class ResponseProductVariantDto {
   id!: string;
   sku!: string;
+
   weight!: number;
+
+  @ApiProperty({ enum: ProductUnit })
   unit!: ProductUnit;
+
   name!: string;
   price!: number;
+
+  @ApiPropertyOptional({ enum: DiscountType, nullable: true })
   discountType: DiscountType | null = null;
+
+  @ApiPropertyOptional({ nullable: true, type: Number })
   discountValue: number | null = null;
+
   quantity!: number;
 
   static fromEntity(variant: ProductVariant): ResponseProductVariantDto {
