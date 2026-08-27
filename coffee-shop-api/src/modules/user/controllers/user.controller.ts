@@ -11,6 +11,12 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiNoContentResponse,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import { UserService } from '../services/user.service';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
@@ -21,9 +27,17 @@ import { AuthGuard } from '../../../common/guards/auth.guard';
 import { RolesGuard } from '../../../common/guards/roles.guard';
 import { Roles } from '../../../common/decorators/roles.decorator';
 import { AuthUser } from '../../../common/decorators/auth-user.decorator';
+import {
+  ApiDataResponse,
+  ApiPaginatedResponse,
+  ApiErrorResponse,
+} from '../../../common/decorators/api-response.decorator';
 import { UserRole } from '../../../common/enums/user.enum';
 import { User } from '../entities/user.entity';
+import { ERROR_MESSAGES } from '../../../common/constants/message.constant';
 
+@ApiTags('users')
+@ApiBearerAuth()
 @Controller('users')
 @UseGuards(AuthGuard)
 export class UserController {
@@ -32,6 +46,21 @@ export class UserController {
   @Post()
   @UseGuards(RolesGuard)
   @Roles([UserRole.ADMIN])
+  @ApiOperation({ summary: 'Create a user (admin only)' })
+  @ApiDataResponse(HttpStatus.CREATED, ResponseUserDto)
+  @ApiErrorResponse(
+    HttpStatus.BAD_REQUEST,
+    ERROR_MESSAGES.EXCEPTION.VALIDATION_FAILED,
+  )
+  @ApiErrorResponse(
+    HttpStatus.UNAUTHORIZED,
+    ERROR_MESSAGES.AUTH.UNAUTHENTICATED,
+  )
+  @ApiErrorResponse(HttpStatus.FORBIDDEN, ERROR_MESSAGES.AUTH.FORBIDDEN)
+  @ApiErrorResponse(
+    HttpStatus.CONFLICT,
+    `${ERROR_MESSAGES.USER.EMAIL_EXISTS} / ${ERROR_MESSAGES.USER.CLERK_ID_EXISTS}`,
+  )
   async create(@Body() dto: CreateUserDto): Promise<ResponseUserDto> {
     const user = await this.userService.create(dto);
     return ResponseUserDto.fromEntity(user);
@@ -40,6 +69,17 @@ export class UserController {
   @Get()
   @UseGuards(RolesGuard)
   @Roles([UserRole.ADMIN])
+  @ApiOperation({ summary: 'List users (admin only)' })
+  @ApiPaginatedResponse(ResponseUserDto)
+  @ApiErrorResponse(
+    HttpStatus.BAD_REQUEST,
+    ERROR_MESSAGES.USER.PAGE_OUT_OF_RANGE,
+  )
+  @ApiErrorResponse(
+    HttpStatus.UNAUTHORIZED,
+    ERROR_MESSAGES.AUTH.UNAUTHENTICATED,
+  )
+  @ApiErrorResponse(HttpStatus.FORBIDDEN, ERROR_MESSAGES.AUTH.FORBIDDEN)
   async findAll(
     @Query() query: PaginationQueryDto,
   ): Promise<PaginatedResult<ResponseUserDto>> {
@@ -50,9 +90,16 @@ export class UserController {
     };
   }
 
-  // Must stay declared before the `:id` route below — Nest/Express matches routes in
-  // declaration order, so `:id` would otherwise swallow `/users/me` as `id: 'me'`.
   @Get('me')
+  @ApiOperation({
+    summary:
+      'Get the currently authenticated user (any authenticated user, not just admin)',
+  })
+  @ApiDataResponse(HttpStatus.OK, ResponseUserDto)
+  @ApiErrorResponse(
+    HttpStatus.UNAUTHORIZED,
+    ERROR_MESSAGES.AUTH.UNAUTHENTICATED,
+  )
   getCurrentUser(@AuthUser() user: User): ResponseUserDto {
     return ResponseUserDto.fromEntity(user);
   }
@@ -60,6 +107,14 @@ export class UserController {
   @Get(':id')
   @UseGuards(RolesGuard)
   @Roles([UserRole.ADMIN])
+  @ApiOperation({ summary: 'Get a user by id (admin only)' })
+  @ApiDataResponse(HttpStatus.OK, ResponseUserDto)
+  @ApiErrorResponse(
+    HttpStatus.UNAUTHORIZED,
+    ERROR_MESSAGES.AUTH.UNAUTHENTICATED,
+  )
+  @ApiErrorResponse(HttpStatus.FORBIDDEN, ERROR_MESSAGES.AUTH.FORBIDDEN)
+  @ApiErrorResponse(HttpStatus.NOT_FOUND, ERROR_MESSAGES.USER.NOT_FOUND)
   async findOne(@Param('id') id: string): Promise<ResponseUserDto> {
     const user = await this.userService.findOne(id);
     return ResponseUserDto.fromEntity(user);
@@ -68,6 +123,18 @@ export class UserController {
   @Patch(':id')
   @UseGuards(RolesGuard)
   @Roles([UserRole.ADMIN])
+  @ApiOperation({ summary: 'Update a user (admin only)' })
+  @ApiDataResponse(HttpStatus.OK, ResponseUserDto)
+  @ApiErrorResponse(
+    HttpStatus.BAD_REQUEST,
+    ERROR_MESSAGES.EXCEPTION.VALIDATION_FAILED,
+  )
+  @ApiErrorResponse(
+    HttpStatus.UNAUTHORIZED,
+    ERROR_MESSAGES.AUTH.UNAUTHENTICATED,
+  )
+  @ApiErrorResponse(HttpStatus.FORBIDDEN, ERROR_MESSAGES.AUTH.FORBIDDEN)
+  @ApiErrorResponse(HttpStatus.NOT_FOUND, ERROR_MESSAGES.USER.NOT_FOUND)
   async update(
     @Param('id') id: string,
     @Body() dto: UpdateUserDto,
@@ -80,6 +147,14 @@ export class UserController {
   @UseGuards(RolesGuard)
   @Roles([UserRole.ADMIN])
   @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Soft-delete a user (admin only)' })
+  @ApiNoContentResponse({ description: 'User deleted' })
+  @ApiErrorResponse(
+    HttpStatus.UNAUTHORIZED,
+    ERROR_MESSAGES.AUTH.UNAUTHENTICATED,
+  )
+  @ApiErrorResponse(HttpStatus.FORBIDDEN, ERROR_MESSAGES.AUTH.FORBIDDEN)
+  @ApiErrorResponse(HttpStatus.NOT_FOUND, ERROR_MESSAGES.USER.NOT_FOUND)
   remove(@Param('id') id: string): Promise<void> {
     return this.userService.softDelete(id);
   }
