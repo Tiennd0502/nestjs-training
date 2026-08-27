@@ -11,6 +11,12 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiNoContentResponse,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import { ProductService } from '../services/product.service';
 import { CreateProductDto } from '../dto/create-product.dto';
 import { UpdateProductDto } from '../dto/update-product.dto';
@@ -20,13 +26,26 @@ import { PaginatedResult } from '../../../common/interfaces/pagination.interface
 import { AuthGuard } from '../../../common/guards/auth.guard';
 import { RolesGuard } from '../../../common/guards/roles.guard';
 import { Roles } from '../../../common/decorators/roles.decorator';
+import {
+  ApiDataResponse,
+  ApiPaginatedResponse,
+  ApiErrorResponse,
+} from '../../../common/decorators/api-response.decorator';
 import { UserRole } from '../../../common/enums/user.enum';
+import { ERROR_MESSAGES } from '../../../common/constants/message.constant';
 
+@ApiTags('products')
 @Controller('products')
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
   @Get()
+  @ApiOperation({ summary: 'List products' })
+  @ApiPaginatedResponse(ResponseProductDto)
+  @ApiErrorResponse(
+    HttpStatus.BAD_REQUEST,
+    ERROR_MESSAGES.EXCEPTION.VALIDATION_FAILED,
+  )
   async findAll(
     @Query() query: PaginationQueryDto,
   ): Promise<PaginatedResult<ResponseProductDto>> {
@@ -41,6 +60,9 @@ export class ProductController {
   }
 
   @Get(':id')
+  @ApiOperation({ summary: 'Get a product by id' })
+  @ApiDataResponse(HttpStatus.OK, ResponseProductDto)
+  @ApiErrorResponse(HttpStatus.NOT_FOUND, ERROR_MESSAGES.PRODUCT.NOT_FOUND)
   async findOne(@Param('id') id: string): Promise<ResponseProductDto> {
     const product = await this.productService.findOne(id);
     return ResponseProductDto.fromEntity(product);
@@ -49,6 +71,20 @@ export class ProductController {
   @Post()
   @UseGuards(AuthGuard, RolesGuard)
   @Roles([UserRole.ADMIN])
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Create a product (admin only)' })
+  @ApiDataResponse(HttpStatus.CREATED, ResponseProductDto)
+  @ApiErrorResponse(
+    HttpStatus.BAD_REQUEST,
+    ERROR_MESSAGES.EXCEPTION.VALIDATION_FAILED,
+  )
+  @ApiErrorResponse(
+    HttpStatus.UNAUTHORIZED,
+    ERROR_MESSAGES.AUTH.UNAUTHENTICATED,
+  )
+  @ApiErrorResponse(HttpStatus.FORBIDDEN, ERROR_MESSAGES.AUTH.FORBIDDEN)
+  @ApiErrorResponse(HttpStatus.NOT_FOUND, ERROR_MESSAGES.CATEGORY.NOT_FOUND)
+  @ApiErrorResponse(HttpStatus.CONFLICT, ERROR_MESSAGES.PRODUCT.NAME_EXISTS)
   async create(@Body() dto: CreateProductDto): Promise<ResponseProductDto> {
     const product = await this.productService.create({
       ...dto,
@@ -68,6 +104,20 @@ export class ProductController {
   @Patch(':id')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles([UserRole.ADMIN])
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update a product (admin only)' })
+  @ApiDataResponse(HttpStatus.OK, ResponseProductDto)
+  @ApiErrorResponse(
+    HttpStatus.BAD_REQUEST,
+    ERROR_MESSAGES.EXCEPTION.VALIDATION_FAILED,
+  )
+  @ApiErrorResponse(
+    HttpStatus.UNAUTHORIZED,
+    ERROR_MESSAGES.AUTH.UNAUTHENTICATED,
+  )
+  @ApiErrorResponse(HttpStatus.FORBIDDEN, ERROR_MESSAGES.AUTH.FORBIDDEN)
+  @ApiErrorResponse(HttpStatus.NOT_FOUND, ERROR_MESSAGES.PRODUCT.NOT_FOUND)
+  @ApiErrorResponse(HttpStatus.CONFLICT, ERROR_MESSAGES.PRODUCT.NAME_EXISTS)
   async update(
     @Param('id') id: string,
     @Body() dto: UpdateProductDto,
@@ -80,6 +130,15 @@ export class ProductController {
   @UseGuards(AuthGuard, RolesGuard)
   @Roles([UserRole.ADMIN])
   @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Delete a product (admin only)' })
+  @ApiNoContentResponse({ description: 'Product deleted' })
+  @ApiErrorResponse(
+    HttpStatus.UNAUTHORIZED,
+    ERROR_MESSAGES.AUTH.UNAUTHENTICATED,
+  )
+  @ApiErrorResponse(HttpStatus.FORBIDDEN, ERROR_MESSAGES.AUTH.FORBIDDEN)
+  @ApiErrorResponse(HttpStatus.NOT_FOUND, ERROR_MESSAGES.PRODUCT.NOT_FOUND)
   async remove(@Param('id') id: string): Promise<void> {
     await this.productService.remove(id);
   }
