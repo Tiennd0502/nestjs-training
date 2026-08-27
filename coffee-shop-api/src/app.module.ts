@@ -9,8 +9,6 @@ import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import mikroOrmConfig from './configs/mikro-orm.config';
 import { validate } from './configs/env.validation';
 import { rateLimitConfig } from './configs/rate-limit.config';
@@ -39,9 +37,7 @@ import { AuthProviderModule } from './common/providers/auth-provider.module';
     CategoryModule,
     ProductModule,
   ],
-  controllers: [AppController],
   providers: [
-    AppService,
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
