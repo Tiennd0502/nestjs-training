@@ -2,8 +2,10 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { App } from 'supertest/types';
-import { AppModule } from './../src/app.module';
-import { CategoryService } from './../src/modules/category/services/category.service';
+import { AppModule } from './../../src/app.module';
+import { CategoryService } from './../../src/modules/category/services/category.service';
+import { API_BASE_PATH } from './../utils/api-path.util';
+import { initTestApp } from './../utils/init-test-app.util';
 
 describe('GlobalExceptionFilter (e2e)', () => {
   let app: INestApplication<App>;
@@ -20,8 +22,7 @@ describe('GlobalExceptionFilter (e2e)', () => {
       })
       .compile();
 
-    app = moduleFixture.createNestApplication();
-    await app.init();
+    app = await initTestApp(moduleFixture);
   });
 
   afterAll(async () => {
@@ -30,7 +31,7 @@ describe('GlobalExceptionFilter (e2e)', () => {
 
   it('responds 500 with the consistent error envelope when a route throws a non-HttpException error', async () => {
     const response = await request(app.getHttpServer())
-      .get('/categories')
+      .get(`${API_BASE_PATH}/categories`)
       .expect(500);
 
     const body = response.body as {

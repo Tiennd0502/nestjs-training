@@ -1,11 +1,18 @@
-import { Controller, HttpCode, HttpStatus, Post, Req } from '@nestjs/common';
+import {
+  Controller,
+  HttpCode,
+  HttpStatus,
+  Post,
+  Req,
+  VERSION_NEUTRAL,
+} from '@nestjs/common';
 import type { RawBodyRequest } from '@nestjs/common';
 import { ApiExcludeController } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { ClerkWebhookService } from '../services/clerk-webhook.service';
 
 @ApiExcludeController()
-@Controller('webhooks')
+@Controller({ path: 'webhooks', version: VERSION_NEUTRAL })
 export class WebhookController {
   constructor(private readonly clerkWebhookService: ClerkWebhookService) {}
 
