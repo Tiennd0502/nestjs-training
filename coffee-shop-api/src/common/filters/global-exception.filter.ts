@@ -13,7 +13,7 @@ import { DomainException } from '../exceptions/base.exception';
 import { ERROR_MESSAGES } from '../constants/message.constant';
 import { ERROR_CODES } from '../constants/error-code.constant';
 
-const DEFAULT_MESSAGE_BY_STATUS: Partial<Record<number, string>> = {
+export const DEFAULT_MESSAGE_BY_STATUS: Partial<Record<number, string>> = {
   [HttpStatus.BAD_REQUEST]: ERROR_MESSAGES.EXCEPTION.BAD_REQUEST,
   [HttpStatus.UNAUTHORIZED]: ERROR_MESSAGES.EXCEPTION.UNAUTHORIZED,
   [HttpStatus.FORBIDDEN]: ERROR_MESSAGES.EXCEPTION.FORBIDDEN,
@@ -21,7 +21,7 @@ const DEFAULT_MESSAGE_BY_STATUS: Partial<Record<number, string>> = {
   [HttpStatus.CONFLICT]: ERROR_MESSAGES.EXCEPTION.CONFLICT,
 };
 
-const DEFAULT_ERR_CODE_BY_STATUS: Partial<Record<number, string>> = {
+export const DEFAULT_ERR_CODE_BY_STATUS: Partial<Record<number, string>> = {
   [HttpStatus.BAD_REQUEST]: ERROR_CODES.INVALID_REQUEST,
   [HttpStatus.UNAUTHORIZED]: ERROR_CODES.UNAUTHENTICATED,
   [HttpStatus.FORBIDDEN]: ERROR_CODES.FORBIDDEN,

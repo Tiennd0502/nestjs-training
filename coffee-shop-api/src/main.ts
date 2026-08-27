@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { DEFAULT_PORT } from './common/constants';
 import { corsConfig } from './configs/cors.config';
+import { setupSwagger } from './configs/swagger.config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { rawBody: true });
@@ -12,6 +13,7 @@ async function bootstrap() {
 
   app.use(helmet());
   app.enableCors(corsConfig(configService));
+  setupSwagger(app);
 
   await app.listen(process.env.PORT ?? DEFAULT_PORT);
 }
