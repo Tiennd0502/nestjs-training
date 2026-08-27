@@ -4,10 +4,12 @@ import { MikroORM, RequestContext } from '@mikro-orm/core';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { getAuth } from '@clerk/express';
-import { AppModule } from './../src/app.module';
-import { UserService } from './../src/modules/user/services/user.service';
-import { UserRole, UserStatus } from './../src/common/enums/user.enum';
-import type { User } from './../src/modules/user/entities/user.entity';
+import { AppModule } from './../../src/app.module';
+import { UserService } from './../../src/modules/user/services/user.service';
+import { UserRole, UserStatus } from './../../src/common/enums/user.enum';
+import { API_BASE_PATH } from './../utils/api-path.util';
+import { initTestApp } from './../utils/init-test-app.util';
+import type { User } from './../../src/modules/user/entities/user.entity';
 
 jest.mock('@clerk/express', () => {
   const actual: object = jest.requireActual('@clerk/express');
@@ -25,8 +27,7 @@ describe('UserController auth (e2e)', () => {
       imports: [AppModule],
     }).compile();
 
-    app = moduleFixture.createNestApplication();
-    await app.init();
+    app = await initTestApp(moduleFixture);
 
     orm = app.get(MikroORM);
     userService = app.get(UserService);
@@ -75,12 +76,12 @@ describe('UserController auth (e2e)', () => {
 
   describe('no Clerk session', () => {
     it.each([
-      ['get', '/users'],
-      ['get', '/users/some-id'],
-      ['post', '/users'],
-      ['patch', '/users/some-id'],
-      ['delete', '/users/some-id'],
-      ['get', '/users/me'],
+      ['get', `${API_BASE_PATH}/users`],
+      ['get', `${API_BASE_PATH}/users/some-id`],
+      ['post', `${API_BASE_PATH}/users`],
+      ['patch', `${API_BASE_PATH}/users/some-id`],
+      ['delete', `${API_BASE_PATH}/users/some-id`],
+      ['get', `${API_BASE_PATH}/users/me`],
     ])('%s %s responds 401', async (method, path) => {
       await (
         request(app.getHttpServer()) as unknown as Record<
@@ -97,7 +98,9 @@ describe('UserController auth (e2e)', () => {
     it('GET /users responds 401', async () => {
       mockSessionFor('clerk-id-that-does-not-exist');
 
-      await request(app.getHttpServer()).get('/users').expect(401);
+      await request(app.getHttpServer())
+        .get(`${API_BASE_PATH}/users`)
+        .expect(401);
     });
   });
 
@@ -109,14 +112,18 @@ describe('UserController auth (e2e)', () => {
       });
       mockSessionFor(user.clerkId);
 
-      await request(app.getHttpServer()).get('/users').expect(403);
+      await request(app.getHttpServer())
+        .get(`${API_BASE_PATH}/users`)
+        .expect(403);
     });
 
     it('GET /me responds 403', async () => {
       const user = await createTestUser({ status: UserStatus.INACTIVE });
       mockSessionFor(user.clerkId);
 
-      await request(app.getHttpServer()).get('/users/me').expect(403);
+      await request(app.getHttpServer())
+        .get(`${API_BASE_PATH}/users/me`)
+        .expect(403);
     });
   });
 
@@ -125,7 +132,9 @@ describe('UserController auth (e2e)', () => {
       const user = await createTestUser({ role: UserRole.USER });
       mockSessionFor(user.clerkId);
 
-      await request(app.getHttpServer()).get('/users').expect(403);
+      await request(app.getHttpServer())
+        .get(`${API_BASE_PATH}/users`)
+        .expect(403);
     });
 
     it('GET /me responds 200 with the caller own profile', async () => {
@@ -133,7 +142,7 @@ describe('UserController auth (e2e)', () => {
       mockSessionFor(user.clerkId);
 
       const response = await request(app.getHttpServer())
-        .get('/users/me')
+        .get(`${API_BASE_PATH}/users/me`)
         .expect(200);
 
       expect(response.body).toEqual({
@@ -156,7 +165,7 @@ describe('UserController auth (e2e)', () => {
       mockSessionFor(user.clerkId);
 
       const response = await request(app.getHttpServer())
-        .get('/users')
+        .get(`${API_BASE_PATH}/users`)
         .expect(200);
 
       expect(response.body).toHaveProperty('data');

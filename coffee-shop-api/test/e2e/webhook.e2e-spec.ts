@@ -5,8 +5,9 @@ import { MikroORM, RequestContext } from '@mikro-orm/core';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { Webhook } from 'svix';
-import { AppModule } from './../src/app.module';
-import { UserService } from './../src/modules/user/services/user.service';
+import { AppModule } from './../../src/app.module';
+import { UserService } from './../../src/modules/user/services/user.service';
+import { initTestApp } from './../utils/init-test-app.util';
 
 describe('WebhookController (e2e)', () => {
   let app: INestApplication<App>;
@@ -19,8 +20,7 @@ describe('WebhookController (e2e)', () => {
       imports: [AppModule],
     }).compile();
 
-    app = moduleFixture.createNestApplication({ rawBody: true });
-    await app.init();
+    app = await initTestApp(moduleFixture, { rawBody: true });
 
     orm = app.get(MikroORM);
     userService = app.get(UserService);

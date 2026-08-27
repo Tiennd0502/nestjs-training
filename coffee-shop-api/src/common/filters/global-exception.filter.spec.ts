@@ -19,17 +19,25 @@ describe('GlobalExceptionFilter', () => {
   let jsonMock: jest.Mock;
   let statusMock: jest.Mock;
   let host: ArgumentsHost;
+  let errorSpy: jest.SpyInstance;
 
   beforeEach(() => {
     filter = new GlobalExceptionFilter();
     jsonMock = jest.fn();
     statusMock = jest.fn().mockReturnValue({ json: jsonMock });
+    errorSpy = jest
+      .spyOn(Logger.prototype, 'error')
+      .mockImplementation(() => undefined);
 
     host = {
       switchToHttp: () => ({
         getResponse: () => ({ status: statusMock }),
       }),
     } as unknown as ArgumentsHost;
+  });
+
+  afterEach(() => {
+    errorSpy.mockRestore();
   });
 
   it('preserves status, message and full structured errors for a DomainException', () => {
@@ -108,15 +116,10 @@ describe('GlobalExceptionFilter', () => {
   });
 
   it('logs the original error message and stack for a non-HttpException', () => {
-    const errorSpy = jest
-      .spyOn(Logger.prototype, 'error')
-      .mockImplementation(() => undefined);
     const exception = new Error('boom');
 
     filter.catch(exception, host);
 
     expect(errorSpy).toHaveBeenCalledWith('boom', exception.stack);
-
-    errorSpy.mockRestore();
   });
 });

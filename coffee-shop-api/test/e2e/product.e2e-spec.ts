@@ -4,17 +4,19 @@ import { MikroORM, RequestContext } from '@mikro-orm/core';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { getAuth } from '@clerk/express';
-import { AppModule } from './../src/app.module';
-import { UserService } from './../src/modules/user/services/user.service';
-import { CategoryService } from './../src/modules/category/services/category.service';
-import { ProductService } from './../src/modules/product/services/product.service';
-import { ProductImageService } from './../src/modules/product-image/services/product-image.service';
-import { ProductVariantService } from './../src/modules/product-variant/services/product-variant.service';
-import { UserRole } from './../src/common/enums/user.enum';
-import { ProductUnit } from './../src/modules/product-variant/enums/product-variant.enum';
-import type { User } from './../src/modules/user/entities/user.entity';
-import type { Category } from './../src/modules/category/entities/category.entity';
-import { slugFrom } from './../src/common/utils/slug.util';
+import { AppModule } from './../../src/app.module';
+import { UserService } from './../../src/modules/user/services/user.service';
+import { CategoryService } from './../../src/modules/category/services/category.service';
+import { ProductService } from './../../src/modules/product/services/product.service';
+import { ProductImageService } from './../../src/modules/product-image/services/product-image.service';
+import { ProductVariantService } from './../../src/modules/product-variant/services/product-variant.service';
+import { UserRole } from './../../src/common/enums/user.enum';
+import { API_BASE_PATH } from './../utils/api-path.util';
+import { initTestApp } from './../utils/init-test-app.util';
+import { ProductUnit } from './../../src/modules/product-variant/enums/product-variant.enum';
+import type { User } from './../../src/modules/user/entities/user.entity';
+import type { Category } from './../../src/modules/category/entities/category.entity';
+import { slugFrom } from './../../src/common/utils/slug.util';
 
 jest.mock('@clerk/express', () => {
   const actual: object = jest.requireActual('@clerk/express');
@@ -38,8 +40,7 @@ describe('ProductController (e2e)', () => {
       imports: [AppModule],
     }).compile();
 
-    app = moduleFixture.createNestApplication();
-    await app.init();
+    app = await initTestApp(moduleFixture);
 
     orm = app.get(MikroORM);
     userService = app.get(UserService);
@@ -101,7 +102,7 @@ describe('ProductController (e2e)', () => {
   describe('public GET routes', () => {
     it('GET /products responds 200 with the paginated envelope, no session required', async () => {
       const response = await request(app.getHttpServer())
-        .get('/products')
+        .get(`${API_BASE_PATH}/products`)
         .expect(200);
 
       expect(response.body).toHaveProperty('data');
@@ -117,7 +118,7 @@ describe('ProductController (e2e)', () => {
       createdProductIds.push(product.id);
 
       const response = await request(app.getHttpServer())
-        .get(`/products/${product.id}`)
+        .get(`${API_BASE_PATH}/products/${product.id}`)
         .expect(200);
 
       const body = response.body as {
@@ -135,16 +136,16 @@ describe('ProductController (e2e)', () => {
 
     it('GET /products/:id responds 404 for a missing product', async () => {
       await request(app.getHttpServer())
-        .get('/products/00000000-0000-0000-0000-000000000000')
+        .get(`${API_BASE_PATH}/products/00000000-0000-0000-0000-000000000000`)
         .expect(404);
     });
   });
 
   describe('mutating routes without a Clerk session', () => {
     it.each([
-      ['post', '/products'],
-      ['patch', '/products/some-id'],
-      ['delete', '/products/some-id'],
+      ['post', `${API_BASE_PATH}/products`],
+      ['patch', `${API_BASE_PATH}/products/some-id`],
+      ['delete', `${API_BASE_PATH}/products/some-id`],
     ])('%s %s responds 401', async (method, path) => {
       await (
         request(app.getHttpServer()) as unknown as Record<
@@ -165,7 +166,7 @@ describe('ProductController (e2e)', () => {
       mockSessionFor(user.clerkId);
 
       await request(app.getHttpServer())
-        .post('/products')
+        .post(`${API_BASE_PATH}/products`)
         .send({ categoryId: category.id, name: 'Non Admin Product' })
         .expect(403);
     });
@@ -180,7 +181,7 @@ describe('ProductController (e2e)', () => {
       const sku = uniqueName('SKU-E2E');
 
       const response = await request(app.getHttpServer())
-        .post('/products')
+        .post(`${API_BASE_PATH}/products`)
         .send({
           categoryId: category.id,
           name,
@@ -230,7 +231,7 @@ describe('ProductController (e2e)', () => {
       createdProductIds.push(product.id);
 
       await request(app.getHttpServer())
-        .post('/products')
+        .post(`${API_BASE_PATH}/products`)
         .send({ categoryId: category.id, name })
         .expect(409);
     });
@@ -240,7 +241,7 @@ describe('ProductController (e2e)', () => {
       mockSessionFor(admin.clerkId);
 
       await request(app.getHttpServer())
-        .post('/products')
+        .post(`${API_BASE_PATH}/products`)
         .send({
           categoryId: '00000000-0000-0000-0000-000000000000',
           name: uniqueName('No Category Product E2E'),
@@ -262,7 +263,7 @@ describe('ProductController (e2e)', () => {
       const newName = uniqueName('Kenya AA Renamed E2E');
 
       const response = await request(app.getHttpServer())
-        .patch(`/products/${product.id}`)
+        .patch(`${API_BASE_PATH}/products/${product.id}`)
         .send({ name: newName })
         .expect(200);
 
@@ -286,12 +287,12 @@ describe('ProductController (e2e)', () => {
       createdProductIds.push(product.id);
 
       await request(app.getHttpServer())
-        .delete(`/products/${product.id}`)
+        .delete(`${API_BASE_PATH}/products/${product.id}`)
         .expect(204);
 
       mockSessionFor(null);
       await request(app.getHttpServer())
-        .get(`/products/${product.id}`)
+        .get(`${API_BASE_PATH}/products/${product.id}`)
         .expect(404);
     });
   });
