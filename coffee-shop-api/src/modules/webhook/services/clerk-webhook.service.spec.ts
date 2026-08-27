@@ -1,7 +1,11 @@
-import { ConflictException, Logger, NotFoundException } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { ClerkWebhookService } from './clerk-webhook.service';
 import { UserRole } from '../../../common/enums/user.enum';
 import type { User } from '../../user/entities/user.entity';
+import {
+  DuplicateResourceException,
+  ItemNotFoundException,
+} from '../../../common/exceptions/base.exception';
 
 describe('ClerkWebhookService', () => {
   let service: ClerkWebhookService;
@@ -135,8 +139,15 @@ describe('ClerkWebhookService', () => {
         expect(userService.create).not.toHaveBeenCalled();
       });
 
-      it('swallows a ConflictException from a redelivered webhook', async () => {
-        userService.create.mockRejectedValue(new ConflictException());
+      it('swallows a DuplicateResourceException from a redelivered webhook', async () => {
+        userService.create.mockRejectedValue(
+          new DuplicateResourceException({
+            errCode: 'userEmailExists',
+            field: 'email',
+            message: 'Email already exists',
+            description: 'An account with this email already exists.',
+          }),
+        );
 
         await expect(
           service.handleEvent(createdEvent),
@@ -144,7 +155,7 @@ describe('ClerkWebhookService', () => {
         expect(authProvider.syncUserRole).not.toHaveBeenCalled();
       });
 
-      it('lets a non-ConflictException error from create propagate', async () => {
+      it('lets a non-DuplicateResourceException error from create propagate', async () => {
         userService.create.mockRejectedValue(new Error('boom'));
 
         await expect(service.handleEvent(createdEvent)).rejects.toThrow('boom');
@@ -195,7 +206,14 @@ describe('ClerkWebhookService', () => {
       });
 
       it('does not throw and does not update when there is no local match', async () => {
-        userService.findByClerkId.mockRejectedValue(new NotFoundException());
+        userService.findByClerkId.mockRejectedValue(
+          new ItemNotFoundException({
+            errCode: 'userNotFound',
+            field: 'clerkId',
+            message: 'User not found',
+            description: 'The user might have been deleted.',
+          }),
+        );
 
         await expect(
           service.handleEvent(updatedEvent),
@@ -220,7 +238,14 @@ describe('ClerkWebhookService', () => {
       });
 
       it('does not throw and does not delete when there is no local match', async () => {
-        userService.findByClerkId.mockRejectedValue(new NotFoundException());
+        userService.findByClerkId.mockRejectedValue(
+          new ItemNotFoundException({
+            errCode: 'userNotFound',
+            field: 'clerkId',
+            message: 'User not found',
+            description: 'The user might have been deleted.',
+          }),
+        );
 
         await expect(
           service.handleEvent(deletedEvent),

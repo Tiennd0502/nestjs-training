@@ -1,13 +1,11 @@
-import {
-  ConflictException,
-  Inject,
-  Injectable,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import type { WebhookEvent, UserWebhookEvent } from '@clerk/express';
 import type { IncomingHttpHeaders } from 'http';
 import { UserService } from '../../user/services/user.service';
+import {
+  DuplicateResourceException,
+  ItemNotFoundException,
+} from '../../../common/exceptions/base.exception';
 import {
   AUTH_PROVIDER,
   type AuthProvider,
@@ -100,7 +98,7 @@ export class ClerkWebhookService {
         );
       }
     } catch (err) {
-      if (err instanceof ConflictException) {
+      if (err instanceof DuplicateResourceException) {
         this.logger.warn(
           `Clerk user.created for ${data.id} already synced, skipping`,
         );
@@ -155,7 +153,7 @@ export class ClerkWebhookService {
     try {
       return await this.userService.findByClerkId(clerkId);
     } catch (err) {
-      if (err instanceof NotFoundException) {
+      if (err instanceof ItemNotFoundException) {
         this.logger.warn(
           `Clerk webhook for ${clerkId} has no matching local user, skipping`,
         );

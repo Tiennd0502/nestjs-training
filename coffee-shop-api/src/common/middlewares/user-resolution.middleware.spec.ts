@@ -1,8 +1,8 @@
-import { NotFoundException } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { UserResolutionMiddleware } from './user-resolution.middleware';
 import { UserRole, UserStatus } from '../enums/user.enum';
 import type { User } from '../../modules/user/entities/user.entity';
+import { ItemNotFoundException } from '../exceptions/base.exception';
 
 describe('UserResolutionMiddleware', () => {
   let middleware: UserResolutionMiddleware;
@@ -62,7 +62,15 @@ describe('UserResolutionMiddleware', () => {
 
     it('leaves req.user undefined and calls next() when the session matches no local user', async () => {
       authProvider.getSessionUserId.mockReturnValue('clerk-1');
-      userService.findByClerkId.mockRejectedValue(new NotFoundException());
+      userService.findByClerkId.mockRejectedValue(
+        new ItemNotFoundException({
+          errCode: 'userNotFound',
+          field: 'clerkId',
+          message: 'User not found',
+          description:
+            'The user might have been deleted, or the clerk id is incorrect.',
+        }),
+      );
 
       await middleware.use(req as Request, {} as Response, next);
 
@@ -70,7 +78,7 @@ describe('UserResolutionMiddleware', () => {
       expect(next).toHaveBeenCalledWith();
     });
 
-    it('forwards a genuinely unexpected lookup error to next(), unlike NotFoundException', async () => {
+    it('forwards a genuinely unexpected lookup error to next(), unlike ItemNotFoundException', async () => {
       const error = new Error('boom');
       authProvider.getSessionUserId.mockReturnValue('clerk-1');
       userService.findByClerkId.mockRejectedValue(error);

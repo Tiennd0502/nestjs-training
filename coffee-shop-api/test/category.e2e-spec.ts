@@ -165,6 +165,25 @@ describe('CategoryController (e2e)', () => {
       });
     });
 
+    it('POST /categories responds 400 with field-level errors for an invalid name', async () => {
+      const admin = await createTestUser(UserRole.ADMIN);
+      mockSessionFor(admin.clerkId);
+
+      const response = await request(app.getHttpServer())
+        .post('/categories')
+        .send({ name: 'a' })
+        .expect(400);
+
+      const body = response.body as {
+        statusCode: number;
+        message: string;
+        errors: Array<{ errCode: string; field: string }>;
+      };
+      expect(body.statusCode).toBe(400);
+      expect(body.errors.length).toBeGreaterThan(0);
+      expect(body.errors.every((error) => error.field === 'name')).toBe(true);
+    });
+
     it('POST /categories responds 409 for a duplicate name', async () => {
       const admin = await createTestUser(UserRole.ADMIN);
       mockSessionFor(admin.clerkId);
