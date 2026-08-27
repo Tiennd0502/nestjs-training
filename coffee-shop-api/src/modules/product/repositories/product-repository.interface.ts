@@ -1,5 +1,9 @@
 import { Product } from '../entities/product.entity';
-import { RoastLevel, ProductStatus } from '../enums/product.enum';
+import {
+  RoastLevel,
+  ProductStatus,
+  ProductSortBy,
+} from '../enums/product.enum';
 import {
   PaginatedResult,
   QueryParams,
@@ -21,10 +25,22 @@ export interface CreateProductData {
   processingMethod?: string | null;
 }
 
+export interface ProductFilters {
+  categoryId?: string;
+  status?: ProductStatus;
+  roastLevels?: RoastLevel[];
+  minPrice?: number;
+  maxPrice?: number;
+  sortBy?: ProductSortBy;
+}
+
 export interface ProductRepository {
   findById(id: string): Promise<Product | null>;
   findByName(name: string): Promise<Product | null>;
-  findAll(query: QueryParams): Promise<PaginatedResult<Product>>;
+  findAll(
+    query: QueryParams,
+    filters?: ProductFilters,
+  ): Promise<PaginatedResult<Product>>;
   create(data: CreateProductData): Promise<Product>;
   save(product: Product): Promise<void>;
 }

@@ -16,7 +16,13 @@ import { initTestApp } from './../utils/init-test-app.util';
 import { ProductUnit } from './../../src/modules/product-variant/enums/product-variant.enum';
 import type { User } from './../../src/modules/user/entities/user.entity';
 import type { Category } from './../../src/modules/category/entities/category.entity';
+import type { Product } from './../../src/modules/product/entities/product.entity';
 import { slugFrom } from './../../src/common/utils/slug.util';
+import {
+  ProductSortBy,
+  ProductStatus,
+  RoastLevel,
+} from './../../src/modules/product/enums/product.enum';
 
 jest.mock('@clerk/express', () => {
   const actual: object = jest.requireActual('@clerk/express');
@@ -138,6 +144,366 @@ describe('ProductController (e2e)', () => {
       await request(app.getHttpServer())
         .get(`${API_BASE_PATH}/products/00000000-0000-0000-0000-000000000000`)
         .expect(404);
+    });
+  });
+
+  describe('GET /products filtering and sorting (e2e)', () => {
+    let filterCategory: Category;
+    let otherCategory: Category;
+    let nameCategory: Category;
+    let priceCategory: Category;
+
+    let pLight: Product;
+    let pMedium: Product;
+    let pDarkInactive: Product;
+    let pSearchTarget: Product;
+    let pOther: Product;
+
+    let pNameA: Product;
+    let pNameB: Product;
+    let pNameC: Product;
+
+    let pPrice10: Product;
+    let pPrice20: Product;
+    let pNoVariant: Product;
+    let pGlobalMin: Product;
+    let pSimple: Product;
+
+    const searchTerm = uniqueName('SearchTerm');
+
+    beforeAll(async () => {
+      filterCategory = await createTestCategory();
+      otherCategory = await createTestCategory();
+      nameCategory = await createTestCategory();
+      priceCategory = await createTestCategory();
+
+      const create = (
+        data: Parameters<typeof productService.create>[0],
+      ): Promise<Product> =>
+        RequestContext.create(orm.em, () => productService.create(data));
+
+      pLight = await create({
+        categoryId: filterCategory.id,
+        name: uniqueName('Filter Light'),
+        roastLevel: RoastLevel.LIGHT,
+        status: ProductStatus.ACTIVE,
+      });
+      pMedium = await create({
+        categoryId: filterCategory.id,
+        name: uniqueName('Filter Medium'),
+        roastLevel: RoastLevel.MEDIUM,
+        status: ProductStatus.ACTIVE,
+      });
+      pDarkInactive = await create({
+        categoryId: filterCategory.id,
+        name: uniqueName('Filter Dark'),
+        roastLevel: RoastLevel.DARK,
+        status: ProductStatus.INACTIVE,
+      });
+      pSearchTarget = await create({
+        categoryId: filterCategory.id,
+        name: `${searchTerm} Roast`,
+        roastLevel: RoastLevel.LIGHT,
+        status: ProductStatus.ACTIVE,
+      });
+      pOther = await create({
+        categoryId: otherCategory.id,
+        name: uniqueName('Other Category Product'),
+      });
+
+      pNameA = await create({
+        categoryId: nameCategory.id,
+        name: uniqueName('AAA Sort Product'),
+      });
+      pNameB = await create({
+        categoryId: nameCategory.id,
+        name: uniqueName('BBB Sort Product'),
+      });
+      pNameC = await create({
+        categoryId: nameCategory.id,
+        name: uniqueName('CCC Sort Product'),
+      });
+
+      pPrice10 = await create({
+        categoryId: priceCategory.id,
+        name: uniqueName('Price Ten'),
+        variants: [
+          {
+            sku: uniqueName('SKU-10'),
+            weight: '250.000',
+            unit: ProductUnit.G,
+            price: '10.00',
+          },
+        ],
+      });
+      pPrice20 = await create({
+        categoryId: priceCategory.id,
+        name: uniqueName('Price Twenty'),
+        variants: [
+          {
+            sku: uniqueName('SKU-20'),
+            weight: '250.000',
+            unit: ProductUnit.G,
+            price: '20.00',
+          },
+        ],
+      });
+      pNoVariant = await create({
+        categoryId: priceCategory.id,
+        name: uniqueName('Price NoVariant'),
+      });
+      pGlobalMin = await create({
+        categoryId: priceCategory.id,
+        name: uniqueName('Price GlobalMin'),
+        variants: [
+          {
+            sku: uniqueName('SKU-GM-LOW'),
+            weight: '100.000',
+            unit: ProductUnit.G,
+            price: '5.00',
+          },
+          {
+            sku: uniqueName('SKU-GM-HIGH'),
+            weight: '500.000',
+            unit: ProductUnit.G,
+            price: '18.00',
+          },
+        ],
+      });
+      pSimple = await create({
+        categoryId: priceCategory.id,
+        name: uniqueName('Price Simple'),
+        variants: [
+          {
+            sku: uniqueName('SKU-SIMPLE'),
+            weight: '250.000',
+            unit: ProductUnit.G,
+            price: '12.00',
+          },
+        ],
+      });
+
+      createdProductIds.push(
+        pLight.id,
+        pMedium.id,
+        pDarkInactive.id,
+        pSearchTarget.id,
+        pOther.id,
+        pNameA.id,
+        pNameB.id,
+        pNameC.id,
+        pPrice10.id,
+        pPrice20.id,
+        pNoVariant.id,
+        pGlobalMin.id,
+        pSimple.id,
+      );
+      createdCategoryIds.push(
+        filterCategory.id,
+        otherCategory.id,
+        nameCategory.id,
+        priceCategory.id,
+      );
+    });
+
+    const idsOf = (body: { data: Array<{ id: string }> }): string[] =>
+      body.data.map((p) => p.id);
+
+    it('filters by categoryId', async () => {
+      const response = await request(app.getHttpServer())
+        .get(`${API_BASE_PATH}/products`)
+        .query({ categoryId: filterCategory.id, limit: 50 })
+        .expect(200);
+
+      const ids = idsOf(response.body as { data: Array<{ id: string }> });
+      expect([...ids].sort()).toEqual(
+        [pLight.id, pMedium.id, pDarkInactive.id, pSearchTarget.id].sort(),
+      );
+      expect(ids).not.toContain(pOther.id);
+    });
+
+    it('filters by status', async () => {
+      const response = await request(app.getHttpServer())
+        .get(`${API_BASE_PATH}/products`)
+        .query({
+          categoryId: filterCategory.id,
+          status: ProductStatus.ACTIVE,
+          limit: 50,
+        })
+        .expect(200);
+
+      const ids = idsOf(response.body as { data: Array<{ id: string }> });
+      expect([...ids].sort()).toEqual(
+        [pLight.id, pMedium.id, pSearchTarget.id].sort(),
+      );
+      expect(ids).not.toContain(pDarkInactive.id);
+    });
+
+    it('filters by a single roastLevel', async () => {
+      const response = await request(app.getHttpServer())
+        .get(`${API_BASE_PATH}/products`)
+        .query({
+          categoryId: filterCategory.id,
+          roastLevel: RoastLevel.MEDIUM,
+          limit: 50,
+        })
+        .expect(200);
+
+      expect(idsOf(response.body as { data: Array<{ id: string }> })).toEqual([
+        pMedium.id,
+      ]);
+    });
+
+    it('filters by a comma-separated multi-value roastLevel', async () => {
+      const response = await request(app.getHttpServer())
+        .get(`${API_BASE_PATH}/products`)
+        .query({
+          categoryId: filterCategory.id,
+          roastLevel: `${RoastLevel.LIGHT},${RoastLevel.MEDIUM}`,
+          limit: 50,
+        })
+        .expect(200);
+
+      const ids = idsOf(response.body as { data: Array<{ id: string }> });
+      expect([...ids].sort()).toEqual(
+        [pLight.id, pMedium.id, pSearchTarget.id].sort(),
+      );
+      expect(ids).not.toContain(pDarkInactive.id);
+    });
+
+    it('filters by minPrice/maxPrice, matching a product if any non-deleted variant is in range', async () => {
+      const response = await request(app.getHttpServer())
+        .get(`${API_BASE_PATH}/products`)
+        .query({
+          categoryId: priceCategory.id,
+          minPrice: 15,
+          maxPrice: 25,
+          limit: 50,
+        })
+        .expect(200);
+
+      const ids = idsOf(response.body as { data: Array<{ id: string }> });
+      expect([...ids].sort()).toEqual([pPrice20.id, pGlobalMin.id].sort());
+    });
+
+    it('combines categoryId and search', async () => {
+      const response = await request(app.getHttpServer())
+        .get(`${API_BASE_PATH}/products`)
+        .query({ categoryId: filterCategory.id, search: searchTerm, limit: 50 })
+        .expect(200);
+
+      expect(idsOf(response.body as { data: Array<{ id: string }> })).toEqual([
+        pSearchTarget.id,
+      ]);
+    });
+
+    it('sortBy NAME_ASC orders alphabetically ascending', async () => {
+      const response = await request(app.getHttpServer())
+        .get(`${API_BASE_PATH}/products`)
+        .query({
+          categoryId: nameCategory.id,
+          sortBy: ProductSortBy.NAME_ASC,
+          limit: 50,
+        })
+        .expect(200);
+
+      expect(idsOf(response.body as { data: Array<{ id: string }> })).toEqual([
+        pNameA.id,
+        pNameB.id,
+        pNameC.id,
+      ]);
+    });
+
+    it('sortBy NAME_DESC orders alphabetically descending', async () => {
+      const response = await request(app.getHttpServer())
+        .get(`${API_BASE_PATH}/products`)
+        .query({
+          categoryId: nameCategory.id,
+          sortBy: ProductSortBy.NAME_DESC,
+          limit: 50,
+        })
+        .expect(200);
+
+      expect(idsOf(response.body as { data: Array<{ id: string }> })).toEqual([
+        pNameC.id,
+        pNameB.id,
+        pNameA.id,
+      ]);
+    });
+
+    it('sortBy PRICE_ASC orders by each product minimum variant price, with variant-less products last', async () => {
+      const response = await request(app.getHttpServer())
+        .get(`${API_BASE_PATH}/products`)
+        .query({
+          categoryId: priceCategory.id,
+          sortBy: ProductSortBy.PRICE_ASC,
+          limit: 50,
+        })
+        .expect(200);
+
+      expect(idsOf(response.body as { data: Array<{ id: string }> })).toEqual([
+        pGlobalMin.id,
+        pPrice10.id,
+        pSimple.id,
+        pPrice20.id,
+        pNoVariant.id,
+      ]);
+    });
+
+    it('sortBy PRICE_DESC orders by each product minimum variant price descending, with variant-less products still last', async () => {
+      const response = await request(app.getHttpServer())
+        .get(`${API_BASE_PATH}/products`)
+        .query({
+          categoryId: priceCategory.id,
+          sortBy: ProductSortBy.PRICE_DESC,
+          limit: 50,
+        })
+        .expect(200);
+
+      expect(idsOf(response.body as { data: Array<{ id: string }> })).toEqual([
+        pPrice20.id,
+        pSimple.id,
+        pPrice10.id,
+        pGlobalMin.id,
+        pNoVariant.id,
+      ]);
+    });
+
+    it('combining minPrice/maxPrice with sortBy PRICE_ASC still sorts by each product global minimum variant price', async () => {
+      const response = await request(app.getHttpServer())
+        .get(`${API_BASE_PATH}/products`)
+        .query({
+          categoryId: priceCategory.id,
+          minPrice: 10,
+          maxPrice: 25,
+          sortBy: ProductSortBy.PRICE_ASC,
+          limit: 50,
+        })
+        .expect(200);
+
+      // pGlobalMin only qualifies for the range via its 18 variant (its other variant, 5,
+      // is outside 10-25) — but the sort key must still be its GLOBAL minimum (5), so it
+      // sorts before pSimple (global min 12) even though pSimple's qualifying variant (12)
+      // is lower than pGlobalMin's qualifying variant (18).
+      expect(idsOf(response.body as { data: Array<{ id: string }> })).toEqual([
+        pGlobalMin.id,
+        pPrice10.id,
+        pSimple.id,
+        pPrice20.id,
+      ]);
+    });
+
+    it.each([
+      ['categoryId', 'not-a-uuid'],
+      ['status', 'NOT_A_STATUS'],
+      ['roastLevel', 'NOT_A_ROAST'],
+      ['sortBy', 'NOT_A_SORT'],
+      ['minPrice', '-5'],
+    ])('responds 400 for an invalid %s query param', async (param, value) => {
+      await request(app.getHttpServer())
+        .get(`${API_BASE_PATH}/products`)
+        .query({ [param]: value })
+        .expect(400);
     });
   });
 

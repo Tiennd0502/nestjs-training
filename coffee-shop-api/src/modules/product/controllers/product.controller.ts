@@ -21,7 +21,7 @@ import { ProductService } from '../services/product.service';
 import { CreateProductDto } from '../dto/create-product.dto';
 import { UpdateProductDto } from '../dto/update-product.dto';
 import { ResponseProductDto } from '../dto/response-product.dto';
-import { PaginationQueryDto } from '../../../common/dto/pagination-query.dto';
+import { ProductQueryDto } from '../dto/product-query.dto';
 import { PaginatedResult } from '../../../common/interfaces/pagination.interface';
 import { AuthGuard } from '../../../common/guards/auth.guard';
 import { RolesGuard } from '../../../common/guards/roles.guard';
@@ -47,9 +47,30 @@ export class ProductController {
     ERROR_MESSAGES.EXCEPTION.VALIDATION_FAILED,
   )
   async findAll(
-    @Query() query: PaginationQueryDto,
+    @Query() query: ProductQueryDto,
   ): Promise<PaginatedResult<ResponseProductDto>> {
-    const result = await this.productService.findAll(query);
+    const {
+      page,
+      limit,
+      search,
+      categoryId,
+      status,
+      roastLevel,
+      minPrice,
+      maxPrice,
+      sortBy,
+    } = query;
+    const result = await this.productService.findAll(
+      { page, limit, search },
+      {
+        categoryId,
+        status,
+        roastLevels: roastLevel,
+        minPrice,
+        maxPrice,
+        sortBy,
+      },
+    );
 
     return {
       data: result.data.map((product) =>
