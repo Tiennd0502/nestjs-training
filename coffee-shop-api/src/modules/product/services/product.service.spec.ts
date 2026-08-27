@@ -174,11 +174,27 @@ describe('ProductService', () => {
 
       const result = await service.findAll({ page: 1, limit: 10 });
 
-      expect(productRepository.findAll).toHaveBeenCalledWith({
-        page: 1,
-        limit: 10,
-      });
+      expect(productRepository.findAll).toHaveBeenCalledWith(
+        { page: 1, limit: 10 },
+        {},
+      );
       expect(result).toBe(paginated);
+    });
+
+    it('forwards supplied filters to the repository', async () => {
+      const paginated = {
+        data: [buildProduct()],
+        meta: { limit: 10, currentPage: 1, pageCount: 1, totalCount: 1 },
+      };
+      productRepository.findAll.mockResolvedValue(paginated);
+      const filters = { categoryId: 'category-id-1' };
+
+      await service.findAll({ page: 1, limit: 10 }, filters);
+
+      expect(productRepository.findAll).toHaveBeenCalledWith(
+        { page: 1, limit: 10 },
+        filters,
+      );
     });
   });
 

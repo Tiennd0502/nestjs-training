@@ -8,6 +8,7 @@ import { Product } from '../entities/product.entity';
 import {
   CreateProductData,
   PRODUCT_REPOSITORY,
+  type ProductFilters,
   type ProductRepository,
 } from '../repositories/product-repository.interface';
 import { ERROR_MESSAGES } from '../../../common/constants/message.constant';
@@ -87,8 +88,11 @@ export class ProductService {
       : this.findOne(product.id);
   }
 
-  findAll(query: QueryParams): Promise<PaginatedResult<Product>> {
-    return this.productRepository.findAll(query);
+  findAll(
+    query: QueryParams,
+    filters: ProductFilters = {},
+  ): Promise<PaginatedResult<Product>> {
+    return this.productRepository.findAll(query, filters);
   }
 
   async findOne(id: string): Promise<Product> {
