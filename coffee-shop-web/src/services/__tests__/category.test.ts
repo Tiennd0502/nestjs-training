@@ -44,47 +44,33 @@ describe('category service update flows', () => {
     }
   })
 
-  it('updateCategory falls back to PUT when PATCH is not supported', async () => {
-    const fetchMock = jest
-      .fn()
-      .mockResolvedValueOnce({
-        ok: false,
-        status: 405,
-        json: async () => ({ message: 'Method not allowed' }),
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => ({
-          data: {
-            id: 'cat-1',
-            name: 'Espresso',
-            slug: 'espresso',
-            createdBy: null,
-            updatedBy: null,
-            deletedBy: null,
-            createdAt: null,
-            updatedAt: null,
-            deletedAt: null,
-          },
-        }),
-      })
+  it('updateCategory sends PATCH', async () => {
+    const fetchMock = jest.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        data: {
+          id: 'cat-1',
+          name: 'Espresso',
+          slug: 'espresso',
+          createdBy: null,
+          updatedBy: null,
+          deletedBy: null,
+          createdAt: null,
+          updatedAt: null,
+          deletedAt: null,
+        },
+      }),
+    })
     globalThis.fetch = fetchMock as typeof fetch
 
     const result = await updateCategory('cat-1', { name: 'Espresso' })
 
-    expect(fetchMock).toHaveBeenNthCalledWith(
-      1,
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect(fetchMock).toHaveBeenCalledWith(
       `${API_ROUTES.CATEGORIES}/cat-1`,
       expect.objectContaining({
         method: 'PATCH',
-      }),
-    )
-    expect(fetchMock).toHaveBeenNthCalledWith(
-      2,
-      `${API_ROUTES.CATEGORIES}/cat-1`,
-      expect.objectContaining({
-        method: 'PUT',
       }),
     )
     expect(result.ok).toBe(true)

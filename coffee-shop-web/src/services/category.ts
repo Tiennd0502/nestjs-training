@@ -122,10 +122,7 @@ export async function updateCategory(
     fallbackError: API_FALLBACK_ERRORS.CATEGORY_UPDATE,
   }
 
-  let result = await apiClient.patch<unknown>(url, body, requestOptions)
-  if (!result.ok && (result.status === 404 || result.status === 405)) {
-    result = await apiClient.put<unknown>(url, body, requestOptions)
-  }
+  const result = await apiClient.patch<unknown>(url, body, requestOptions)
   if (!result.ok) return result
 
   const parsed = result.data as ApiResponse<Category>

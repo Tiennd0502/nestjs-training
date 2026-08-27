@@ -175,10 +175,7 @@ export async function updateProduct(
     fallbackError: API_FALLBACK_ERRORS.PRODUCT_UPDATE,
   }
 
-  let result = await apiClient.patch<unknown>(url, body, opts)
-  if (!result.ok && (result.status === 404 || result.status === 405)) {
-    result = await apiClient.put<unknown>(url, body, opts)
-  }
+  const result = await apiClient.patch<unknown>(url, body, opts)
   if (!result.ok) return result
 
   const parsedProduct = parseProductFromResponse(result.data)
