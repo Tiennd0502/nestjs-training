@@ -10,6 +10,7 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 import { DiscountType, ProductUnit } from '../enums/product-variant.enum';
 
 export class UpdateProductVariantDto {
@@ -25,6 +26,7 @@ export class UpdateProductVariantDto {
   @IsPositive()
   weight?: number;
 
+  @ApiPropertyOptional({ enum: ProductUnit })
   @IsOptional()
   @IsEnum(ProductUnit)
   unit?: ProductUnit;
@@ -35,10 +37,12 @@ export class UpdateProductVariantDto {
   @IsPositive()
   price?: number;
 
+  @ApiPropertyOptional({ enum: DiscountType, nullable: true })
   @IsOptional()
   @IsEnum(DiscountType)
   discountType?: DiscountType | null;
 
+  @ApiPropertyOptional({ nullable: true, type: Number })
   @IsOptional()
   @Type(() => Number)
   @IsNumber()

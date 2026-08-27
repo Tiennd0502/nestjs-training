@@ -12,6 +12,7 @@ import {
   MinLength,
   ValidateNested,
 } from 'class-validator';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 import { RoastLevel, ProductStatus } from '../enums/product.enum';
 import { CreateProductImageDto } from '../../product-image/dto/create-product-image.dto';
 import { CreateProductVariantDto } from '../../product-variant/dto/create-product-variant.dto';
@@ -31,6 +32,7 @@ export class CreateProductDto {
   @MaxLength(2000)
   description?: string;
 
+  @ApiPropertyOptional({ enum: RoastLevel })
   @IsOptional()
   @IsEnum(RoastLevel)
   roastLevel?: RoastLevel;
@@ -43,6 +45,7 @@ export class CreateProductDto {
   @IsBoolean()
   isFairTrade?: boolean;
 
+  @ApiPropertyOptional({ enum: ProductStatus })
   @IsOptional()
   @IsEnum(ProductStatus)
   status?: ProductStatus;
