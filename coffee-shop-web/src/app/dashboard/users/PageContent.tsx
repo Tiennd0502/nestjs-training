@@ -26,6 +26,7 @@ import { Select } from '@/components/Select'
 import { SearchInput } from '@/components/SearchInput'
 import { Button } from '@/components/ui/button'
 import { UserTableRow } from '@/sections/UserTableRow'
+import { EditUserForm } from '@/sections/EditUserForm'
 
 // Utils
 import { userUrlSchema } from '@/utils/url'
@@ -83,6 +84,7 @@ export const PageContent = () => {
     null,
   )
   const [pendingDeleteUser, setPendingDeleteUser] = useState<User | null>(null)
+  const [pendingEditUser, setPendingEditUser] = useState<User | null>(null)
   const [deleteErrorMessage, setDeleteErrorMessage] = useState<string | null>(
     null,
   )
@@ -166,6 +168,11 @@ export const PageContent = () => {
     setPendingDeleteUser(user)
   }
 
+  const handleUserEditRequest = (user: User) => {
+    if (!user.id) return
+    setPendingEditUser(user)
+  }
+
   const pendingDeleteLabel = (() => {
     if (!pendingDeleteUser) {
       return 'this user'
@@ -223,6 +230,13 @@ export const PageContent = () => {
             },
           })
         }}
+      />
+      <EditUserForm
+        open={pendingEditUser !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingEditUser(null)
+        }}
+        user={pendingEditUser}
       />
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div className="space-y-3">
@@ -340,10 +354,12 @@ export const PageContent = () => {
                       : user
                   }
                   onRequestRoleChange={handleUserRoleUpdate}
+                  onRequestEdit={handleUserEditRequest}
                   onRequestDelete={handleUserDeleteRequest}
                   isRoleDisabled={
                     pendingRoleUserId === user.id || Boolean(user.deletedAt)
                   }
+                  isEditDisabled={Boolean(user.deletedAt)}
                   isDeleteDisabled={isDeletePending || Boolean(user.deletedAt)}
                 />
               )}

@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { Coffee, Pencil } from 'lucide-react'
 import { useUser as useClerkUser } from '@clerk/nextjs'
 
@@ -18,6 +19,7 @@ import { resolveProfilePresentation } from '@/utils/api'
 // Components
 import { Button } from '@/components/ui/button'
 import { Avatar } from '@/components/Avatar'
+import { EditProfileForm } from '@/sections/EditProfileForm'
 import { ProfileAccountDialogs } from './ProfileAccountDialogs'
 
 // Order history is disabled: order feature not implemented on backend yet
@@ -34,6 +36,7 @@ import { ProfileAccountDialogs } from './ProfileAccountDialogs'
 export function ProfilePageView() {
   const { user: apiUser, error, isSignedIn, isAuthLoaded } = useAuth()
   const { user: clerkUser, isLoaded: clerkLoaded } = useClerkUser()
+  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false)
   // const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
   // const { orders, isLoading, isError, errorMessage, refetch } = useOrders({
   //   page: 1,
@@ -70,16 +73,17 @@ export function ProfilePageView() {
                 alt={displayName}
                 isProfile
               />
-              <Button
-                disabled
+              {/* <Button
+                disabled={!isSignedIn}
                 type="button"
                 size="icon"
                 variant="default"
                 className="absolute -bottom-4 -right-4 size-12 rounded-full bg-primary text-on-primary shadow-lg hover:scale-105"
                 aria-label="Edit profile photo"
+                onClick={() => setIsEditProfileOpen(true)}
               >
                 <Pencil className="size-5" aria-hidden />
-              </Button>
+              </Button> */}
             </div>
 
             <div className="min-w-0 flex-1 text-center md:text-left">
@@ -88,10 +92,11 @@ export function ProfilePageView() {
                   {displayName}
                 </h1>
                 <Button
-                  disabled
+                  disabled={!isSignedIn}
                   type="button"
                   variant="link"
                   className="h-auto w-auto gap-2 p-0 font-semibold text-primary hover:opacity-70"
+                  onClick={() => setIsEditProfileOpen(true)}
                 >
                   <Pencil className="size-4 shrink-0" aria-hidden />
                   Edit Profile
@@ -142,6 +147,11 @@ export function ProfilePageView() {
             />
           </div>
         </section>
+
+        <EditProfileForm
+          open={isEditProfileOpen}
+          onOpenChange={setIsEditProfileOpen}
+        />
 
         {/* Order history is disabled: order feature not implemented on backend yet */}
         {/* <section className="space-y-8">

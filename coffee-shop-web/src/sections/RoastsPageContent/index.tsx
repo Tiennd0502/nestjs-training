@@ -133,10 +133,19 @@ export default function RoastsPageContent() {
   const currentPage = Math.min(Math.max(1, listPage), totalPages)
   const totalCount = meta?.totalCount ?? 0
 
+  // Default: all roast levels checked until the user touches the filter.
+  // Unchecking all is allowed and behaves like "all" (no roastLevel filter).
+  const [isRoastLevelTouched, setIsRoastLevelTouched] = useState(false)
+  const checkedRoastLevels =
+    !isRoastLevelTouched && selectedRoastLevels.length === 0
+      ? ROAST_LEVEL_OPTIONS.map((option) => option.value)
+      : selectedRoastLevels
+
   const handleToggleRoastLevel = (value: ROAST_LEVEL) => {
-    const next = selectedRoastLevels.includes(value)
-      ? selectedRoastLevels.filter((item) => item !== value)
-      : [...selectedRoastLevels, value]
+    setIsRoastLevelTouched(true)
+    const next = checkedRoastLevels.includes(value)
+      ? checkedRoastLevels.filter((item) => item !== value)
+      : [...checkedRoastLevels, value]
     updateUrl({
       page: 1,
       roastLevel: next.length === 0 ? null : next.join(','),
@@ -162,6 +171,7 @@ export default function RoastsPageContent() {
       searchDebounceRef.current = null
     }
     setSearchDraft('')
+    setIsRoastLevelTouched(false)
     updateUrl({
       page: 1,
       minPrice: null,
@@ -187,7 +197,7 @@ export default function RoastsPageContent() {
           minPrice={ROAST_PRICE_MIN}
           maxPrice={ROAST_PRICE_MAX}
           roastLevelOptions={ROAST_LEVEL_OPTIONS}
-          selectedRoastLevels={selectedRoastLevels}
+          selectedRoastLevels={checkedRoastLevels}
           onToggleRoastLevel={handleToggleRoastLevel}
           sortBy={sortBy}
           sortOptions={ROAST_SORT_OPTIONS}

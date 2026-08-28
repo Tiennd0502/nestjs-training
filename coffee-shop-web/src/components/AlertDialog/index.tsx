@@ -1,6 +1,6 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import type { ComponentProps, ReactNode } from 'react'
 import { X } from 'lucide-react'
 
 import {
@@ -24,8 +24,10 @@ interface AlertDialogProps {
   textButton?: string
   textCancel?: string
   textAction?: string
+  actionVariant?: ComponentProps<typeof AlertDialogAction>['variant']
   open?: boolean
   isLoading?: boolean
+  isActionDisabled?: boolean
   onOpenChange?: (open?: boolean) => void
   onClickAction?: () => void
   onClickCancel?: () => void
@@ -40,8 +42,10 @@ const AlertDialog = ({
   textButton = '',
   textCancel = 'Cancel',
   textAction = 'Continue',
+  actionVariant = 'destructive',
   open = false,
   isLoading = false,
+  isActionDisabled = false,
   onOpenChange,
   onClickAction,
   onClickCancel,
@@ -114,9 +118,9 @@ const AlertDialog = ({
             {textCancel}
           </AlertDialogCancel>
           <AlertDialogAction
-            variant="destructive"
+            variant={actionVariant}
             data-testid="btn-continue"
-            disabled={isLoading}
+            disabled={isLoading || isActionDisabled}
             loading={isLoading}
             onClick={onClickAction}
             className="h-12 w-auto shrink-0 px-8 font-bold"

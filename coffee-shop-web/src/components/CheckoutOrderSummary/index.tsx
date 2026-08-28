@@ -30,9 +30,9 @@ export const CheckoutOrderSummary = ({
   onRemoveItem,
   submissionErrorMessage,
   itemQuantityErrors,
-  hasBlockingItemErrors = false,
+  // hasBlockingItemErrors = false,
   isPlacingOrder = false,
-  isPlaceOrderDisabled = false,
+  // isPlaceOrderDisabled = false,
   className,
 }: CheckoutOrderSummaryProps) => {
   const hasItemErrors = items.some((item) =>
@@ -161,10 +161,16 @@ export const CheckoutOrderSummary = ({
         </p>
       )}
 
+      <p className="mt-3 text-center text-sm text-red-600 font-bold">
+        Ordering is temporarily unavailable.
+      </p>
+
       <Button
         type="button"
         loading={isPlacingOrder}
-        disabled={isPlaceOrderDisabled || hasBlockingItemErrors}
+        // disabled={isPlaceOrderDisabled || hasBlockingItemErrors}
+        disabled
+        title="Ordering is temporarily unavailable."
         className="mt-4 h-14 rounded-full text-base"
         onClick={onPlaceOrder}
       >
@@ -176,6 +182,7 @@ export const CheckoutOrderSummary = ({
           Remove highlighted items or update your cart, then try again.
         </p>
       )}
+
       <p className="mt-6 text-center text-xs text-on-surface-variant">
         By placing your order, you agree to CoffeeHub&apos;s Terms of Service
         and Privacy Policy.

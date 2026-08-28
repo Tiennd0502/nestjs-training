@@ -210,16 +210,23 @@ export async function fetchUsers(
   return { ok: true, users, meta }
 }
 
+export interface UpdateUserPayload {
+  role?: USER_ROLES
+  firstName?: string
+  lastName?: string
+  avatarUrl?: string
+}
+
 export async function updateUserById(
   id: string,
-  role: USER_ROLES,
+  payload: UpdateUserPayload,
   options: Pick<FetchUsersOptions, 'getToken'> = {},
 ): Promise<
   { ok: true; user: User } | { ok: false; error: string; status?: number }
 > {
   const result = await apiClient.patch<Response<User>>(
     `${API_ROUTES.USERS}/${id}`,
-    { role },
+    payload,
     {
       getToken: options.getToken,
       fallbackError: API_FALLBACK_ERRORS.USER_UPDATE,
