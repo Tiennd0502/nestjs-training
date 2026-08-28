@@ -4,6 +4,7 @@ import { useCallback, useState, type MouseEvent } from 'react'
 import * as SignUp from '@clerk/elements/sign-up'
 import * as Clerk from '@clerk/elements/common'
 import Image from 'next/image'
+import { usePathname } from 'next/navigation'
 import { Lock, Mail, User } from 'lucide-react'
 
 import { useCleanClerkUrl } from '@/hooks/useCleanClerkUrl'
@@ -26,6 +27,8 @@ interface StartFieldErrors {
 
 const SignUpForm = () => {
   useCleanClerkUrl()
+  const pathname = usePathname()
+  const isSsoCallback = pathname?.endsWith('/sso-callback') ?? false
   const [startErrors, setStartErrors] = useState<StartFieldErrors>({})
 
   const handleSignUpStartClick = useCallback(
@@ -66,7 +69,16 @@ const SignUpForm = () => {
           </div>
         }
       >
-        <Clerk.Loading>
+        {isSsoCallback && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-background">
+            <Spinner
+              size="lg"
+              label="Completing sign up"
+              className="text-primary"
+            />
+          </div>
+        )}
+        <Clerk.Loading scope="global">
           {(isGlobalLoading) => (
             <div className="mx-auto w-full max-w-[1440px] h-full overflow-hidden rounded-3xl text-sm shadow-[0_0_15px_5px_rgba(0,0,0,0.1)]">
               <SignUp.Step
@@ -229,7 +241,12 @@ const SignUpForm = () => {
                             Already have an account?{' '}
                             <Clerk.Link
                               navigate="sign-in"
-                              className="ml-1 font-bold text-primary underline-offset-4 hover:underline"
+                              aria-disabled={isLoading}
+                              tabIndex={isLoading ? -1 : undefined}
+                              onClick={(event) => {
+                                if (isLoading) event.preventDefault()
+                              }}
+                              className="ml-1 font-bold text-primary underline-offset-4 hover:underline aria-disabled:pointer-events-none aria-disabled:opacity-50"
                             >
                               Sign in
                             </Clerk.Link>

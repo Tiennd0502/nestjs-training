@@ -599,6 +599,7 @@ const EditProductForm = ({ product, productId }: EditProductFormProps) => {
                 min={0}
                 max={2}
                 step={1}
+                disabled={isSubmitting}
                 value={[getRoastIndex(roastLevel)]}
                 onValueChange={(values) => {
                   const nextIndex = Array.isArray(values)
@@ -649,11 +650,12 @@ const EditProductForm = ({ product, productId }: EditProductFormProps) => {
               <div className="flex items-center gap-3">
                 <button
                   type="button"
-                  className={`inline-flex h-12 items-center gap-2 rounded-full border px-5 text-xs font-semibold uppercase tracking-wider ${
+                  className={`inline-flex h-12 items-center gap-2 rounded-full border px-5 text-xs font-semibold uppercase tracking-wider disabled:pointer-events-none disabled:opacity-50 ${
                     watch('isOrganic')
                       ? 'border-primary bg-primary/10 text-primary'
                       : 'border-outline-variant/70 text-on-surface-variant'
                   }`}
+                  disabled={isSubmitting}
                   onClick={() =>
                     setValue('isOrganic', !watch('isOrganic'), {
                       shouldDirty: true,
@@ -665,11 +667,12 @@ const EditProductForm = ({ product, productId }: EditProductFormProps) => {
                 </button>
                 <button
                   type="button"
-                  className={`inline-flex h-12 items-center gap-2 rounded-full border px-5 text-xs font-semibold uppercase tracking-wider ${
+                  className={`inline-flex h-12 items-center gap-2 rounded-full border px-5 text-xs font-semibold uppercase tracking-wider disabled:pointer-events-none disabled:opacity-50 ${
                     watch('isFairTrade')
                       ? 'border-primary bg-primary/10 text-primary'
                       : 'border-outline-variant/70 text-on-surface-variant'
                   }`}
+                  disabled={isSubmitting}
                   onClick={() =>
                     setValue('isFairTrade', !watch('isFairTrade'), {
                       shouldDirty: true,
@@ -698,7 +701,8 @@ const EditProductForm = ({ product, productId }: EditProductFormProps) => {
                       <button
                         type="button"
                         aria-label={`Remove ${note}`}
-                        className="ml-1 rounded-full p-0.5 text-primary-foreground/90 hover:bg-primary-foreground/20"
+                        className="ml-1 rounded-full p-0.5 text-primary-foreground/90 hover:bg-primary-foreground/20 disabled:pointer-events-none disabled:opacity-50"
+                        disabled={isSubmitting}
                         onClick={() =>
                           setTastingNotes((prev) =>
                             prev.filter((item) => item !== note),

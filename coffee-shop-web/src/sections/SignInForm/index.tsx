@@ -62,7 +62,15 @@ const SignInForm = () => {
           </div>
         }
       >
-        <Clerk.Loading>
+        <SignIn.Step name="sso-callback">
+          <Spinner
+            decorative={false}
+            size="lg"
+            label="Completing sign in"
+            className="text-primary"
+          />
+        </SignIn.Step>
+        <Clerk.Loading scope="global">
           {(isGlobalLoading) => (
             <div className="mx-auto w-full max-w-[1440px] h-full overflow-hidden rounded-3xl text-sm shadow-[0_0_15px_5px_rgba(0,0,0,0.1)]">
               <SignIn.Step
@@ -190,7 +198,12 @@ const SignInForm = () => {
                             New to CoffeeHub?{' '}
                             <Clerk.Link
                               navigate="sign-up"
-                              className="ml-1 font-bold text-primary underline-offset-4 hover:underline"
+                              aria-disabled={isLoading}
+                              tabIndex={isLoading ? -1 : undefined}
+                              onClick={(event) => {
+                                if (isLoading) event.preventDefault()
+                              }}
+                              className="ml-1 font-bold text-primary underline-offset-4 hover:underline aria-disabled:pointer-events-none aria-disabled:opacity-50"
                             >
                               Create an account
                             </Clerk.Link>
