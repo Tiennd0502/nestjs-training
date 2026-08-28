@@ -71,21 +71,22 @@ export const PageContent = () => {
     return () => window.clearTimeout(id)
   }, [searchInput])
 
-  const { categories, meta, isLoading, isError, errorMessage } = useCategories({
-    page,
-    limit,
-    search: search.trim(),
-  })
+  const { categories, meta, isLoading, isFetching, isError, errorMessage } =
+    useCategories({
+      page,
+      limit,
+      search: search.trim(),
+    })
 
   const totalPages = Math.max(1, meta?.pageCount ?? 1)
   const totalCount = meta?.totalCount ?? categories.length
   const showingCount = categories.length
 
   useEffect(() => {
-    if (page > totalPages) {
+    if (meta && page > totalPages) {
       updateUrl({ page: totalPages })
     }
-  }, [page, totalPages, updateUrl])
+  }, [meta, page, totalPages, updateUrl])
 
   const handleQueryChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchInput(event.target.value)
@@ -99,7 +100,7 @@ export const PageContent = () => {
         isLoading={isDeletePending}
         errorMessage={deleteErrorMessage}
         onOpenChange={(open) => {
-          if (!open) {
+          if (!open && !isDeletePending) {
             setPendingDelete(null)
             setDeleteErrorMessage(null)
           }
@@ -206,30 +207,37 @@ export const PageContent = () => {
             <p className="text-muted-foreground">{errorMessage}</p>
           </div>
         ) : (
-          <Table
-            columns={CATEGORIES_TABLE_COLUMNS}
-            data={categories}
-            getRowKey={(row, index) => row.id ?? `category-${index}`}
-            resolveRowClassName={(row) =>
-              row.deletedAt
-                ? 'border-b border-border bg-muted-foreground/20'
-                : ''
-            }
-            renderRow={(row) => (
-              <CategoryTableRow
-                category={row}
-                onRequestDelete={(c) => {
-                  setDeleteErrorMessage(null)
-                  setPendingDelete({
-                    id: c.id,
-                    name: c.name?.trim() ? c.name : '—',
-                    slug: c.slug?.trim() ?? '',
-                  })
-                }}
-              />
+          <div className="relative">
+            {isFetching && (
+              <div className="absolute inset-0 z-10 flex items-center justify-center bg-card/60 backdrop-blur-[1px]">
+                <Loading size="sm" />
+              </div>
             )}
-            emptyMessage="No categories match your filters."
-          />
+            <Table
+              columns={CATEGORIES_TABLE_COLUMNS}
+              data={categories}
+              getRowKey={(row, index) => row.id ?? `category-${index}`}
+              resolveRowClassName={(row) =>
+                row.deletedAt
+                  ? 'border-b border-border bg-muted-foreground/20'
+                  : ''
+              }
+              renderRow={(row) => (
+                <CategoryTableRow
+                  category={row}
+                  onRequestDelete={(c) => {
+                    setDeleteErrorMessage(null)
+                    setPendingDelete({
+                      id: c.id,
+                      name: c.name?.trim() ? c.name : '—',
+                      slug: c.slug?.trim() ?? '',
+                    })
+                  }}
+                />
+              )}
+              emptyMessage="No categories match your filters."
+            />
+          </div>
         )}
 
         <footer className="border-t border-outline-variant/30 px-6 py-4">

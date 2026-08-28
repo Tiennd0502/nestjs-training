@@ -68,12 +68,13 @@ export const PageContent = () => {
       ? role
       : null
 
-  const { users, meta, isLoading, isError, errorMessage, refetch } = useUsers({
-    page,
-    limit,
-    search: search.trim(),
-    role: normalizedRole ?? undefined,
-  })
+  const { users, meta, isLoading, isFetching, isError, errorMessage, refetch } =
+    useUsers({
+      page,
+      limit,
+      search: search.trim(),
+      role: normalizedRole ?? undefined,
+    })
 
   const totalPages = Math.max(1, meta?.pageCount ?? 1)
   const totalCount = meta?.totalCount ?? users.length
@@ -93,10 +94,10 @@ export const PageContent = () => {
     useDeleteUser()
 
   useEffect(() => {
-    if (page > totalPages) {
+    if (meta && page > totalPages) {
       updateUrl({ page: totalPages })
     }
-  }, [page, totalPages, updateUrl])
+  }, [meta, page, totalPages, updateUrl])
 
   useEffect(() => {
     setOptimisticRoles((current) => {
@@ -190,7 +191,7 @@ export const PageContent = () => {
         isLoading={isDeletePending}
         errorMessage={deleteErrorMessage}
         onOpenChange={(open) => {
-          if (!open) {
+          if (!open && !isDeletePending) {
             setPendingDeleteUser(null)
             setDeleteErrorMessage(null)
           }
@@ -316,31 +317,38 @@ export const PageContent = () => {
             </Button>
           </div>
         ) : (
-          <Table
-            columns={USERS_TABLE_COLUMNS}
-            data={users}
-            getRowKey={(user, index) => user.id ?? `user-${index}`}
-            resolveRowClassName={(user) =>
-              user.deletedAt
-                ? 'border-b border-border bg-muted-foreground/20'
-                : ''
-            }
-            renderRow={(user) => (
-              <UserTableRow
-                user={
-                  user.id && optimisticRoles[user.id]
-                    ? { ...user, role: optimisticRoles[user.id] }
-                    : user
-                }
-                onRequestRoleChange={handleUserRoleUpdate}
-                onRequestDelete={handleUserDeleteRequest}
-                isRoleDisabled={
-                  pendingRoleUserId === user.id || Boolean(user.deletedAt)
-                }
-                isDeleteDisabled={isDeletePending || Boolean(user.deletedAt)}
-              />
+          <div className="relative">
+            {isFetching && (
+              <div className="absolute inset-0 z-10 flex items-center justify-center bg-card/60 backdrop-blur-[1px]">
+                <Loading size="sm" />
+              </div>
             )}
-          />
+            <Table
+              columns={USERS_TABLE_COLUMNS}
+              data={users}
+              getRowKey={(user, index) => user.id ?? `user-${index}`}
+              resolveRowClassName={(user) =>
+                user.deletedAt
+                  ? 'border-b border-border bg-muted-foreground/20'
+                  : ''
+              }
+              renderRow={(user) => (
+                <UserTableRow
+                  user={
+                    user.id && optimisticRoles[user.id]
+                      ? { ...user, role: optimisticRoles[user.id] }
+                      : user
+                  }
+                  onRequestRoleChange={handleUserRoleUpdate}
+                  onRequestDelete={handleUserDeleteRequest}
+                  isRoleDisabled={
+                    pendingRoleUserId === user.id || Boolean(user.deletedAt)
+                  }
+                  isDeleteDisabled={isDeletePending || Boolean(user.deletedAt)}
+                />
+              )}
+            />
+          </div>
         )}
 
         <footer className="border-t border-outline-variant/30 px-6 py-4">

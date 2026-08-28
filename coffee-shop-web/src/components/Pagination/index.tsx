@@ -15,8 +15,7 @@ import { cn } from '@/utils/styles'
 export const DEFAULT_PAGINATION_SIBLING_COUNT = 1
 
 export type PaginationItemToken =
-  | { type: 'page'; page: number }
-  | { type: 'ellipsis'; key: string }
+  { type: 'page'; page: number } | { type: 'ellipsis'; key: string }
 
 function range(start: number, end: number): number[] {
   if (start > end) return []

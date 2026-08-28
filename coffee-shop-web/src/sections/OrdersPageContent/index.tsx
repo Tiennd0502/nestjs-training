@@ -81,25 +81,31 @@ export default function OrdersPageContent() {
     return () => window.clearTimeout(id)
   }, [searchInput])
 
-  const { orders, meta, isLoading, isError, errorMessage, refetch } = useOrders(
-    {
-      page,
-      limit,
-      search: search.trim(),
-      status: status ?? undefined,
-      shippingStatus: shippingStatus ?? undefined,
-    },
-  )
+  const {
+    orders,
+    meta,
+    isLoading,
+    isFetching,
+    isError,
+    errorMessage,
+    refetch,
+  } = useOrders({
+    page,
+    limit,
+    search: search.trim(),
+    status: status ?? undefined,
+    shippingStatus: shippingStatus ?? undefined,
+  })
 
   const totalPages = Math.max(1, meta?.pageCount ?? 1)
   const totalCount = meta?.totalCount ?? orders.length
   const showingCount = orders.length
 
   useEffect(() => {
-    if (page > totalPages) {
+    if (meta && page > totalPages) {
       updateUrl({ page: totalPages })
     }
-  }, [page, totalPages, updateUrl])
+  }, [meta, page, totalPages, updateUrl])
 
   const handleStatusChange = (value: unknown) => {
     if (typeof value !== 'string') return
@@ -204,7 +210,7 @@ export default function OrdersPageContent() {
         isLoading={isDeletePending}
         errorMessage={deleteErrorMessage}
         onOpenChange={(open) => {
-          if (!open) {
+          if (!open && !isDeletePending) {
             setPendingDelete(null)
             setDeleteErrorMessage(null)
           }
@@ -326,38 +332,48 @@ export default function OrdersPageContent() {
             </Button>
           </div>
         ) : (
-          <Table
-            columns={ORDERS_TABLE_COLUMNS}
-            data={orders}
-            getRowKey={(order, index) => order.id ?? `order-${index}`}
-            resolveRowClassName={(order) =>
-              order.deletedAt
-                ? 'border-b border-border bg-muted-foreground/20'
-                : ''
-            }
-            renderRow={(order) => (
-              <OrderTableRow
-                order={order}
-                isDeleteDisabled={isDeletePending || Boolean(order.deletedAt)}
-                isStatusDisabled={
-                  pendingStatusOrderId === order.id || Boolean(order.deletedAt)
-                }
-                isShippingStatusDisabled={
-                  pendingShippingStatusOrderId === order.id
-                }
-                onRequestDelete={(nextOrder) => {
-                  setDeleteErrorMessage(null)
-                  setPendingDelete(nextOrder)
-                }}
-                onRequestView={(nextOrder) => {
-                  setSelectedOrder(nextOrder)
-                }}
-                onRequestStatusChange={handleOrderStatusUpdate}
-                onRequestShippingStatusChange={handleOrderShippingStatusUpdate}
-              />
+          <div className="relative">
+            {isFetching && (
+              <div className="absolute inset-0 z-10 flex items-center justify-center bg-card/60 backdrop-blur-[1px]">
+                <Loading size="sm" />
+              </div>
             )}
-            emptyMessage="No orders found."
-          />
+            <Table
+              columns={ORDERS_TABLE_COLUMNS}
+              data={orders}
+              getRowKey={(order, index) => order.id ?? `order-${index}`}
+              resolveRowClassName={(order) =>
+                order.deletedAt
+                  ? 'border-b border-border bg-muted-foreground/20'
+                  : ''
+              }
+              renderRow={(order) => (
+                <OrderTableRow
+                  order={order}
+                  isDeleteDisabled={isDeletePending || Boolean(order.deletedAt)}
+                  isStatusDisabled={
+                    pendingStatusOrderId === order.id ||
+                    Boolean(order.deletedAt)
+                  }
+                  isShippingStatusDisabled={
+                    pendingShippingStatusOrderId === order.id
+                  }
+                  onRequestDelete={(nextOrder) => {
+                    setDeleteErrorMessage(null)
+                    setPendingDelete(nextOrder)
+                  }}
+                  onRequestView={(nextOrder) => {
+                    setSelectedOrder(nextOrder)
+                  }}
+                  onRequestStatusChange={handleOrderStatusUpdate}
+                  onRequestShippingStatusChange={
+                    handleOrderShippingStatusUpdate
+                  }
+                />
+              )}
+              emptyMessage="No orders found."
+            />
+          </div>
         )}
 
         <footer className="border-t border-outline-variant/30 px-6 py-4">

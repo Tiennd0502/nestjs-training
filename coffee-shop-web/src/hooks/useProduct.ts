@@ -35,6 +35,7 @@ export interface UseProductsResult {
   products: Product[]
   meta: ResponseMeta | null
   isLoading: boolean
+  isFetching: boolean
   isError: boolean
   errorMessage: string | null
   refetch: () => Promise<void>
@@ -91,6 +92,7 @@ export const useProducts = (params: ProductOptions = {}): UseProductsResult => {
     products: query.data?.products ?? [],
     meta: query.data?.meta ?? null,
     isLoading: !query.data && query.isFetching,
+    isFetching: query.isFetching,
     isError: query.isError,
     errorMessage:
       query.isError && query.error instanceof Error

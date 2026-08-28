@@ -101,6 +101,7 @@ export interface UseOrdersResult {
   orders: Order[]
   meta: ResponseMeta | null
   isLoading: boolean
+  isFetching: boolean
   isError: boolean
   errorMessage: string | null
   refetch: () => Promise<void>
@@ -138,6 +139,7 @@ export function useOrders(params: UseOrdersParams = {}): UseOrdersResult {
     orders: query.data?.orders ?? [],
     meta: query.data?.meta ?? null,
     isLoading: !query.data && query.isFetching,
+    isFetching: query.isFetching,
     isError: query.isError,
     errorMessage:
       query.isError && query.error instanceof Error

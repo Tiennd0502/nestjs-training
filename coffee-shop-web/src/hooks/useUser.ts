@@ -93,6 +93,7 @@ export interface UseUserResult {
   users: User[]
   meta: ResponseMeta | null
   isLoading: boolean
+  isFetching: boolean
   isError: boolean
   errorMessage: string | null
   refetch: () => Promise<void>
@@ -131,6 +132,7 @@ export const useUsers = (params: UseUsersParams = {}): UseUserResult => {
     users: query.data?.users ?? [],
     meta: query.data?.meta ?? null,
     isLoading: !query.data && query.isFetching,
+    isFetching: query.isFetching,
     isError: query.isError,
     errorMessage:
       query.isError && query.error instanceof Error

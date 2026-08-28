@@ -370,8 +370,7 @@ describe('Dashboard users page', () => {
     await user.click(screen.getByRole('button', { name: /^delete$/i }))
 
     const mutateArgs = mutateDeleteUserMock.mock.calls[0]?.[1] as
-      | { onError?: (error: unknown) => void; onSuccess?: () => void }
-      | undefined
+      { onError?: (error: unknown) => void; onSuccess?: () => void } | undefined
     mutateArgs?.onError?.(new Error('Cannot delete last admin'))
     await waitFor(() => {
       expect(screen.getByText('Cannot delete last admin')).toBeInTheDocument()

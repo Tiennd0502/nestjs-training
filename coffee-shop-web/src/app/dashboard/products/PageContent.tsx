@@ -67,14 +67,21 @@ export const PageContent = () => {
       ? status
       : null
 
-  const { products, meta, isLoading, isError, errorMessage, refetch } =
-    useProducts({
-      page,
-      limit,
-      search: search.trim(),
-      categoryId: normalizedCategoryId ?? undefined,
-      status: normalizedStatus ?? undefined,
-    })
+  const {
+    products,
+    meta,
+    isLoading,
+    isFetching,
+    isError,
+    errorMessage,
+    refetch,
+  } = useProducts({
+    page,
+    limit,
+    search: search.trim(),
+    categoryId: normalizedCategoryId ?? undefined,
+    status: normalizedStatus ?? undefined,
+  })
 
   const totalPages = Math.max(1, meta?.pageCount ?? 1)
   const totalCount = meta?.totalCount ?? products.length
@@ -116,7 +123,7 @@ export const PageContent = () => {
         isLoading={isDeletePending}
         errorMessage={deleteErrorMessage}
         onOpenChange={(open) => {
-          if (!open) {
+          if (!open && !isDeletePending) {
             setPendingDelete(null)
             setDeleteErrorMessage(null)
           }
@@ -256,24 +263,31 @@ export const PageContent = () => {
             </Button>
           </div>
         ) : (
-          <Table
-            columns={PRODUCTS_TABLE_COLUMNS}
-            data={products}
-            getRowKey={(product, index) => product.id ?? `product-${index}`}
-            resolveRowClassName={(product) =>
-              product.status === PRODUCT_STATUS.ARCHIVED
-                ? 'border-b border-border bg-muted-foreground/20'
-                : ''
-            }
-            renderRow={(product) => (
-              <ProductTableRow
-                product={product}
-                categoryOptions={categoryOptions}
-                onRequestDelete={(p) => setPendingDelete(p)}
-              />
+          <div className="relative">
+            {isFetching && (
+              <div className="absolute inset-0 z-10 flex items-center justify-center bg-card/60 backdrop-blur-[1px]">
+                <Loading size="sm" />
+              </div>
             )}
-            emptyMessage="No products found."
-          />
+            <Table
+              columns={PRODUCTS_TABLE_COLUMNS}
+              data={products}
+              getRowKey={(product, index) => product.id ?? `product-${index}`}
+              resolveRowClassName={(product) =>
+                product.status === PRODUCT_STATUS.ARCHIVED
+                  ? 'border-b border-border bg-muted-foreground/20'
+                  : ''
+              }
+              renderRow={(product) => (
+                <ProductTableRow
+                  product={product}
+                  categoryOptions={categoryOptions}
+                  onRequestDelete={(p) => setPendingDelete(p)}
+                />
+              )}
+              emptyMessage="No products found."
+            />
+          </div>
         )}
 
         <footer className="border-t border-outline-variant/30 px-6 py-4">

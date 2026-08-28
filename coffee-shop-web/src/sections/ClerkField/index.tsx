@@ -118,11 +118,11 @@ const ClerkField = ({
       </FieldState>
 
       <FieldError className="mt-1 block px-1 text-sm text-error" />
-      {clientError ? (
+      {clientError && (
         <p className="mt-1 block px-1 text-sm text-error" role="alert">
           {clientError}
         </p>
-      ) : null}
+      )}
     </Field>
   )
 }
