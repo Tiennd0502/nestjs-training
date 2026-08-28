@@ -25,16 +25,20 @@ import { cn } from '@/utils/styles'
 export interface UserTableRowProps {
   user: User
   onRequestRoleChange?: (user: User, nextRole: USER_ROLES) => void
+  onRequestEdit?: (user: User) => void
   onRequestDelete?: (user: User) => void
   isRoleDisabled?: boolean
+  isEditDisabled?: boolean
   isDeleteDisabled?: boolean
 }
 
 export function UserTableRow({
   user,
   onRequestRoleChange,
+  onRequestEdit,
   onRequestDelete,
   isRoleDisabled = false,
+  isEditDisabled = false,
   isDeleteDisabled = false,
 }: UserTableRowProps) {
   const name = `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim()
@@ -140,10 +144,15 @@ export function UserTableRow({
       <td className="min-w-0 px-6 py-4 align-middle text-center">
         <div className="flex justify-center gap-1">
           <Button
-            disabled
+            type="button"
             size="icon-xs"
             variant="ghost"
+            disabled={isEditDisabled}
+            title={
+              isUserDeleted ? 'Deleted users cannot be modified' : undefined
+            }
             aria-label={`Edit ${name}`}
+            onClick={() => onRequestEdit?.(user)}
           >
             <Pencil className="size-4" aria-hidden />
           </Button>

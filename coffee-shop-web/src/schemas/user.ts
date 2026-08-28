@@ -2,6 +2,7 @@ import { z } from 'zod'
 
 import { ERROR_MESSAGES } from '@/constants/messages'
 import { formDataEntryToString } from '@/utils/validation'
+import { USER_ROLES } from '@/types/user'
 
 export const signInCredentialsSchema = z.object({
   identifier: z
@@ -44,3 +45,18 @@ export const parseSignUpStartForm = (formData: FormData) =>
     emailAddress: formDataEntryToString(formData.get('emailAddress')),
     password: formDataEntryToString(formData.get('password')),
   })
+
+export const updateProfileSchema = z.object({
+  firstName: z.string().trim().min(1, ERROR_MESSAGES.FIRST_NAME_REQUIRED),
+  lastName: z.string().trim().min(1, ERROR_MESSAGES.LAST_NAME_REQUIRED),
+})
+
+export type UpdateProfileValues = z.infer<typeof updateProfileSchema>
+
+export const updateUserFormSchema = z.object({
+  firstName: z.string().trim().min(1, ERROR_MESSAGES.FIRST_NAME_REQUIRED),
+  lastName: z.string().trim().min(1, ERROR_MESSAGES.LAST_NAME_REQUIRED),
+  role: z.nativeEnum(USER_ROLES),
+})
+
+export type UpdateUserFormValues = z.infer<typeof updateUserFormSchema>

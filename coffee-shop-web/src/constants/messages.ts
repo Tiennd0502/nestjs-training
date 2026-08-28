@@ -32,6 +32,8 @@ export const ERROR_MESSAGES = {
   EXPIRY_DATE_INVALID: 'Enter expiry date as MM/YY',
   CVC_REQUIRED: 'Enter your CVC',
   CVC_INVALID: 'Enter a valid CVC',
+  PROFILE_SYNC_DELAYED:
+    'Saved, but syncing your profile is taking longer than expected. Refresh in a moment to confirm.',
 } as const
 
 export const API_FALLBACK_ERRORS = {
@@ -70,6 +72,7 @@ export const SUCCESS_MESSAGES = {
   ORDER_SHIPPING_STATUS_UPDATED: 'Shipping status updated',
   USER_ROLE_UPDATED: 'User role updated',
   USER_DELETED: 'User removed',
+  PROFILE_UPDATED: 'Profile updated',
   DRAFT_DISCARDED: 'Draft discarded',
 }
 

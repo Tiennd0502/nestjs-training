@@ -17,6 +17,7 @@ import {
   deleteUserById,
   fetchUsers,
   type FetchUsersOptions,
+  type UpdateUserPayload,
   updateUserById,
 } from '@/services/user'
 import type { User, USER_ROLES } from '@/types/user'
@@ -35,7 +36,24 @@ export function useUpdateUserRole() {
 
   return useMutation({
     mutationFn: async (input: { id: string; role: USER_ROLES }) => {
-      const result = await updateUserById(input.id, input.role)
+      const result = await updateUserById(input.id, { role: input.role })
+      if (!result.ok) {
+        throw new Error(result.error)
+      }
+      return result.user
+    },
+    onSuccess: () => {
+      void invalidateUserLists(queryClient)
+    },
+  })
+}
+
+export function useUpdateUserInfo() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (input: { id: string; payload: UpdateUserPayload }) => {
+      const result = await updateUserById(input.id, input.payload)
       if (!result.ok) {
         throw new Error(result.error)
       }

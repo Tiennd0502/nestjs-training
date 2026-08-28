@@ -10,6 +10,7 @@ import {
 } from '@/constants/messages'
 import {
   useDeleteUser,
+  useUpdateUserInfo,
   useUpdateUserRole,
   useUsers,
   type UseUsersParams,
@@ -34,6 +35,7 @@ jest.mock('@/hooks/useUser', () => ({
   useDeleteUser: jest.fn(),
   useUsers: jest.fn(),
   useUpdateUserRole: jest.fn(),
+  useUpdateUserInfo: jest.fn(),
 }))
 
 jest.mock('sonner', () => ({
@@ -74,10 +76,12 @@ const mockUseRouter = jest.mocked(useRouter)
 const mockUseSearchParams = jest.mocked(useSearchParams)
 const mockUseUsers = jest.mocked(useUsers)
 const mockUseUpdateUserRole = jest.mocked(useUpdateUserRole)
+const mockUseUpdateUserInfo = jest.mocked(useUpdateUserInfo)
 const mockUseDeleteUser = jest.mocked(useDeleteUser)
 const mockToastSuccess = jest.mocked(toast.success)
 const refetchMock = jest.fn()
 const mutateUserRoleMock = jest.fn()
+const mutateUserInfoMock = jest.fn()
 const mutateDeleteUserMock = jest.fn()
 
 /** Simulated API page size in tests (response meta `limit`). */
@@ -217,11 +221,16 @@ describe('Dashboard users page', () => {
     refetchMock.mockReset()
     mockUseUsers.mockImplementation((params) => mockUsersByApiParams(params))
     mutateUserRoleMock.mockReset()
+    mutateUserInfoMock.mockReset()
     mutateDeleteUserMock.mockReset()
     mockToastSuccess.mockReset()
     mockUseUpdateUserRole.mockReturnValue({
       mutate: mutateUserRoleMock,
     } as unknown as ReturnType<typeof useUpdateUserRole>)
+    mockUseUpdateUserInfo.mockReturnValue({
+      mutate: mutateUserInfoMock,
+      isPending: false,
+    } as unknown as ReturnType<typeof useUpdateUserInfo>)
     mockUseDeleteUser.mockReturnValue({
       mutate: mutateDeleteUserMock,
       isPending: false,
