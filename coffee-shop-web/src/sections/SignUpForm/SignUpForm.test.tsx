@@ -2,6 +2,8 @@ import React from 'react'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import Link from 'next/link'
+import { useRouter, usePathname } from 'next/navigation'
+import { useAuth } from '@clerk/nextjs'
 
 import { ERROR_MESSAGES } from '@/constants/messages'
 
@@ -12,6 +14,15 @@ const state = {
   globalLoading: false,
   submitLoading: false,
 }
+
+jest.mock('next/navigation', () => ({
+  useRouter: jest.fn(),
+  usePathname: jest.fn(),
+}))
+
+jest.mock('@clerk/nextjs', () => ({
+  useAuth: jest.fn(),
+}))
 
 jest.mock('@/hooks/useCleanClerkUrl', () => ({
   useCleanClerkUrl: jest.fn(),
@@ -191,11 +202,23 @@ jest.mock('@clerk/elements/common', () => ({
 
 describe('SignUpForm', () => {
   const useCleanClerkUrlMock = jest.mocked(useCleanClerkUrl)
+  const useAuthMock = jest.mocked(useAuth)
+  const useRouterMock = jest.mocked(useRouter)
+  const usePathnameMock = jest.mocked(usePathname)
+  const replaceMock = jest.fn()
 
   beforeEach(() => {
     state.globalLoading = false
     state.submitLoading = false
-    useCleanClerkUrlMock.mockClear()
+    useCleanClerkUrlMock.mockReturnValue({})
+    useAuthMock.mockReturnValue({
+      isLoaded: true,
+      isSignedIn: false,
+    } as ReturnType<typeof useAuth>)
+    useRouterMock.mockReturnValue({
+      replace: replaceMock,
+    } as unknown as ReturnType<typeof useRouter>)
+    usePathnameMock.mockReturnValue('/sign-up')
   })
 
   afterEach(() => {
@@ -299,6 +322,17 @@ describe('SignUpForm', () => {
     render(<SignUpForm />)
 
     expect(useCleanClerkUrlMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('redirects home once the user is signed in', () => {
+    useAuthMock.mockReturnValue({
+      isLoaded: true,
+      isSignedIn: true,
+    } as ReturnType<typeof useAuth>)
+
+    render(<SignUpForm />)
+
+    expect(replaceMock).toHaveBeenCalledWith('/')
   })
 
   it('shows client validation on start when required fields are empty', async () => {

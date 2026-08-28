@@ -1,41 +1,44 @@
 'use client'
 
-import { useState } from 'react'
-import { Coffee, Filter, Pencil } from 'lucide-react'
+import { Coffee, Pencil } from 'lucide-react'
 import { useUser as useClerkUser } from '@clerk/nextjs'
 
 // Types
 import type { ClerkUser } from '@/types/user'
-import { type Order } from '@/types/order'
 
 // Constants
-import { ORDERS_HISTORY_TABLE_COLUMNS } from '@/constants/order'
 import { DEFAULT_AVATAR } from '@/constants/images'
 
 // Hooks
 import { useAuth } from '@/hooks/useAuth'
-import { useOrders } from '@/hooks/useOrder'
 
 // Utils
 import { resolveProfilePresentation } from '@/utils/api'
 
 // Components
-import Table from '@/components/Table'
 import { Button } from '@/components/ui/button'
 import { Avatar } from '@/components/Avatar'
-import { OrderDetailModal } from '@/sections/OrderDetailModal'
-import { ProfileOrderTableRow } from '@/sections/ProfileOrderTableRow/index'
 import { ProfileAccountDialogs } from './ProfileAccountDialogs'
-import Loading from '@/components/Loading'
+
+// Order history is disabled: order feature not implemented on backend yet
+// import { useState } from 'react'
+// import { Filter } from 'lucide-react'
+// import { type Order } from '@/types/order'
+// import { ORDERS_HISTORY_TABLE_COLUMNS } from '@/constants/order'
+// import { useOrders } from '@/hooks/useOrder'
+// import Table from '@/components/Table'
+// import { OrderDetailModal } from '@/sections/OrderDetailModal'
+// import { ProfileOrderTableRow } from '@/sections/ProfileOrderTableRow/index'
+// import Loading from '@/components/Loading'
 
 export function ProfilePageView() {
   const { user: apiUser, error, isSignedIn, isAuthLoaded } = useAuth()
   const { user: clerkUser, isLoaded: clerkLoaded } = useClerkUser()
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
-  const { orders, isLoading, isError, errorMessage, refetch } = useOrders({
-    page: 1,
-    limit: 10,
-  })
+  // const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
+  // const { orders, isLoading, isError, errorMessage, refetch } = useOrders({
+  //   page: 1,
+  //   limit: 10,
+  // })
 
   const { displayName, email, imageSrc } = resolveProfilePresentation(
     apiUser,
@@ -46,7 +49,8 @@ export function ProfilePageView() {
   return (
     <div className="bg-background text-on-background">
       <div className="mx-auto max-w-7xl px-8 pb-24 pt-16 md:pt-20">
-        <OrderDetailModal
+        {/* Order history is disabled: order feature not implemented on backend yet */}
+        {/* <OrderDetailModal
           order={selectedOrder}
           open={selectedOrder !== null}
           onOpenChange={(open) => {
@@ -54,7 +58,7 @@ export function ProfilePageView() {
               setSelectedOrder(null)
             }
           }}
-        />
+        /> */}
 
         <section className="mb-16 grid grid-cols-1 gap-8 lg:grid-cols-12">
           <div className="flex flex-col items-center gap-12 rounded-xl bg-surface-container-low p-8 md:flex-row md:items-start md:p-12 lg:col-span-8">
@@ -139,7 +143,8 @@ export function ProfilePageView() {
           </div>
         </section>
 
-        <section className="space-y-8">
+        {/* Order history is disabled: order feature not implemented on backend yet */}
+        {/* <section className="space-y-8">
           <div className="flex items-center justify-between gap-4">
             <h2 className="font-headline text-3xl text-on-surface">
               Order History
@@ -193,7 +198,7 @@ export function ProfilePageView() {
               />
             )}
           </div>
-        </section>
+        </section> */}
       </div>
     </div>
   )

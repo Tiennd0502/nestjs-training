@@ -138,13 +138,13 @@ const SignInForm = () => {
                                 <span className="text-sm font-semibold text-on-surface-variant">
                                   Password
                                 </span>
-                                <SignIn.Action
-                                  navigate="forgot-password"
-                                  disabled={isLoading}
-                                  className="cursor-pointer text-xs font-semibold text-primary transition-colors hover:text-primary-container disabled:pointer-events-none disabled:opacity-50"
+                                <button
+                                  type="button"
+                                  disabled
+                                  className="text-xs font-semibold text-primary opacity-50 pointer-events-none"
                                 >
                                   Forgot Password?
-                                </SignIn.Action>
+                                </button>
                               </div>
                               <ClerkField
                                 required

@@ -1,12 +1,15 @@
 'use client'
 
-import { useCallback, useState, type MouseEvent } from 'react'
+import { useCallback, useEffect, useState, type MouseEvent } from 'react'
+import { useRouter } from 'next/navigation'
+import { useAuth } from '@clerk/nextjs'
 import * as SignUp from '@clerk/elements/sign-up'
 import * as Clerk from '@clerk/elements/common'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { Lock, Mail, User } from 'lucide-react'
 
+import { ROUTES } from '@/constants/routes'
 import { useCleanClerkUrl } from '@/hooks/useCleanClerkUrl'
 import { parseSignUpStartForm } from '@/schemas/user'
 
@@ -26,10 +29,17 @@ interface StartFieldErrors {
 }
 
 const SignUpForm = () => {
-  useCleanClerkUrl()
   const pathname = usePathname()
   const isSsoCallback = pathname?.endsWith('/sso-callback') ?? false
+  const router = useRouter()
+  const { isLoaded, isSignedIn } = useAuth()
+  const { redirectUrl, afterSignUpUrl } = useCleanClerkUrl()
   const [startErrors, setStartErrors] = useState<StartFieldErrors>({})
+
+  useEffect(() => {
+    if (!isLoaded || !isSignedIn) return
+    router.replace(afterSignUpUrl ?? redirectUrl ?? ROUTES.HOME)
+  }, [isLoaded, isSignedIn, afterSignUpUrl, redirectUrl, router])
 
   const handleSignUpStartClick = useCallback(
     (event: MouseEvent<HTMLButtonElement>) => {

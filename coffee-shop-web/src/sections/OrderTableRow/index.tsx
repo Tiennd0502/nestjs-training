@@ -55,7 +55,7 @@ export function OrderTableRow({
   onRequestStatusChange,
   // onRequestShippingStatusChange,
   isDeleteDisabled = false,
-  isStatusDisabled = false,
+  // isStatusDisabled = false,
   // isShippingStatusDisabled = false,
 }: OrderTableRowProps) {
   const orderLabel = order.orderNumber?.trim() || order.id
@@ -69,8 +69,6 @@ export function OrderTableRow({
   const avatarFallback = initials || '?'
   const statusP = getOrderStatusPresentation(order.status)
   const isOrderDeleted = Boolean(order.deletedAt)
-  const isStatusActionDisabled =
-    isOrderDeleted || isDeleteDisabled || isStatusDisabled
   const isDeleteActionDisabled = isOrderDeleted || isDeleteDisabled
   // const shipping = getShippingStatusPresentation(order.shippingStatus)
   const nextOrderStatuses = ORDER_TRANSITIONS[order.status]
@@ -125,19 +123,18 @@ export function OrderTableRow({
         </div>
       </td>
       <td className="min-w-0 px-6 py-4 align-middle text-center">
+        {/* Order status update disabled: order feature not implemented on backend yet */}
         {nextOrderStatuses.length > 0 ? (
           <DropdownMenu>
             <DropdownMenuTrigger
-              disabled={isStatusActionDisabled}
+              disabled
               aria-label={`Change order status for ${displayId}`}
               className="inline-flex"
             >
               <Badge
                 className={cn(
                   'h-7 px-3 text-[0.65rem] font-semibold uppercase',
-                  isStatusActionDisabled
-                    ? 'cursor-not-allowed opacity-70'
-                    : 'cursor-pointer transition hover:opacity-90',
+                  'cursor-not-allowed opacity-70',
                   statusP.badgeClassName,
                 )}
               >
@@ -149,7 +146,7 @@ export function OrderTableRow({
               {nextOrderStatuses.map((nextStatus) => (
                 <DropdownMenuItem
                   key={nextStatus}
-                  disabled={isStatusActionDisabled}
+                  disabled
                   onClick={() => onRequestStatusChange?.(order, nextStatus)}
                 >
                   {getOrderStatusLabel(nextStatus)}
@@ -219,11 +216,13 @@ export function OrderTableRow({
       </td>
       <td className="px-6 py-4 align-middle">
         <div className="flex justify-center gap-1">
+          {/* View/Delete disabled: order feature not implemented on backend yet */}
           <Button
             type="button"
             size="icon"
             variant="ghost"
             className="size-9"
+            disabled
             onClick={() => onRequestView?.(order)}
             title="View order details"
             aria-label={`View order ${displayId}`}
@@ -235,7 +234,7 @@ export function OrderTableRow({
             size="icon"
             variant="ghost"
             className="size-9"
-            disabled={isDeleteActionDisabled}
+            disabled
             onClick={() => onRequestDelete?.(order)}
             title={
               isDeleteActionDisabled

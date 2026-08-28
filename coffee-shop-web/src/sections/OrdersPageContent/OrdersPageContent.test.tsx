@@ -1,5 +1,4 @@
 import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 
 import OrdersPageContent from '@/sections/OrdersPageContent'
 import { PAYMENT_METHOD } from '@/types/checkout'
@@ -102,22 +101,11 @@ describe('OrdersPageContent', () => {
     mockUseUpdateOrderShippingStatus.mockReturnValue({ mutate: jest.fn() })
   })
 
-  it('opens order detail modal when view button clicked and closes it', async () => {
-    const user = userEvent.setup()
+  it('disables the view button (order feature not implemented on backend yet)', () => {
     render(<OrdersPageContent />)
 
-    await user.click(
+    expect(
       screen.getByRole('button', { name: /View order #OD-1001/i }),
-    )
-
-    expect(await screen.findByTestId('order-detail-modal')).toBeInTheDocument()
-    expect(screen.getByText('Arabica x1')).toBeInTheDocument()
-    expect(screen.getByRole('img', { name: 'Arabica' })).toBeInTheDocument()
-
-    await user.click(
-      screen.getAllByRole('button', { name: 'Close order details' })[0],
-    )
-
-    expect(screen.queryByText('Order Details')).not.toBeInTheDocument()
+    ).toBeDisabled()
   })
 })

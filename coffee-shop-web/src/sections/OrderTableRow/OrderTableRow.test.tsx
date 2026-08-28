@@ -66,13 +66,13 @@ describe('OrderTableRow', () => {
     expect(within(row).getByText('Pending')).toBeInTheDocument()
     expect(
       screen.getByRole('button', { name: /View order #SB-9281/i }),
-    ).toBeEnabled()
+    ).toBeDisabled()
     expect(
       screen.getByRole('button', { name: /Delete order #SB-9281/i }),
-    ).toBeEnabled()
+    ).toBeDisabled()
   })
 
-  it('calls onRequestView with current order when view clicked', async () => {
+  it('does not call onRequestView when view is clicked (disabled: order feature not implemented yet)', async () => {
     const user = userEvent.setup()
     const order = makeOrder()
     const onRequestView = jest.fn()
@@ -91,11 +91,10 @@ describe('OrderTableRow', () => {
       screen.getByRole('button', { name: /View order #SB-9281/i }),
     )
 
-    expect(onRequestView).toHaveBeenCalledTimes(1)
-    expect(onRequestView).toHaveBeenCalledWith(order)
+    expect(onRequestView).not.toHaveBeenCalled()
   })
 
-  it('calls onRequestDelete with current order when delete clicked', async () => {
+  it('does not call onRequestDelete when delete is clicked (disabled: order feature not implemented yet)', async () => {
     const user = userEvent.setup()
     const order = makeOrder()
     const onRequestDelete = jest.fn()
@@ -114,8 +113,7 @@ describe('OrderTableRow', () => {
       screen.getByRole('button', { name: /Delete order #SB-9281/i }),
     )
 
-    expect(onRequestDelete).toHaveBeenCalledTimes(1)
-    expect(onRequestDelete).toHaveBeenCalledWith(order)
+    expect(onRequestDelete).not.toHaveBeenCalled()
   })
 
   it('disables delete action when isDeleteDisabled is true', () => {
@@ -135,7 +133,7 @@ describe('OrderTableRow', () => {
     ).toBeDisabled()
   })
 
-  it('locks status and delete actions for deleted order but still allows view', async () => {
+  it('locks status, view, and delete actions for a deleted order', async () => {
     const user = userEvent.setup()
     const order = makeOrder({ deletedAt: '2026-01-02T00:00:00.000Z' })
     const onRequestView = jest.fn()
@@ -161,13 +159,15 @@ describe('OrderTableRow', () => {
     expect(
       screen.getByRole('button', { name: /Delete order #SB-9281/i }),
     ).toBeDisabled()
+    expect(
+      screen.getByRole('button', { name: /View order #SB-9281/i }),
+    ).toBeDisabled()
 
     await user.click(
       screen.getByRole('button', { name: /View order #SB-9281/i }),
     )
 
-    expect(onRequestView).toHaveBeenCalledTimes(1)
-    expect(onRequestView).toHaveBeenCalledWith(order)
+    expect(onRequestView).not.toHaveBeenCalled()
     expect(onRequestDelete).not.toHaveBeenCalled()
   })
 
