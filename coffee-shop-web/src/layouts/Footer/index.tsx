@@ -22,34 +22,47 @@ const Footer = () => {
             ['Shipping Policy', '#'],
             ['Privacy', '#'],
             ['Contact', '/contact'],
-          ].map(([label, href]) => (
-            <Link
-              key={label}
-              href={href}
-              className="text-on-surface/50 transition-opacity hover:text-on-surface dark:text-inverse-on-surface/50 dark:hover:text-inverse-on-surface"
-            >
-              {label}
-            </Link>
-          ))}
+          ].map(([label, href]) =>
+            href === '#' ? (
+              <span
+                key={label}
+                aria-disabled="true"
+                className="cursor-not-allowed text-on-surface/50 opacity-50 dark:text-inverse-on-surface/50"
+              >
+                {label}
+              </span>
+            ) : (
+              <Link
+                key={label}
+                href={href}
+                className="text-on-surface/50 transition-opacity hover:text-on-surface dark:text-inverse-on-surface/50 dark:hover:text-inverse-on-surface"
+              >
+                {label}
+              </Link>
+            ),
+          )}
         </nav>
         <div className="mt-2 flex gap-6">
           <button
+            disabled
             type="button"
-            className="flex size-10 items-center justify-center rounded-full bg-surface-container-high text-primary transition-all hover:bg-primary hover:text-on-primary"
+            className="flex size-10 items-center justify-center rounded-full bg-surface-container-high text-primary transition-all enabled:hover:bg-primary enabled:hover:text-on-primary disabled:cursor-not-allowed disabled:opacity-50"
             aria-label="Website"
           >
             <Globe className="size-4" />
           </button>
           <button
+            disabled
             type="button"
-            className="flex size-10 items-center justify-center rounded-full bg-surface-container-high text-primary transition-all hover:bg-primary hover:text-on-primary"
+            className="flex size-10 items-center justify-center rounded-full bg-surface-container-high text-primary transition-all enabled:hover:bg-primary enabled:hover:text-on-primary disabled:cursor-not-allowed disabled:opacity-50"
             aria-label="Email"
           >
             <Mail className="size-4" />
           </button>
           <button
+            disabled
             type="button"
-            className="flex size-10 items-center justify-center rounded-full bg-surface-container-high text-primary transition-all hover:bg-primary hover:text-on-primary"
+            className="flex size-10 items-center justify-center rounded-full bg-surface-container-high text-primary transition-all enabled:hover:bg-primary enabled:hover:text-on-primary disabled:cursor-not-allowed disabled:opacity-50"
             aria-label="Social"
           >
             <Camera className="size-4" />

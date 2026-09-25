@@ -72,6 +72,7 @@ const Header = ({ className, menu = MENU }: ShopHeaderProps) => {
         <div className="flex ml-auto mr-0 w-fit min-w-0 flex-1 items-center justify-end gap-6 sm:gap-2 md:gap-3">
           <div className="ml-auto mr-0 w-[256px] items-end justify-end lg:max-w-none lg:flex-none">
             <SearchInput
+              disabled
               aria-label="Search products"
               containerClassName="h-9 max-w-[250px] md:h-10"
             />

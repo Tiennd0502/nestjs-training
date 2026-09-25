@@ -1,7 +1,6 @@
 'use client'
 
 import { ChevronRight } from 'lucide-react'
-import Link from 'next/link'
 import { toast } from 'sonner'
 
 import { ProductReviewCard } from '@/components/ProductReviewCard'
@@ -43,6 +42,7 @@ export function ProductReviewsSection({
           Customer Impressions
         </h2>
         <Button
+          disabled
           type="button"
           variant="outline"
           size="sm"
@@ -66,14 +66,13 @@ export function ProductReviewsSection({
       </ul>
 
       <div className="flex justify-center pt-4">
-        <Link
-          href="/roasts"
-          className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary underline-offset-4 hover:underline"
-          aria-label="View more customer experiences on the roasts listing"
+        <span
+          aria-disabled="true"
+          className="inline-flex cursor-not-allowed items-center gap-1.5 text-sm font-semibold text-primary/50"
         >
           View More Experiences
           <ChevronRight className="size-4" aria-hidden />
-        </Link>
+        </span>
       </div>
     </section>
   )

@@ -97,8 +97,8 @@ export const UserDropdown = ({
   }
 
   const accountDropdown = (
-    <DropdownMenu>
-      <DropdownMenuTrigger className="cursor-pointer">
+    <DropdownMenu disabled={isLoading}>
+      <DropdownMenuTrigger className="cursor-pointer disabled:cursor-not-allowed disabled:opacity-60">
         <div
           data-testid="btn-dropdown"
           className="flex w-fit items-center gap-3.5"
@@ -153,6 +153,7 @@ export const UserDropdown = ({
                   <Button
                     data-testid="menu-item"
                     variant="ghost"
+                    disabled={isLoading}
                     key={index}
                     className={cn(
                       'h-fit w-full items-start justify-start px-5 py-2 font-bold text-current hover:text-primary hover:no-underline',

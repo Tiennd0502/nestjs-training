@@ -30,9 +30,9 @@ export const CheckoutOrderSummary = ({
   onRemoveItem,
   submissionErrorMessage,
   itemQuantityErrors,
-  // hasBlockingItemErrors = false,
+  hasBlockingItemErrors = false,
   isPlacingOrder = false,
-  // isPlaceOrderDisabled = false,
+  isPlaceOrderDisabled = false,
   className,
 }: CheckoutOrderSummaryProps) => {
   const hasItemErrors = items.some((item) =>
@@ -161,15 +161,10 @@ export const CheckoutOrderSummary = ({
         </p>
       )}
 
-      <p className="mt-3 text-center text-sm text-red-600 font-bold">
-        Ordering is temporarily unavailable.
-      </p>
-
       <Button
         type="button"
         loading={isPlacingOrder}
-        // disabled={isPlaceOrderDisabled || hasBlockingItemErrors}
-        disabled
+        disabled={isPlaceOrderDisabled || hasBlockingItemErrors}
         title="Ordering is temporarily unavailable."
         className="mt-4 h-14 rounded-full text-base"
         onClick={onPlaceOrder}

@@ -1,7 +1,7 @@
 'use client'
 
 // import { Lock } from 'lucide-react'
-import { useAuth as useClerkAuth } from '@clerk/nextjs'
+// import { useAuth as useClerkAuth } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
 import {
   useEffect,
@@ -17,12 +17,12 @@ import { CheckoutOrderSummary } from '@/components/CheckoutOrderSummary'
 import { CheckoutPaymentMethod } from '@/components/CheckoutPaymentMethod'
 import { Input } from '@/components/Input'
 import { Button } from '@/components/ui/button'
-import { CLERK_SESSION_TEMPLATE } from '@/constants/common'
-import { ERROR_MESSAGES } from '@/constants/messages'
+// import { CLERK_SESSION_TEMPLATE } from '@/constants/common'
+// import { ERROR_MESSAGES } from '@/constants/messages'
 import { CHECKOUT_PLACE_ORDER_BLOCKED_MESSAGE } from '@/constants/order'
 import { ROUTES } from '@/constants/routes'
 import { useAuth } from '@/hooks/useAuth'
-import { useCreateOrder } from '@/hooks/useOrder'
+// import { useCreateOrder } from '@/hooks/useOrder'
 import { parseCheckoutValues } from '@/schemas/checkout'
 import {
   findMapboxAddressSuggestions,
@@ -39,12 +39,19 @@ import {
   type PaymentMethod,
 } from '@/types/checkout'
 import Loading from '@/components/Loading'
-import type { OrderPayload } from '@/types/order'
+import {
+  ORDER_STATUS,
+  SHIPPING_STATUS,
+  type Order,
+  type OrderItem,
+  type OrderPayload,
+} from '@/types/order'
+import type { User } from '@/types/user'
 import { DELIVERY_SPEED } from '@/constants/order'
 import {
   mapItemFieldErrorsToLineIdMessages,
   omitSubmitErrorsForRemovedLine,
-  tagItemErrorsWithLineRefs,
+  // tagItemErrorsWithLineRefs,
 } from '@/utils/order'
 import { formatPrice } from '@/utils/common'
 import { isCartItemOutOfStock } from '@/utils/inventory'
@@ -68,7 +75,7 @@ const DEFAULT_VALUES: CheckoutFormValues = {
 
 const CheckoutPageContent = () => {
   const router = useRouter()
-  const { getToken } = useClerkAuth()
+  // const { getToken } = useClerkAuth()
   const { user } = useAuth()
 
   const [values, setValues] = useState<CheckoutFormValues>(DEFAULT_VALUES)
@@ -102,7 +109,7 @@ const CheckoutPageContent = () => {
     setItemSnapshots,
     removeItem,
   } = useCartStore()
-  const { mutate: createOrder } = useCreateOrder()
+  // const { mutate: createOrder } = useCreateOrder()
 
   const hasItems = items.length > 0
   const hasOutOfStockItems = items.some(isCartItemOutOfStock)
@@ -304,16 +311,16 @@ const CheckoutPageContent = () => {
     setFieldErrors({})
     setIsSubmitting(true)
 
-    const orderItems = items.map((item) => ({
+    const orderItemPayloads = items.map((item) => ({
       variantId: item.variantId,
       productId: item.productId,
       quantity: item.quantity,
       unitPrice: item.unitPrice,
     }))
-    const linesAtSubmit = items.map((item) => ({
-      id: item.id,
-      productId: item.productId,
-    }))
+    // const linesAtSubmit = items.map((item) => ({
+    //   id: item.id,
+    //   productId: item.productId,
+    // }))
 
     const orderPayload: OrderPayload = {
       shippingAddress: {
@@ -328,61 +335,117 @@ const CheckoutPageContent = () => {
       },
       paymentMethod: result.data.paymentMethod,
       shippingMethodId: selectedShippingMethodId,
-      items: orderItems,
+      items: orderItemPayloads,
     }
 
-    createOrder(
-      {
-        body: orderPayload,
-        getToken: () => getToken({ template: CLERK_SESSION_TEMPLATE }),
-      },
-      {
-        onSuccess: (data) => {
-          setItemSnapshots(data)
-          setSubmitErrors(null)
-          toast.success('Order placed successfully', {
-            description: `Total charged: $${normalizedTotal}`,
-          })
-          setIsSubmitting(false)
-          router.push(ROUTES.ORDER_SUCCESS)
+    const fallbackUser: User = {
+      id: '',
+      email: null,
+      firstName: null,
+      lastName: null,
+      name: null,
+      avatarUrl: null,
+    }
 
-          setTimeout(() => {
-            clearCart()
-          }, 200)
-        },
-        onError: (error) => {
-          setIsSubmitting(false)
-          const defaultMessage =
-            error instanceof Error
-              ? error.message
-              : ERROR_MESSAGES.SOMETHING_WENT_WRONG
+    const orderItems: OrderItem[] = items.map((item) => ({
+      id: item.id,
+      productId: item.productId,
+      variantId: item.variantId,
+      quantity: item.quantity,
+      unitPrice: item.unitPrice,
+      productName: item.name,
+      productImage: item.imageUrl,
+      variantName: item.meta,
+      finalPrice: item.unitPrice,
+      subTotal: item.unitPrice * item.quantity,
+      discountAmount: 0,
+    }))
 
-          const responseData = (error as { response?: { data?: unknown } })
-            .response?.data
+    const now = new Date().toISOString()
+    const orderSnapshot: Order = {
+      id: crypto.randomUUID(),
+      userId: user?.id ?? '',
+      orderNumber: `#NB-${Date.now().toString().slice(-6)}`,
+      status: ORDER_STATUS.PENDING,
+      shippingStatus: SHIPPING_STATUS.PENDING,
+      paymentStatus: ORDER_STATUS.PENDING,
+      subTotal: checkoutTotals.subtotal,
+      tax: checkoutTotals.tax,
+      shippingFee,
+      totalAmount: checkoutTotals.total,
+      shippingMethodId: selectedShippingMethodId,
+      shippingMethodName: selectedShippingMethod?.name ?? '',
+      paymentMethod: orderPayload.paymentMethod,
+      addressSnapshot: orderPayload.shippingAddress,
+      items: orderItems,
+      user: user ?? fallbackUser,
+      createdAt: now,
+      updatedAt: now,
+      deletedAt: null,
+    }
 
-          if (responseData && typeof responseData === 'object') {
-            const data = responseData as Partial<ApiErrorResponse>
-            const rawErrors = Array.isArray(data.errors) ? data.errors : []
-            setSubmitErrors({
-              statusCode:
-                typeof data.statusCode === 'number' ? data.statusCode : 400,
-              message:
-                typeof data.message === 'string'
-                  ? data.message
-                  : defaultMessage,
-              errors: tagItemErrorsWithLineRefs(rawErrors, linesAtSubmit),
-            })
-            return
-          }
+    setItemSnapshots(orderSnapshot)
+    toast.success('Order placed successfully', {
+      description: `Total charged: $${normalizedTotal}`,
+    })
+    router.push(ROUTES.ORDER_SUCCESS)
+    setIsSubmitting(false)
+    setTimeout(() => {
+      clearCart()
+    }, 1000)
 
-          setSubmitErrors({
-            statusCode: 400,
-            message: defaultMessage,
-            errors: [],
-          })
-        },
-      },
-    )
+    // createOrder(
+    //   {
+    //     body: orderPayload,
+    //     getToken: () => getToken({ template: CLERK_SESSION_TEMPLATE }),
+    //   },
+    //   {
+    //     onSuccess: (data) => {
+    //       setItemSnapshots(data)
+    //       setSubmitErrors(null)
+    //       toast.success('Order placed successfully', {
+    //         description: `Total charged: $${normalizedTotal}`,
+    //       })
+    //       setIsSubmitting(false)
+    //       router.push(ROUTES.ORDER_SUCCESS)
+
+    //       setTimeout(() => {
+    //         clearCart()
+    //       }, 200)
+    //     },
+    //     onError: (error) => {
+    //       setIsSubmitting(false)
+    //       const defaultMessage =
+    //         error instanceof Error
+    //           ? error.message
+    //           : ERROR_MESSAGES.SOMETHING_WENT_WRONG
+
+    //       const responseData = (error as { response?: { data?: unknown } })
+    //         .response?.data
+
+    //       if (responseData && typeof responseData === 'object') {
+    //         const data = responseData as Partial<ApiErrorResponse>
+    //         const rawErrors = Array.isArray(data.errors) ? data.errors : []
+    //         setSubmitErrors({
+    //           statusCode:
+    //             typeof data.statusCode === 'number' ? data.statusCode : 400,
+    //           message:
+    //             typeof data.message === 'string'
+    //               ? data.message
+    //               : defaultMessage,
+    //           errors: tagItemErrorsWithLineRefs(rawErrors, linesAtSubmit),
+    //         })
+    //         return
+    //       }
+
+    //       setSubmitErrors({
+    //         statusCode: 400,
+    //         message: defaultMessage,
+    //         errors: [],
+    //       })
+    //     },
+    //   },
+    // )
   }
 
   const submitLineRefs = useMemo(

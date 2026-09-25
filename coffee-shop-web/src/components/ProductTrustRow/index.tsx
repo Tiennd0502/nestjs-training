@@ -10,6 +10,17 @@ const ICONS: Record<(typeof SHOP_PDP_TRUST_ITEMS)[number]['id'], LucideIcon> = {
   quality: ShieldCheck,
 }
 
+// Force every title onto the same two lines (break after the first word)
+// instead of relying on the column's available width, which stays too
+// narrow at some viewports for the longest title to ever fit on one line.
+// A literal newline + `whitespace-pre-line` keeps this a single text node,
+// so the rendered text (and its accessible name) still normalizes back to
+// the original, space-separated title.
+function toTwoLineTitle(title: string): string {
+  const [firstWord, ...rest] = title.split(' ')
+  return `${firstWord}\n${rest.join(' ')}`
+}
+
 export interface ProductTrustRowProps {
   className?: string
 }
@@ -31,8 +42,8 @@ export function ProductTrustRow({ className }: ProductTrustRowProps) {
             className="flex flex-col items-center gap-2 rounded-2xl px-2 py-3 text-center"
           >
             <Icon className="size-7 text-primary" aria-hidden />
-            <p className="text-sm font-semibold text-on-surface">
-              {item.title}
+            <p className="text-sm leading-tight font-semibold whitespace-pre-line text-on-surface">
+              {toTwoLineTitle(item.title)}
             </p>
             <p className="text-xs text-on-surface-variant">
               {item.description}

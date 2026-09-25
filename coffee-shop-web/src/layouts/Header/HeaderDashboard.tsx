@@ -28,6 +28,7 @@ const HeaderDashboard = ({ className }: HeaderDashboardProps) => {
         <div className="flex min-w-0 flex-1 items-center gap-3 sm:gap-6">
           <SidebarTrigger className="inline-block size-6 shrink-0" />
           <SearchInput
+            disabled
             aria-label="Search products"
             containerClassName="h-9 min-w-0 w-full max-w-md"
           />
