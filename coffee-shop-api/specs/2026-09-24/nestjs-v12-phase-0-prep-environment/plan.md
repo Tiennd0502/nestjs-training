@@ -11,30 +11,28 @@ Parent spec: `specs/2026-09-24/nestjs-v12-upgrade/plan.md` (section 5, Phase 0).
   API behavior is unchanged, which can only be proven by comparing against this baseline. The
   baseline also separates failures that already exist from failures caused by the upgrade. Phase
   5 compares against it to verify the user, category and product API responses.
-- It **pins the Node version** to ≥ 24.15. That is the highest minimum among the new stack:
+- It confirms the **Node version**. The stack needs Node 24 or later; nothing is pinned:
   - NestJS 12 needs Node ≥ 20.19 to run apps.
   - Jest can only load the ESM-only v12 packages on Node ≥ 24.9.
   - MikroORM 7 needs Node ≥ 22.17.
   - `@nestjs/schematics` 12 needs Node ≥ 24.15.
-- Every environment already runs Node 24, but none of them enforces a minor version:
+- Every environment already runs Node 24, and each resolves to the newest 24.x, which meets all
+  the minimums above:
   - Local: 24.19.
-  - Docker: `node:24-alpine`.
+  - Docker: `node:24-alpine` (24.21 at the time of writing).
   - CI (`.github/workflows/ci.yml`, at the git repo root): `node-version: 24`.
 
 ## 2. Desired Outcome (Checklist)
 
-- [ ] Work happens on a dedicated upgrade branch cut from `feat/coffee-shop-api`.
-- [ ] A baseline record exists with current lint/build/unit/e2e results and the full user,
+- [x] Work happens on a dedicated upgrade branch cut from `feat/coffee-shop-api`.
+- [x] A baseline record exists with current lint/build/unit/e2e results and the full user,
       category and product response bodies (success and error).
-- [ ] `package.json` declares the minimum Node version, and a Node version file exists for local
-      tooling.
-- [ ] CI and Docker are confirmed to run Node ≥ 24.15.
+- [ ] CI and Docker are confirmed to run Node 24 or later.
 
 ## 3. Input (current state)
 
 - Branch `feat/coffee-shop-api`, with uncommitted changes in `coffee-shop-api/.gitignore` and an
   untracked `coffee-shop-api/.env.test`.
-- `coffee-shop-api/package.json` has no `engines` field. There is no `.nvmrc`.
 - `coffee-shop-api/Dockerfile` sets `ARG NODE_VERSION=24-alpine`.
 - `.github/workflows/ci.yml` runs lint, unit tests and build on `node-version: 24`. It does not
   run e2e.
@@ -48,9 +46,7 @@ Parent spec: `specs/2026-09-24/nestjs-v12-upgrade/plan.md` (section 5, Phase 0).
 - `coffee-shop-api/specs/2026-09-24/nestjs-v12-phase-0-prep-environment/baseline.md`, holding:
   - the test results,
   - the captured success and error bodies.
-- `coffee-shop-api/package.json` with an `engines.node` constraint of `>=24.15`.
-- `coffee-shop-api/.nvmrc` naming Node 24.
-- `.github/workflows/ci.yml` resolving a Node version ≥ 24.15.
+- No project file changes for the Node version. It is only confirmed.
 
 ## Non-goals
 
@@ -60,15 +56,13 @@ Parent spec: `specs/2026-09-24/nestjs-v12-upgrade/plan.md` (section 5, Phase 0).
 ## Ordering
 
 - Task 1 comes first, because the baseline must be taken on untouched code.
-- Tasks 2 and 3 are independent of each other.
 
 ---
 
 ## Task Checklist
 
-- [ ] Task 1: Create the upgrade branch and record the baseline
-- [ ] Task 2: Pin the Node version in the project
-- [ ] Task 3: Align CI and Docker with the pinned Node version
+- [x] Task 1: Create the upgrade branch and record the baseline
+- [ ] Task 2: Confirm the Node version in CI and Docker
 
 ---
 
@@ -105,12 +99,12 @@ Parent spec: `specs/2026-09-24/nestjs-v12-upgrade/plan.md` (section 5, Phase 0).
 
 **Acceptance Criteria:**
 
-- [ ] The branch exists and starts from the latest `feat/coffee-shop-api`.
-- [ ] `baseline.md` lists the result of each of the four checks (lint, build, unit, e2e).
-- [ ] Any test that already fails is named in `baseline.md`, marked as pre-existing.
-- [ ] `baseline.md` contains every listed success body and the five error bodies verbatim, each
+- [x] The branch exists and starts from the latest `feat/coffee-shop-api`.
+- [x] `baseline.md` lists the result of each of the four checks (lint, build, unit, e2e).
+- [x] Any test that already fails is named in `baseline.md`, marked as pre-existing.
+- [x] `baseline.md` contains every listed success body and the five error bodies verbatim, each
       labeled with its route, caller role and scenario.
-- [ ] The seeded dataset used for the capture is described in `baseline.md`, so Phase 5 can
+- [x] The seeded dataset used for the capture is described in `baseline.md`, so Phase 5 can
       reproduce it.
 
 **Verification:**
@@ -129,57 +123,28 @@ Parent spec: `specs/2026-09-24/nestjs-v12-upgrade/plan.md` (section 5, Phase 0).
 
 ---
 
-### Task 2: Pin the Node version in the project
+### Task 2: Confirm the Node version in CI and Docker
 
 **Description:**
-- The v12 stack has hard Node minimums.
-- The strictest is ≥ 24.15, from `@nestjs/schematics` 12.
-- Without it, Jest fails with `ERR_REQUIRE_ASYNC_MODULE` on Node < 24.9.
-- Declaring the minimum makes pnpm warn about a wrong Node before anything confusing fails.
-
-**Input:**
-- `coffee-shop-api/package.json`, which has no `engines` field.
-- No Node version file in `coffee-shop-api/`.
-
-**Output:**
-- `coffee-shop-api/package.json` declares `engines.node` as `>=24.15`.
-- `coffee-shop-api/.nvmrc` names Node major version 24.
-
-**Acceptance Criteria:**
-
-- [ ] `package.json` has an `engines.node` field of `>=24.15`.
-- [ ] `.nvmrc` exists in `coffee-shop-api/` and names Node 24.
-- [ ] Install, lint, build and unit tests still pass on local Node 24.19.
-
-**Verification:**
-
-- The full unit suite passes unchanged, with the same counts as `baseline.md`.
-
----
-
-### Task 3: Align CI and Docker with the pinned Node version
-
-**Description:**
-- CI and Docker must run a Node version that meets the new minimum.
-- Otherwise the upgrade passes locally and fails in the pipeline or the container.
+- The v12 stack needs Node 24 or later. Nothing is pinned.
+- This task only confirms that CI and Docker already meet it, so the upgrade doesn't pass locally
+  and fail in the pipeline or the container.
 
 **Input:**
 - `.github/workflows/ci.yml` (repo root), with `node-version: 24` in the setup-node step.
 - `coffee-shop-api/Dockerfile`, with `ARG NODE_VERSION=24-alpine`.
 
 **Output:**
-- `.github/workflows/ci.yml` resolves Node ≥ 24.15. Either it reads `coffee-shop-api/.nvmrc`, or
-  it states a version that cannot resolve below 24.15.
-- `coffee-shop-api/Dockerfile` either stays on `24-alpine` (after confirming the image tag resolves
-  to ≥ 24.15) or pins a specific 24.x tag ≥ 24.15.
+- No file changes are expected. If either resolves below Node 24, the affected file is changed
+  to Node 24.
 
 **Acceptance Criteria:**
 
-- [ ] A CI run on the upgrade branch logs a Node version ≥ 24.15.
-- [ ] The Docker base image used by `docker-compose.yml` reports a Node version ≥ 24.15.
+- [x] The Docker base image used by `docker-compose.yml` reports Node 24 or later.
+- [ ] A CI run on the upgrade branch logs Node 24 or later.
 - [ ] CI's lint, test and build steps pass on the branch.
 
 **Verification:**
 
 - The CI run for the branch shows the Node version in its setup step, and all steps are green.
-- The Node version inside the built dev container is ≥ 24.15.
+- The Node version inside the built dev container is 24 or later.
