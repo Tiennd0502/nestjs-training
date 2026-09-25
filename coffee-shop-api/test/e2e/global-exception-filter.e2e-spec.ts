@@ -23,6 +23,8 @@ describe('GlobalExceptionFilter (e2e)', () => {
       .compile();
 
     app = await initTestApp(moduleFixture);
+    // The filter logs the thrown error on purpose; keep it out of the test output.
+    app.useLogger(false);
   });
 
   afterAll(async () => {

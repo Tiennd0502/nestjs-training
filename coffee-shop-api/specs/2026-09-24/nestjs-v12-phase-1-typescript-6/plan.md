@@ -25,11 +25,11 @@ Parent spec: `specs/2026-09-24/nestjs-v12-upgrade/plan.md` (section 5, Phase 1).
 
 ## 2. Desired Outcome (Checklist)
 
-- [ ] The project compiles, lints and tests on TypeScript 6.0.x.
-- [ ] `tsconfig.json` produces no TS 6 deprecation diagnostics.
-- [ ] The `pretest:e2e` and `test:debug` scripts run TypeScript through `tsx`.
-- [ ] No unused TS runner packages remain in `devDependencies`.
-- [ ] Lint, build, unit, e2e and the migration scripts pass with the same results as the Phase 0
+- [x] The project compiles, lints and tests on TypeScript 6.0.x.
+- [x] `tsconfig.json` produces no TS 6 deprecation diagnostics.
+- [x] The `pretest:e2e` and `test:debug` scripts run TypeScript through `tsx`.
+- [x] No unused TS runner packages remain in `devDependencies`.
+- [x] Lint, build, unit, e2e and the migration scripts pass with the same results as the Phase 0
       baseline.
 
 ## 3. Input (current state)
@@ -80,10 +80,10 @@ Parent spec: `specs/2026-09-24/nestjs-v12-upgrade/plan.md` (section 5, Phase 1).
 
 ## Task Checklist
 
-- [ ] Task 1: Upgrade TypeScript and the Jest toolchain
-- [ ] Task 2: Make `tsconfig.json` TS 6-clean
-- [ ] Task 3: Upgrade `typescript-eslint` and keep lint green
-- [ ] Task 4: Replace `ts-node` with `tsx` in project scripts
+- [x] Task 1: Upgrade TypeScript and the Jest toolchain
+- [x] Task 2: Make `tsconfig.json` TS 6-clean
+- [x] Task 3: Upgrade `typescript-eslint` and keep lint green
+- [x] Task 4: Replace `ts-node` with `tsx` in project scripts
 
 ---
 
@@ -104,11 +104,11 @@ Parent spec: `specs/2026-09-24/nestjs-v12-upgrade/plan.md` (section 5, Phase 1).
 
 **Acceptance Criteria:**
 
-- [ ] The installed TypeScript version is 6.0.x.
-- [ ] The version range in `package.json` cannot resolve to TypeScript 7.
-- [ ] `pnpm install` reports no TypeScript peer-range warnings from `ts-jest`.
-- [ ] Build passes. Any new type errors TS 6 reports are fixed in source, not suppressed.
-- [ ] The unit suite passes with the same counts as `baseline.md`.
+- [x] The installed TypeScript version is 6.0.x.
+- [x] The version range in `package.json` cannot resolve to TypeScript 7.
+- [x] `pnpm install` reports no TypeScript peer-range warnings from `ts-jest`.
+- [x] Build passes. Any new type errors TS 6 reports are fixed in source, not suppressed.
+- [x] The unit suite passes with the same counts as `baseline.md`.
 
 **Verification:**
 
@@ -135,11 +135,11 @@ Parent spec: `specs/2026-09-24/nestjs-v12-upgrade/plan.md` (section 5, Phase 1).
 
 **Acceptance Criteria:**
 
-- [ ] Build produces no TS 6 deprecation diagnostics.
-- [ ] No `ignoreDeprecations` setting is added.
-- [ ] Module resolution of every existing import is unchanged, and build output in `dist/` has the
+- [x] Build produces no TS 6 deprecation diagnostics.
+- [x] No `ignoreDeprecations` setting is added.
+- [x] Module resolution of every existing import is unchanged, and build output in `dist/` has the
       same file layout as before.
-- [ ] The options the NestJS 12 migration guide recommends stay as they are:
+- [x] The options the NestJS 12 migration guide recommends stay as they are:
       `module`/`moduleResolution` `nodenext`, `resolvePackageJsonExports`, `target` `ES2023`,
       `experimentalDecorators`, `emitDecoratorMetadata`.
 
@@ -166,11 +166,11 @@ Parent spec: `specs/2026-09-24/nestjs-v12-upgrade/plan.md` (section 5, Phase 1).
 
 **Acceptance Criteria:**
 
-- [ ] Lint prints no "unsupported TypeScript version" warning.
-- [ ] Lint passes with no new errors.
-- [ ] Every new warning is either fixed in source or listed in the phase commit message, with the
+- [x] Lint prints no "unsupported TypeScript version" warning.
+- [x] Lint passes with no new errors.
+- [x] Every new warning is either fixed in source or listed in the phase commit message, with the
       reason for keeping it.
-- [ ] No rule is disabled or downgraded to get lint green.
+- [x] No rule is disabled or downgraded to get lint green.
 
 **Verification:**
 
@@ -204,14 +204,14 @@ Parent spec: `specs/2026-09-24/nestjs-v12-upgrade/plan.md` (section 5, Phase 1).
 
 **Acceptance Criteria:**
 
-- [ ] `pretest:e2e` resets the test database before the e2e run, as it does today.
-- [ ] `test:debug` starts Jest paused for a debugger, and attaching a debugger lets the run
+- [x] `pretest:e2e` resets the test database before the e2e run, as it does today.
+- [x] `test:debug` starts Jest paused for a debugger, and attaching a debugger lets the run
       continue.
-- [ ] No script in `package.json` references `ts-node` or `tsconfig-paths`.
-- [ ] The migration scripts behave as in the baseline:
+- [x] No script in `package.json` references `ts-node` or `tsconfig-paths`.
+- [x] The migration scripts behave as in the baseline:
   - `migration:up` reports no pending migrations on an up-to-date database.
   - `migration:create` reports no schema difference.
-- [ ] `ts-node` and `tsconfig-paths` are either gone from `devDependencies` or explicitly deferred
+- [x] `ts-node` and `tsconfig-paths` are either gone from `devDependencies` or explicitly deferred
       to Phase 2, with the reason recorded.
 
 **Verification:**
