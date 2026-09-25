@@ -189,7 +189,7 @@ Parent spec: `specs/2026-09-24/nestjs-v12-upgrade/plan.md` (section 5, Phase 5).
 
 **Description:**
 - The container images run `node dist/main` on `node:24-alpine`.
-- They must build with the new lockfile and run the ESM-only v12 packages from a CommonJS build.
+- They must build with the new lockfile and run the ESM build (Phase 3b).
 
 **Input:**
 - `coffee-shop-api/Dockerfile` with its `deps`, `development`, `build` and `production` stages.

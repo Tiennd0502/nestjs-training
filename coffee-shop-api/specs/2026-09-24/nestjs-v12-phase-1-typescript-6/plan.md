@@ -68,7 +68,7 @@ Parent spec: `specs/2026-09-24/nestjs-v12-upgrade/plan.md` (section 5, Phase 1).
 ## Non-goals
 
 - No NestJS or MikroORM version changes.
-- No move to ESM, Vitest or oxlint.
+- No move to ESM or Vitest in this phase. That happens in Phase 3b. oxlint is not adopted.
 - No new lint rules and no lint rule changes. Only fix violations the new versions report.
 
 ## Ordering

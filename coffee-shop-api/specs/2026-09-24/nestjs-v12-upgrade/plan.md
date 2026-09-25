@@ -14,7 +14,7 @@
   1. **Node ≥ 24.15** in every environment. Already met today; we only need to pin it.
   2. **TypeScript 6**, plus upgrading the tooling that depends on it (Jest, ESLint).
   3. **Upgrade MikroORM 6 → 7.** This is the key finding, and the Nest release notes don't mention it: no 6.x release of `@mikro-orm/nestjs` supports Nest 12. Only 7.x does, and 7.x requires MikroORM core v7.
-- **Approach:** 6 phases, each with its own checks. The refactor runs after the upgrade, so the upgrade is proven against untouched code first. MikroORM is upgraded **before** Nest 12, because `@mikro-orm/nestjs@7.1.0` works with both Nest 11 and 12. That keeps ORM failures separate from Nest failures. This round covers NestJS 12 and MikroORM 7 together, replaces `ts-node` with `tsx` (required by MikroORM 7), and keeps CommonJS + Jest.
+- **Approach:** 6 phases, each with its own checks. The refactor runs after the upgrade, so the upgrade is proven against untouched code first. MikroORM is upgraded **before** Nest 12, because `@mikro-orm/nestjs@7.1.0` works with both Nest 11 and 12. That keeps ORM failures separate from Nest failures. This round covers NestJS 12 and MikroORM 7 together, replaces `ts-node` with `tsx` (required by MikroORM 7), and moves the project to ESM with Vitest (Phase 3b).
 - **Scope:** see [section 7](#7-scope).
 
 ## 2. Current state
@@ -61,8 +61,10 @@ Each item in the release notes and migration guide was checked against the curre
 | Tooling | `typescript` | 5.9.3 → **~6.0.3** | Nest 12 uses TS 6. **Do not** use `latest` (7.0.2); it is outside the range swagger, ts-jest and typescript-eslint accept. |
 | | `ts-jest` / `jest` / `typescript-eslint` | → ^29.4.13 / ^30.5.2 / ^8.70.1 | TS 6 support |
 | | `tsx` *(new, replaces `ts-node`)* | → latest | CLI tool that runs `.ts` files. The MikroORM 7 CLI no longer supports `ts-node`; see [section 7](#7-scope) |
-| v12 features | `zod` *(new)* | → latest | Standard Schema library for the `StandardSchemaValidationPipe` pilot (Phase 3, Task 8). class-validator stays for every other DTO. |
-| | `@nestjs/observe` *(new)* | → latest v12-compatible | Official observability SDK, active outside production only (Phase 3, Task 9) |
+| v12 features | `zod` *(new)* | → latest | Standard Schema library for the `StandardSchemaValidationPipe` pilot (Phase 3c, Task 4). class-validator stays for every other DTO. |
+| | `@nestjs/observe` *(new)* | → latest v12-compatible | Official observability SDK, active outside production only (Phase 3c, Task 5) |
+| ESM / tests | `vitest`, `unplugin-swc`, `@swc/core`, `@vitest/coverage-v8` *(new)* | → latest | Vitest replaces Jest for the ESM project; SWC keeps decorator metadata for Nest DI in tests (Phase 3b, Task 3) |
+| | `jest`, `ts-jest`, `@types/jest` | removed | Replaced by Vitest in Phase 3b, Task 3. Phases 1–3 still bump them first, so the suite keeps running until the switch. |
 
 ### Unchanged
 - `class-validator`, `class-transformer`, `reflect-metadata`, `rxjs`: already on the latest release and satisfy Nest 12's peers.
@@ -70,12 +72,15 @@ Each item in the release notes and migration guide was checked against the curre
 
 ## 5. Phases
 
-Each phase is a separate commit (Phase 4 is split into three plans, 4a–4c). Don't move to the next phase until the current one meets its criteria. Each phase has a detailed task doc:
+Each phase is a separate commit (Phases 3 and 4 are each split into three plans: 3a–3c and 4a–4c). Don't move to the next phase until the current one meets its criteria. Each phase has a detailed task doc:
 
 - [Phase 0: Prep & environment](../nestjs-v12-phase-0-prep-environment/plan.md)
 - [Phase 1: TypeScript 6](../nestjs-v12-phase-1-typescript-6/plan.md)
 - [Phase 2: MikroORM 7](../nestjs-v12-phase-2-mikro-orm-7/plan.md)
-- [Phase 3: NestJS 12](../nestjs-v12-phase-3-nestjs-12/plan.md)
+- [Phase 3: NestJS 12](../nestjs-v12-phase-3-nestjs-12/plan.md) (overview), in three plans done in order:
+  - [Phase 3a: NestJS 12 upgrade](../nestjs-v12-phase-3a-nestjs-12-upgrade/plan.md)
+  - [Phase 3b: Move the project to ESM](../nestjs-v12-phase-3b-esm/plan.md)
+  - [Phase 3c: Adopt NestJS 12 features](../nestjs-v12-phase-3c-v12-features/plan.md)
 - Phase 4: Refactor & cleanup, in three plans done in order:
   - [Phase 4a: Naming & dead code](../nestjs-v12-phase-4a-naming-dead-code/plan.md)
   - [Phase 4b: Interfaces → classes](../nestjs-v12-phase-4b-interfaces-to-classes/plan.md)
@@ -87,7 +92,9 @@ Each phase is a separate commit (Phase 4 is split into three plans, 4a–4c). Do
 | **0. Prep & environment** | Create branch `feat/upgrade-nestjs-v12`. Run the full test suite for a baseline, and capture the full user, category and product response bodies (success and error) for comparison. Pin Node ≥ 24.15 via `engines` in `package.json` and `.nvmrc`; check Docker and CI. | Lint, build, unit and e2e all pass on the current code; `node -v` ≥ 24.15 locally, in Docker and in CI |
 | **1. TypeScript 6** *(still Nest 11, MikroORM 6)* | Upgrade TS and tooling. Replace `ts-node` with `tsx` in `pretest:e2e` and `test:debug`, then remove `ts-node`. This is done early to prepare the MikroORM CLI for Phase 2. Handle `baseUrl` if TS 6 reports it. | Lint, build, unit, e2e and `migration:up` pass |
 | **2. MikroORM 7** *(still Nest 11)* | Upgrade the 6 `@mikro-orm/*` packages and apply the code changes in [Appendix A](#appendix-a-code-changes-for-mikroorm-7) | Same as above, and `migration:create` produces **no** schema changes |
-| **3. NestJS 12** | Upgrade all `@nestjs/*` packages together (their peers depend on each other). Run `nest upgrade --dry-run` first and accept only the version bumps. Then adopt five v12 features, each as its own commit:<br>• graceful shutdown (`enableShutdownHooks`)<br>• `errorCode` in `GlobalExceptionFilter`<br>• route conflict diagnostics<br>• `StandardSchemaValidationPipe` piloted on `POST /categories` (adds `zod`)<br>• `@nestjs/observe` outside production | `pnpm install` shows no peer warnings; lint, build and unit tests pass; existing responses unchanged, including the pilot route's 400 body |
+| **3a. NestJS 12 upgrade** | Upgrade all `@nestjs/*` packages together (their peers depend on each other), still on CommonJS. Run `nest upgrade --dry-run` first and accept only the version bumps. | `pnpm install` shows no peer warnings; lint, build, unit and e2e pass; error bodies match the baseline |
+| **3b. Move to ESM** | `"type": "module"`, `.js` import extensions, CommonJS-only files fixed (`commitlint.config.js`, test env setup, JSON import, ESLint, prod entry), Jest → Vitest with SWC | ESM build, `start:prod`, MikroORM CLI, Docker and CI work; unit and e2e pass on Vitest with unchanged test counts; baseline bodies unchanged |
+| **3c. v12 features** | Graceful shutdown (`enableShutdownHooks`), `errorCode` in `GlobalExceptionFilter`, route conflict diagnostics, `StandardSchemaValidationPipe` pilot on `POST /categories` (adds `zod`), `@nestjs/observe` outside production; each as its own commit | Lint, build, unit and e2e pass; existing responses unchanged, including the pilot route's 400 body |
 | **4a. Naming & dead code** | 5 tasks: constants file and barrel, webhook enum folder, `UserService.remove()`, inline error text, unused update DTOs | Lint, build, unit and e2e pass; no behavior change |
 | **4b. Interfaces → classes** | 5 tasks: shared shapes become classes (`src/common/interfaces/` removed); repository ports and `AuthProvider` become abstract classes (no `Symbol` tokens); input types become classes with one naming convention | Lint, build, unit and e2e pass; no behavior change |
 | **4c. Remove duplication & refactor** | 10 tasks: shared soft delete, pagination, search, partial update, paginated mapping, admin-route decorator; product/variant/image errors on domain exceptions; controller and service cleanups | Lint, build, unit and e2e pass; only the product/variant/image error tests change expectations |
@@ -108,9 +115,11 @@ Manual checks in Phase 5:
 | MikroORM 7 infers column types differently (`ReflectMetadataProvider` is no longer the default) | Medium | Set `ReflectMetadataProvider` explicitly in the config; `migration:create` must produce no diff |
 | Default loading strategy changes to `balanced`, altering product populate or pagination results | Medium | Run product e2e: list, filter, sort, pagination |
 | Existing migrations aren't recognized because MikroORM 7 drops `umzug` | Low | Run `migration:up` on a database that already has data; old migrations must not rerun |
-| Jest fails with `ERR_REQUIRE_ASYNC_MODULE` | Low | Node ≥ 24.15 in every environment |
+| Jest fails with `ERR_REQUIRE_ASYNC_MODULE` before the Vitest switch | Low | Node ≥ 24.15 in every environment |
+| ESM switch breaks a CommonJS-only file (e.g. `commitlint.config.js` blocks every commit) or a missed import extension | Medium | Phase 3b, Task 2 lists every CommonJS-only file; the build reports missing extensions; Phase 3b, Task 4 verifies every run path |
+| Vitest drops decorator metadata, so Nest DI fails in tests | Medium | Build tests with SWC (`unplugin-swc`), as the NestJS SWC recipe documents |
 | TypeScript 7 gets installed by accident | Low | Pin `~6.0.3` |
-| `nest upgrade` switches the project to ESM, Vitest or oxlint | Low | Run `--dry-run` first and accept only the version bumps |
+| `nest upgrade` proposes oxlint or Rspack | Low | Run `--dry-run` first and accept only the version bumps; `nest upgrade` never changes the module format itself |
 
 **Rollback:** each phase is one commit including `pnpm-lock.yaml`, so phases can be reverted individually. Nothing affects `feat/coffee-shop-api` until merge.
 
@@ -120,11 +129,14 @@ Manual checks in Phase 5:
 - Use **`tsx`** instead of `ts-node`. `tsx` is a CLI tool that runs `.ts` files directly with Node, in the same category as `ts-node`; it has nothing to do with React or JSX.
   - The reason comes from **MikroORM 7, not NestJS 12**: the MikroORM 7 CLI only detects the oxc, swc, tsx, jiti, tsimp and nub loaders, not `ts-node`. Without the switch, `migration:*` would have to be built first and run from `dist/`.
   - `tsx` replaces `ts-node` in all 3 places: the MikroORM CLI, `pretest:e2e` and `test:debug`. `ts-node` is then removed.
-  - No effect on build, runtime or production: those use `nest build` (tsc), and Jest uses `ts-jest`.
-- **Keep CommonJS + Jest**; don't move to ESM, Vitest or oxlint yet.
-  - `@nestjs/*` v12 packages ship as ESM only, but CommonJS apps can still load them through Node's `require(esm)`. Jest works on Node ≥ 24.9, and this plan pins Node ≥ 24.15.
-  - The migration guide states that moving to ESM, Vitest or oxlint is optional.
-  - Moving to ESM would touch almost every file: adding `.js` extensions to imports, changing `jest.*` to `vi.*`, replacing `__dirname`. If we do it, it will be a separate plan and MR once Nest 12 is stable.
+  - No effect on build, runtime or production: those use `nest build` (tsc).
+- **Move the project to ESM** (Phase 3b), following the migration guide's "Switching your project to ESM" and "Moving your own code to ESM" sections:
+  - `"type": "module"` in `package.json`. `tsconfig.json` already uses `nodenext`, so no compiler option changes are needed, apart from the test runner `types`.
+  - `.js` extensions on every relative import (about 325 imports in 95 files). The guide says these must be fixed in the same pass.
+  - CommonJS-only files fixed: `commitlint.config.js`, `test/setup-env.js`, the JSON import in `swagger.config.ts`, `eslint.config.mjs`.
+  - Jest replaced by Vitest, the guide's default for ESM projects, built with SWC so decorator metadata survives for Nest DI.
+  - It runs after the Nest 12 upgrade is verified on CommonJS (Tasks 1–4), and before the v12 feature tasks, so new code is written as ESM.
+  - Not adopted: oxlint (linting stays on ESLint) and Rspack (the build stays on `nest build`).
 - **Include code-quality work** (Phase 4):
   - Refactor code, update naming, remove duplicated code, replace interfaces with classes.
   - It runs after the upgrade, so the upgrade is verified against untouched code.
@@ -136,8 +148,7 @@ Manual checks in Phase 5:
 
 - Web deploy testing. Handled separately.
 
-v12 features not adopted in this round (the adopted ones are in Phase 3, Tasks 5–9):
-- Moving to ESM and Vitest.
+v12 adoption in this round lives in Phase 3: ESM in Phase 3b, features in Phase 3c. Not adopted: oxlint and Rspack.
 
 Major upgrades of packages unrelated to Nest: `eslint` 10, `dotenv` 18, `svix` 2, `uuid` 14.
 
