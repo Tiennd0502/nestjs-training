@@ -1,8 +1,20 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { ErrorResponseBody } from '../interfaces/error-response.interface.js';
-import { ErrorDetailDto } from './error-detail.dto.js';
 
-export class ErrorResponseDto implements ErrorResponseBody {
+export class ErrorDetailDto {
+  @ApiProperty()
+  errCode!: string;
+
+  @ApiProperty()
+  field!: string;
+
+  @ApiProperty()
+  message!: string;
+
+  @ApiProperty()
+  description!: string;
+}
+
+export class ErrorResponseDto {
   @ApiProperty()
   statusCode!: number;
 

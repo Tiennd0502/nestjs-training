@@ -113,8 +113,8 @@ describe('toErrorDetailsFromStandardSchemaIssues (Standard Schema pilot: createC
         {
           errCode: 'minLength',
           field: 'name',
-          message: 'name must be longer than or equal to 2 characters',
-          description: 'name must be longer than or equal to 2 characters',
+          message: 'Name must be longer than or equal to 2 characters',
+          description: 'Name must be longer than or equal to 2 characters',
         },
       ],
     );
@@ -128,8 +128,8 @@ describe('toErrorDetailsFromStandardSchemaIssues (Standard Schema pilot: createC
         {
           errCode: 'maxLength',
           field: 'name',
-          message: 'name must be shorter than or equal to 100 characters',
-          description: 'name must be shorter than or equal to 100 characters',
+          message: 'Name must be shorter than or equal to 100 characters',
+          description: 'Name must be shorter than or equal to 100 characters',
         },
       ],
     );
@@ -143,8 +143,8 @@ describe('toErrorDetailsFromStandardSchemaIssues (Standard Schema pilot: createC
         {
           errCode: 'isNotEmpty',
           field: 'name',
-          message: 'name should not be empty',
-          description: 'name should not be empty',
+          message: 'Name should not be empty',
+          description: 'Name should not be empty',
         },
       ],
     );
@@ -158,8 +158,8 @@ describe('toErrorDetailsFromStandardSchemaIssues (Standard Schema pilot: createC
         {
           errCode: 'isString',
           field: 'name',
-          message: 'name must be a string',
-          description: 'name must be a string',
+          message: 'Name must be a string',
+          description: 'Name must be a string',
         },
       ],
     );

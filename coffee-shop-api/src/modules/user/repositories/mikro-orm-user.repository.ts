@@ -7,10 +7,8 @@ import {
   FindOptions,
   UserRepository,
 } from './user-repository.interface.js';
-import {
-  PaginatedResult,
-  QueryParams,
-} from '../../../common/interfaces/pagination.interface.js';
+import { PaginatedResult } from '../../../common/dto/pagination.dto.js';
+import { QueryParams } from '../../../common/dto/query-params.dto.js';
 
 @Injectable()
 export class MikroOrmUserRepository implements UserRepository {

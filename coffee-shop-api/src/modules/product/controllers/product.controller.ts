@@ -22,7 +22,7 @@ import { CreateProductDto } from '../dto/create-product.dto.js';
 import { UpdateProductDto } from '../dto/update-product.dto.js';
 import { ResponseProductDto } from '../dto/response-product.dto.js';
 import { ProductQueryDto } from '../dto/product-query.dto.js';
-import { PaginatedResult } from '../../../common/interfaces/pagination.interface.js';
+import { PaginatedResult } from '../../../common/dto/pagination.dto.js';
 import { AuthGuard } from '../../../common/guards/auth.guard.js';
 import { RolesGuard } from '../../../common/guards/roles.guard.js';
 import { Roles } from '../../../common/decorators/roles.decorator.js';

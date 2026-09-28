@@ -26,13 +26,13 @@ Parent spec: `specs/2026-09-24/nestjs-v12-upgrade/plan.md` (section 5, Phase 4).
 
 ## 2. Desired Outcome (Checklist)
 
-- [ ] `src/common/interfaces/` no longer exists. Shared shapes are classes.
-- [ ] Every repository port and `AuthProvider` is an abstract class injected without a `Symbol`
+- [x] `src/common/interfaces/` no longer exists. Shared shapes are classes.
+- [x] Every repository port and `AuthProvider` is an abstract class injected without a `Symbol`
       token.
-- [ ] A shared abstract base port exists for the operations every repository port shares.
-- [ ] Repository and service input shapes are classes, named `Create<Domain>Data`,
+- [x] A shared abstract base port exists for the operations every repository port shares.
+- [x] Repository and service input shapes are classes, named `Create<Domain>Data`,
       `Update<Domain>Data`, `<Domain>FindOptions` or `<Domain>Filters`.
-- [ ] Lint, build, unit and e2e pass. The only test changes are where mocks are provided (the port
+- [x] Lint, build, unit and e2e pass. The only test changes are where mocks are provided (the port
       class instead of a token).
 
 ## 3. Input (current state)
@@ -78,11 +78,11 @@ Parent spec: `specs/2026-09-24/nestjs-v12-upgrade/plan.md` (section 5, Phase 4).
 
 ## Task Checklist
 
-- [ ] Task 1: Replace error-response interfaces with the existing DTO classes (D1)
-- [ ] Task 2: Replace pagination interfaces with classes (D1, D2)
-- [ ] Task 3: Convert repository ports to abstract classes (D3)
-- [ ] Task 4: Convert `AuthProvider` to an abstract class (D3)
-- [ ] Task 5: Convert input types to classes with consistent naming (D4, B4)
+- [x] Task 1: Replace error-response interfaces with the existing DTO classes (D1)
+- [x] Task 2: Replace pagination interfaces with classes (D1, D2)
+- [x] Task 3: Convert repository ports to abstract classes (D3)
+- [x] Task 4: Convert `AuthProvider` to an abstract class (D3)
+- [x] Task 5: Convert input types to classes with consistent naming (D4, B4)
 
 ---
 
@@ -109,9 +109,9 @@ Parent spec: `specs/2026-09-24/nestjs-v12-upgrade/plan.md` (section 5, Phase 4).
 
 **Acceptance Criteria:**
 
-- [ ] No `ErrorDetail`/`ErrorResponseBody` interface remains.
-- [ ] Every error body is byte-for-byte unchanged.
-- [ ] Swagger error schemas are unchanged.
+- [x] No `ErrorDetail`/`ErrorResponseBody` interface remains.
+- [x] Every error body is byte-for-byte unchanged.
+- [x] Swagger error schemas are unchanged.
 
 **Verification:**
 
@@ -146,9 +146,9 @@ Parent spec: `specs/2026-09-24/nestjs-v12-upgrade/plan.md` (section 5, Phase 4).
 
 **Acceptance Criteria:**
 
-- [ ] The `src/common/interfaces/` folder no longer exists.
-- [ ] List responses keep the exact `{ data, meta }` shape and values.
-- [ ] `TransformResponseInterceptor` still recognizes paginated results. List bodies are not
+- [x] The `src/common/interfaces/` folder no longer exists.
+- [x] List responses keep the exact `{ data, meta }` shape and values.
+- [x] `TransformResponseInterceptor` still recognizes paginated results. List bodies are not
       double-wrapped.
 
 **Verification:**
@@ -196,11 +196,11 @@ Parent spec: `specs/2026-09-24/nestjs-v12-upgrade/plan.md` (section 5, Phase 4).
 
 **Acceptance Criteria:**
 
-- [ ] No `*_REPOSITORY` `Symbol` token and no `@Inject(` for a repository remains in `src/` or
+- [x] No `*_REPOSITORY` `Symbol` token and no `@Inject(` for a repository remains in `src/` or
       `test/`.
-- [ ] Services import only port classes, never MikroORM types.
-- [ ] Every port's operation list is unchanged.
-- [ ] DI resolves at boot for every module.
+- [x] Services import only port classes, never MikroORM types.
+- [x] Every port's operation list is unchanged.
+- [x] DI resolves at boot for every module.
 
 **Verification:**
 
@@ -234,8 +234,8 @@ Parent spec: `specs/2026-09-24/nestjs-v12-upgrade/plan.md` (section 5, Phase 4).
 
 **Acceptance Criteria:**
 
-- [ ] No `AUTH_PROVIDER` token remains.
-- [ ] Webhook verification, role sync and session resolution behave as before.
+- [x] No `AUTH_PROVIDER` token remains.
+- [x] Webhook verification, role sync and session resolution behave as before.
 
 **Verification:**
 
@@ -278,10 +278,10 @@ Parent spec: `specs/2026-09-24/nestjs-v12-upgrade/plan.md` (section 5, Phase 4).
 
 **Acceptance Criteria:**
 
-- [ ] No `interface` or object `type` alias remains for these shapes.
-- [ ] No `Input`-suffixed shape remains.
-- [ ] Field names, optionality and nullability of every shape are unchanged.
-- [ ] Build passes with no `as` casts added to satisfy the new classes.
+- [x] No `interface` or object `type` alias remains for these shapes.
+- [x] No `Input`-suffixed shape remains.
+- [x] Field names, optionality and nullability of every shape are unchanged.
+- [x] Build passes with no `as` casts added to satisfy the new classes.
 
 **Verification:**
 

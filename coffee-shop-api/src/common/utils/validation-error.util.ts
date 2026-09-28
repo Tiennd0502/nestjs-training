@@ -1,11 +1,11 @@
 import { ValidationError } from 'class-validator';
 import type { StandardSchemaV1 } from '@standard-schema/spec';
-import { ErrorDetail } from '../interfaces/error-response.interface.js';
+import { ErrorDetailDto } from '../dto/error.dto.js';
 
-export function toErrorDetails(
+export const toErrorDetails = (
   validationErrors: ValidationError[],
   parentField = '',
-): ErrorDetail[] {
+): ErrorDetailDto[] => {
   return validationErrors.flatMap((validationError) => {
     const field = parentField
       ? `${parentField}.${validationError.property}`
@@ -26,10 +26,10 @@ export function toErrorDetails(
 
     return [...constraintDetails, ...childDetails];
   });
-}
+};
 
 /**
- * Maps Standard Schema (e.g. Zod) issues to the same ErrorDetail shape
+ * Maps Standard Schema (e.g. Zod) issues to the same ErrorDetailDto shape
  * toErrorDetails produces, so a StandardSchemaValidationPipe failure and a
  * class-validator ValidationPipe failure both feed ValidationException.
  * errCode/message follow class-validator's own wording for the string
@@ -37,9 +37,9 @@ export function toErrorDetails(
  * length), so a route piloting Standard Schema keeps the same error body
  * shape as every class-validator DTO.
  */
-export function toErrorDetailsFromStandardSchemaIssues(
+export const toErrorDetailsFromStandardSchemaIssues = (
   issues: readonly StandardSchemaV1.Issue[],
-): ErrorDetail[] {
+): ErrorDetailDto[] => {
   return issues.map((issue) => {
     const field = (issue.path ?? [])
       .map((segment) =>
@@ -51,26 +51,35 @@ export function toErrorDetailsFromStandardSchemaIssues(
 
     return { errCode, field, message, description: message };
   });
-}
+};
 
-function describeStandardSchemaIssue(
+const capitalize = (value: string) =>
+  value.charAt(0).toUpperCase() + value.slice(1);
+
+const describeStandardSchemaIssue = (
   issue: StandardSchemaV1.Issue,
   field: string,
-): { errCode: string; message: string } {
+): { errCode: string; message: string } => {
   const code = (issue as { code?: string }).code;
 
   if (code === 'invalid_type') {
     if (issue.message.includes('received undefined')) {
-      return { errCode: 'isNotEmpty', message: `${field} should not be empty` };
+      return {
+        errCode: 'isNotEmpty',
+        message: `${capitalize(field)} should not be empty`,
+      };
     }
-    return { errCode: 'isString', message: `${field} must be a string` };
+    return {
+      errCode: 'isString',
+      message: `${capitalize(field)} must be a string`,
+    };
   }
 
   if (code === 'too_small') {
     const minimum = (issue as { minimum?: number }).minimum;
     return {
       errCode: 'minLength',
-      message: `${field} must be longer than or equal to ${minimum} characters`,
+      message: `${capitalize(field)} must be longer than or equal to ${minimum} characters`,
     };
   }
 
@@ -78,9 +87,9 @@ function describeStandardSchemaIssue(
     const maximum = (issue as { maximum?: number }).maximum;
     return {
       errCode: 'maxLength',
-      message: `${field} must be shorter than or equal to ${maximum} characters`,
+      message: `${capitalize(field)} must be shorter than or equal to ${maximum} characters`,
     };
   }
 
   return { errCode: code ?? 'invalid', message: issue.message };
-}
+};
