@@ -1,18 +1,19 @@
-import { Entity, ManyToOne, Opt, Property } from '@mikro-orm/core';
+import { Opt } from '@mikro-orm/core';
+import { Entity, ManyToOne, Property } from '@mikro-orm/decorators/legacy';
 import { BaseEntity } from '../../../common/entities/base.entity';
 import { Product } from '../../product/entities/product.entity';
 
 @Entity({ tableName: 'product_images' })
 export class ProductImage extends BaseEntity {
-  @ManyToOne(() => Product)
+  @ManyToOne(() => Product, { updateRule: 'cascade' })
   product!: Product;
 
-  @Property()
+  @Property({ type: 'string' })
   url!: string;
 
-  @Property({ fieldName: 'is_primary' })
+  @Property({ type: 'boolean', fieldName: 'is_primary' })
   isPrimary: boolean & Opt = false;
 
-  @Property({ fieldName: 'sort_order' })
+  @Property({ type: 'number', fieldName: 'sort_order' })
   sortOrder: number & Opt = 0;
 }

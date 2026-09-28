@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import { ReflectMetadataProvider } from '@mikro-orm/decorators/legacy';
 import { defineConfig } from '@mikro-orm/postgresql';
 
 export default defineConfig({
@@ -7,6 +8,8 @@ export default defineConfig({
   dbName: process.env.DB_NAME,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
+
+  metadataProvider: ReflectMetadataProvider,
 
   entities: ['dist/**/*.entity.js'],
   entitiesTs: ['src/**/*.entity.ts'],

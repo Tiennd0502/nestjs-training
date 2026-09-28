@@ -1,21 +1,21 @@
+import { Opt } from '@mikro-orm/core';
 import {
   Entity,
   Enum,
   ManyToOne,
-  Opt,
   Property,
   Unique,
-} from '@mikro-orm/core';
+} from '@mikro-orm/decorators/legacy';
 import { BaseEntity } from '../../../common/entities/base.entity';
 import { Product } from '../../product/entities/product.entity';
 import { DiscountType, ProductUnit } from '../enums/product-variant.enum';
 
 @Entity({ tableName: 'product_variants' })
 export class ProductVariant extends BaseEntity {
-  @ManyToOne(() => Product)
+  @ManyToOne(() => Product, { updateRule: 'cascade' })
   product!: Product;
 
-  @Property()
+  @Property({ type: 'string' })
   @Unique()
   sku!: string;
 
@@ -25,7 +25,7 @@ export class ProductVariant extends BaseEntity {
   @Enum({ items: () => ProductUnit })
   unit!: ProductUnit;
 
-  @Property()
+  @Property({ type: 'string' })
   name!: string;
 
   @Property({ type: 'decimal', precision: 10, scale: 2 })
@@ -47,6 +47,6 @@ export class ProductVariant extends BaseEntity {
   })
   discountValue: string | null = null;
 
-  @Property()
+  @Property({ type: 'number' })
   quantity: number & Opt = 0;
 }
