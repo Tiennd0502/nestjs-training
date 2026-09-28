@@ -4,13 +4,13 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     globals: true,
-    root: './src',
-    include: ['**/*.spec.ts'],
+    root: '.',
+    include: ['./src/**/*.spec.ts'],
     environment: 'node',
     coverage: {
       provider: 'v8',
-      reportsDirectory: '../coverage',
-      include: ['**/*.(t|j)s'],
+      reportsDirectory: './coverage',
+      include: ['./src/**/*.(t|j)s'],
     },
   },
   plugins: [swc.vite()],

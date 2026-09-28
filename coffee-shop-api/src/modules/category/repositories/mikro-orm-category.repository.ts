@@ -51,6 +51,7 @@ export class MikroOrmCategoryRepository implements CategoryRepository {
     const [data, totalCount] = await this.repository.findAndCount(where, {
       limit,
       offset: (page - 1) * limit,
+      orderBy: { createdAt: 'DESC' },
       filters: { softDelete: !options?.includeDeleted },
     });
 

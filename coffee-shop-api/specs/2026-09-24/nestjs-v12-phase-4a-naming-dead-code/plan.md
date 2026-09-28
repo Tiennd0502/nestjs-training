@@ -18,19 +18,21 @@ Parent spec: `specs/2026-09-24/nestjs-v12-upgrade/plan.md` (section 5, Phase 4).
 
 ## 2. Desired Outcome (Checklist)
 
-- [ ] Constants follow the `.constant.ts` convention and are imported by path, with no barrel.
-- [ ] Every feature enum lives in its module's `enums/` folder.
-- [ ] Every service names its delete operation `remove()`.
-- [ ] No service contains an inline error description.
-- [ ] No unused update DTOs remain for images and variants.
-- [ ] Lint, build, unit and e2e pass with no test expectation changes other than method renames.
+- [x] Constants follow the `.constant.ts` convention and are imported by path, with no barrel.
+- [x] No `*.enum.ts` file sits at a module root, and the webhook event names are a const object inside `ClerkWebhookService`.
+- [x] Every service names its delete operation `remove()`.
+- [x] No service contains an inline error description.
+- [x] No unused update DTOs remain for images and variants.
+- [x] Lint, build, unit and e2e pass with no test expectation changes other than method renames.
 
 ## 3. Input (current state)
 
 - `src/common/constants/env.ts` plus a barrel `src/common/constants/index.ts`. The other constant
   files use the `.constant.ts` suffix and are imported by path.
 - `src/modules/webhook/clerk-webhook.enum.ts` sits at the module root, while `product` and
-  `product-variant` keep enums in `enums/`.
+  `product-variant` keep enums in `enums/`. Its `ClerkWebhookEventType` values are compared with
+  Clerk's string-literal `event.type`, so the `switch` needs `as 'user.created'` casts to pass
+  `no-unsafe-enum-comparison`.
 - `UserService.softDelete()`, while every other service names this operation `remove()`.
 - `CategoryService.update()` inlines a description string, while
   `ERROR_DESCRIPTIONS.CATEGORY.NAME_EXISTS` already holds the same text.
@@ -43,7 +45,7 @@ Parent spec: `specs/2026-09-24/nestjs-v12-upgrade/plan.md` (section 5, Phase 4).
 | Area | Target |
 |---|---|
 | Constants | `src/common/constants/env.constant.ts`, imported by path; `index.ts` removed |
-| Webhook enum | `src/modules/webhook/enums/clerk-webhook.enum.ts` |
+| Webhook event names | `ClerkWebhookEventType` const object (`as const`) inside `clerk-webhook.service.ts`; the enum file is deleted |
 | User service | `UserService.remove()`; all callers updated |
 | Category service | `update()` uses `ERROR_DESCRIPTIONS.CATEGORY.NAME_EXISTS` |
 | Dead code | The two unused update DTOs deleted |
@@ -63,11 +65,11 @@ Parent spec: `specs/2026-09-24/nestjs-v12-upgrade/plan.md` (section 5, Phase 4).
 
 ## Task Checklist
 
-- [ ] Task 1: Rename the env constants file and drop the constants barrel (B2)
-- [ ] Task 2: Move the webhook enum into `enums/` (B3)
-- [ ] Task 3: Rename `UserService.softDelete()` to `remove()` (B1)
-- [ ] Task 4: Replace the inline description in `CategoryService.update()` (B5)
-- [ ] Task 5: Remove unused update DTOs for images and variants (C5)
+- [x] Task 1: Rename the env constants file and drop the constants barrel (B2)
+- [x] Task 2: Move the webhook enum into `enums/` (B3)
+- [x] Task 3: Rename `UserService.softDelete()` to `remove()` (B1)
+- [x] Task 4: Replace the inline description in `CategoryService.update()` (B5)
+- [x] Task 5: Remove unused update DTOs for images and variants (C5)
 
 ---
 
@@ -92,9 +94,9 @@ Parent spec: `specs/2026-09-24/nestjs-v12-upgrade/plan.md` (section 5, Phase 4).
 
 **Acceptance Criteria:**
 
-- [ ] No file imports from the `common/constants` folder path itself.
-- [ ] The exported names and values are unchanged.
-- [ ] The app boots on the same port, prefix and default version.
+- [x] No file imports from the `common/constants` folder path itself.
+- [x] The exported names and values are unchanged.
+- [x] The app boots on the same port, prefix and default version.
 
 **Verification:**
 
@@ -103,24 +105,30 @@ Parent spec: `specs/2026-09-24/nestjs-v12-upgrade/plan.md` (section 5, Phase 4).
 
 ---
 
-### Task 2: Move the webhook enum into `enums/` (B3)
+### Task 2: Replace the webhook enum with a const object in `ClerkWebhookService` (B3)
 
 **Description:**
-- Feature enums live in `<feature>/enums/` (`product/enums/`, `product-variant/enums/`).
-- The webhook module's enum is the only one at a module root.
+- The webhook module's enum is the only `*.enum.ts` at a module root.
+- Moving it into `enums/` was the first idea, but the enum does not fit: Clerk types
+  `event.type` as a string-literal union, so `case ClerkWebhookEventType.X:` fails
+  `@typescript-eslint/no-unsafe-enum-comparison`, and the only workaround is a cast per case.
+- An `as const` object has literal-typed values, so the `switch` compiles, narrows `event`, and
+  needs no cast. It is used by one file only, so it lives in that file.
 
 **Input:**
 - `src/modules/webhook/clerk-webhook.enum.ts` (`ClerkWebhookEventType`).
-- Its import in `src/modules/webhook/services/clerk-webhook.service.ts`.
+- Its only import, in `src/modules/webhook/services/clerk-webhook.service.ts`.
 
 **Output:**
-- `src/modules/webhook/enums/clerk-webhook.enum.ts`, with the same enum.
-- The old file removed and all imports updated.
+- `ClerkWebhookEventType` is an `as const` object declared in `clerk-webhook.service.ts`, with
+  the same three keys and values.
+- `src/modules/webhook/clerk-webhook.enum.ts` deleted; no `webhook/enums/` folder.
+- The `as 'user.created'` (and `updated`, `deleted`) casts in `handleEvent` are gone.
 
 **Acceptance Criteria:**
 
-- [ ] No `*.enum.ts` file sits directly under a module root.
-- [ ] The enum values are unchanged.
+- [x] No `*.enum.ts` file sits directly under a module root.
+- [x] The enum values are unchanged.
 
 **Verification:**
 
@@ -153,9 +161,9 @@ Parent spec: `specs/2026-09-24/nestjs-v12-upgrade/plan.md` (section 5, Phase 4).
 
 **Acceptance Criteria:**
 
-- [ ] No `softDelete` method remains on any service. The `softDelete` MikroORM filter name is
+- [x] No `softDelete` method remains on any service. The `softDelete` MikroORM filter name is
       unaffected.
-- [ ] `DELETE /api/v1/users/:id` still returns 204 and soft-deletes.
+- [x] `DELETE /api/v1/users/:id` still returns 204 and soft-deletes.
 
 **Verification:**
 
@@ -183,8 +191,8 @@ Parent spec: `specs/2026-09-24/nestjs-v12-upgrade/plan.md` (section 5, Phase 4).
 
 **Acceptance Criteria:**
 
-- [ ] No string literal error description remains in any service.
-- [ ] The 409 body for a duplicate name on update is unchanged.
+- [x] No string literal error description remains in any service.
+- [x] The 409 body for a duplicate name on update is unchanged.
 
 **Verification:**
 
@@ -209,9 +217,9 @@ Parent spec: `specs/2026-09-24/nestjs-v12-upgrade/plan.md` (section 5, Phase 4).
 
 **Acceptance Criteria:**
 
-- [ ] Neither file exists.
-- [ ] Build passes.
-- [ ] The Swagger document is unchanged, since neither DTO was referenced by a route.
+- [x] Neither file exists.
+- [x] Build passes.
+- [x] The Swagger document is unchanged, since neither DTO was referenced by a route.
 
 **Verification:**
 

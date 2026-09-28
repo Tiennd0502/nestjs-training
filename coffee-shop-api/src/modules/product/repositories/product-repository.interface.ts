@@ -34,12 +34,17 @@ export interface ProductFilters {
   sortBy?: ProductSortBy;
 }
 
+export interface FindOptions {
+  includeDeleted?: boolean;
+}
+
 export interface ProductRepository {
-  findById(id: string): Promise<Product | null>;
-  findByName(name: string): Promise<Product | null>;
+  findById(id: string, options?: FindOptions): Promise<Product | null>;
+  findByName(name: string, options?: FindOptions): Promise<Product | null>;
   findAll(
     query: QueryParams,
     filters?: ProductFilters,
+    options?: FindOptions,
   ): Promise<PaginatedResult<Product>>;
   create(data: CreateProductData): Promise<Product>;
   save(product: Product): Promise<void>;

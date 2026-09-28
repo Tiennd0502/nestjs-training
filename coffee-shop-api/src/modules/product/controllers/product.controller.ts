@@ -26,13 +26,19 @@ import { PaginatedResult } from '../../../common/interfaces/pagination.interface
 import { AuthGuard } from '../../../common/guards/auth.guard.js';
 import { RolesGuard } from '../../../common/guards/roles.guard.js';
 import { Roles } from '../../../common/decorators/roles.decorator.js';
+import { AuthUser } from '../../../common/decorators/auth-user.decorator.js';
 import {
   ApiDataResponse,
   ApiPaginatedResponse,
   ApiErrorResponse,
 } from '../../../common/decorators/api-response.decorator.js';
-import { UserRole } from '../../../common/enums/user.enum.js';
+import { UserRole, UserStatus } from '../../../common/enums/user.enum.js';
+import { User } from '../../user/entities/user.entity.js';
 import { ERROR_MESSAGES } from '../../../common/constants/message.constant.js';
+
+const isActiveAdmin = (user?: User): boolean =>
+  user?.role === UserRole.ADMIN &&
+  (user.status as UserStatus) === UserStatus.ACTIVE;
 
 @ApiTags('products')
 @Controller('products')
@@ -48,6 +54,7 @@ export class ProductController {
   )
   async findAll(
     @Query() query: ProductQueryDto,
+    @AuthUser() user?: User,
   ): Promise<PaginatedResult<ResponseProductDto>> {
     const {
       page,
@@ -70,6 +77,7 @@ export class ProductController {
         maxPrice,
         sortBy,
       },
+      { includeDeleted: isActiveAdmin(user) },
     );
 
     return {
@@ -84,8 +92,13 @@ export class ProductController {
   @ApiOperation({ summary: 'Get a product by id' })
   @ApiDataResponse(HttpStatus.OK, ResponseProductDto)
   @ApiErrorResponse(HttpStatus.NOT_FOUND, ERROR_MESSAGES.PRODUCT.NOT_FOUND)
-  async findOne(@Param('id') id: string): Promise<ResponseProductDto> {
-    const product = await this.productService.findOne(id);
+  async findOne(
+    @Param('id') id: string,
+    @AuthUser() user?: User,
+  ): Promise<ResponseProductDto> {
+    const product = await this.productService.findOne(id, {
+      includeDeleted: isActiveAdmin(user),
+    });
     return ResponseProductDto.fromEntity(product);
   }
 

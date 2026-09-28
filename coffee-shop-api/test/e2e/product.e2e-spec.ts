@@ -66,7 +66,7 @@ describe('ProductController (e2e)', () => {
         await categoryService.remove(id).catch(() => undefined);
       }
       for (const id of createdUserIds) {
-        await userService.softDelete(id).catch(() => undefined);
+        await userService.remove(id).catch(() => undefined);
       }
     });
     await app.close();
@@ -661,6 +661,55 @@ describe('ProductController (e2e)', () => {
       await request(app.getHttpServer())
         .get(`${API_BASE_PATH}/products/${product.id}`)
         .expect(404);
+    });
+
+    it('GET /products includes soft-deleted rows for an ADMIN caller', async () => {
+      const admin = await createTestUser(UserRole.ADMIN);
+      const category = await createTestCategory();
+      const product = await RequestContext.create(orm.em, () =>
+        productService.create({
+          categoryId: category.id,
+          name: uniqueName('Deleted Visible Product E2E'),
+        }),
+      );
+      createdProductIds.push(product.id);
+      await RequestContext.create(orm.em, () =>
+        productService.remove(product.id),
+      );
+      mockSessionFor(admin.clerkId);
+
+      const response = await request(app.getHttpServer())
+        .get(
+          `${API_BASE_PATH}/products?search=${encodeURIComponent(product.name)}`,
+        )
+        .expect(200);
+
+      const body = response.body as { data: Array<{ id: string }> };
+      const ids = body.data.map((p) => p.id);
+      expect(ids).toContain(product.id);
+    });
+
+    it('GET /products/:id returns a soft-deleted product for an ADMIN caller', async () => {
+      const admin = await createTestUser(UserRole.ADMIN);
+      const category = await createTestCategory();
+      const product = await RequestContext.create(orm.em, () =>
+        productService.create({
+          categoryId: category.id,
+          name: uniqueName('Deleted By Id Product E2E'),
+        }),
+      );
+      createdProductIds.push(product.id);
+      await RequestContext.create(orm.em, () =>
+        productService.remove(product.id),
+      );
+      mockSessionFor(admin.clerkId);
+
+      const response = await request(app.getHttpServer())
+        .get(`${API_BASE_PATH}/products/${product.id}`)
+        .expect(200);
+
+      const body = response.body as { data: { id: string } };
+      expect(body.data.id).toBe(product.id);
     });
   });
 });

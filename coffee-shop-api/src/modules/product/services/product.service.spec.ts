@@ -7,6 +7,7 @@ import { CategoryService } from '../../category/services/category.service.js';
 import { ProductImageService } from '../../product-image/services/product-image.service.js';
 import { ProductVariantService } from '../../product-variant/services/product-variant.service.js';
 import { ProductUnit } from '../../product-variant/enums/product-variant.enum.js';
+import { ProductStatus } from '../enums/product.enum.js';
 
 import type { Mock } from 'vitest';
 describe('ProductService', () => {
@@ -127,7 +128,10 @@ describe('ProductService', () => {
         unit: ProductUnit.G,
         price: '10.00',
       });
-      expect(productRepository.findById).toHaveBeenCalledWith('product-id-1');
+      expect(productRepository.findById).toHaveBeenCalledWith(
+        'product-id-1',
+        undefined,
+      );
       expect(result).toBe(refetched);
     });
 
@@ -178,6 +182,7 @@ describe('ProductService', () => {
       expect(productRepository.findAll).toHaveBeenCalledWith(
         { page: 1, limit: 10 },
         {},
+        undefined,
       );
       expect(result).toBe(paginated);
     });
@@ -195,6 +200,27 @@ describe('ProductService', () => {
       expect(productRepository.findAll).toHaveBeenCalledWith(
         { page: 1, limit: 10 },
         filters,
+        undefined,
+      );
+    });
+
+    it('forwards includeDeleted options to the repository', async () => {
+      const paginated = {
+        data: [buildProduct()],
+        meta: { limit: 10, currentPage: 1, pageCount: 1, totalCount: 1 },
+      };
+      productRepository.findAll.mockResolvedValue(paginated);
+
+      await service.findAll(
+        { page: 1, limit: 10 },
+        {},
+        { includeDeleted: true },
+      );
+
+      expect(productRepository.findAll).toHaveBeenCalledWith(
+        { page: 1, limit: 10 },
+        {},
+        { includeDeleted: true },
       );
     });
   });
@@ -277,13 +303,14 @@ describe('ProductService', () => {
   });
 
   describe('remove', () => {
-    it('sets deletedAt, saves the product, and does not call image/variant services', async () => {
+    it('sets deletedAt, archives the status, saves the product, and does not call image/variant services', async () => {
       const product = buildProduct();
       productRepository.findById.mockResolvedValue(product);
 
       await service.remove('product-id-1');
 
       expect(product.deletedAt).toBeInstanceOf(Date);
+      expect(product.status).toBe(ProductStatus.ARCHIVED);
       expect(productRepository.save).toHaveBeenCalledWith(product);
       expect(productImageService.create).not.toHaveBeenCalled();
       expect(productVariantService.create).not.toHaveBeenCalled();
