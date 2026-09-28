@@ -84,7 +84,7 @@ describe('WebhookController (e2e)', () => {
         expect(created.firstName).toBe('E2E');
         expect(created.lastName).toBe('Test');
 
-        await userService.softDelete(created.id);
+        await userService.remove(created.id);
       });
     });
 

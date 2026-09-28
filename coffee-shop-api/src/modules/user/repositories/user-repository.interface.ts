@@ -12,11 +12,19 @@ export type CreateUserData = Pick<
 > &
   Partial<Pick<User, 'phoneNumber' | 'avatarUrl' | 'role'>>;
 
+export interface FindOptions {
+  includeDeleted?: boolean;
+  excludeUserId?: string;
+}
+
 export interface UserRepository {
-  findById(id: string): Promise<User | null>;
+  findById(id: string, options?: FindOptions): Promise<User | null>;
   findByEmail(email: string): Promise<User | null>;
   findByClerkId(clerkId: string): Promise<User | null>;
-  findAll(query: QueryParams): Promise<PaginatedResult<User>>;
+  findAll(
+    query: QueryParams,
+    options?: FindOptions,
+  ): Promise<PaginatedResult<User>>;
   create(data: CreateUserData): Promise<User>;
   save(user: User): Promise<void>;
 }

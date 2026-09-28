@@ -4,6 +4,7 @@ import { CreateUserDto } from '../dto/create-user.dto.js';
 import { UpdateUserDto } from '../dto/update-user.dto.js';
 import {
   USER_REPOSITORY,
+  type FindOptions,
   type UserRepository,
 } from '../repositories/user-repository.interface.js';
 import {
@@ -20,6 +21,7 @@ import {
   ItemNotFoundException,
   InvalidRequestException,
 } from '../../../common/exceptions/base.exception.js';
+import { UserStatus } from '../../../common/enums/user.enum.js';
 
 @Injectable()
 export class UserService {
@@ -54,8 +56,11 @@ export class UserService {
     return this.userRepository.create(dto);
   }
 
-  async findAll(query: QueryParams): Promise<PaginatedResult<User>> {
-    const result = await this.userRepository.findAll(query);
+  async findAll(
+    query: QueryParams,
+    options?: FindOptions,
+  ): Promise<PaginatedResult<User>> {
+    const result = await this.userRepository.findAll(query, options);
     const { totalCount, pageCount } = result.meta;
 
     if (totalCount > 0 && query.page > pageCount) {
@@ -70,8 +75,8 @@ export class UserService {
     return result;
   }
 
-  async findOne(id: string): Promise<User> {
-    const user = await this.userRepository.findById(id);
+  async findOne(id: string, options?: FindOptions): Promise<User> {
+    const user = await this.userRepository.findById(id, options);
     if (!user) {
       throw new ItemNotFoundException({
         errCode: ERROR_CODES.USER.NOT_FOUND,
@@ -109,9 +114,10 @@ export class UserService {
     return user;
   }
 
-  async softDelete(id: string): Promise<void> {
+  async remove(id: string): Promise<void> {
     const user = await this.findOne(id);
     user.deletedAt = new Date();
+    user.status = UserStatus.INACTIVE;
     await this.userRepository.save(user);
   }
 }

@@ -82,8 +82,12 @@ export class UserController {
   @ApiErrorResponse(HttpStatus.FORBIDDEN, ERROR_MESSAGES.AUTH.FORBIDDEN)
   async findAll(
     @Query() query: PaginationQueryDto,
+    @AuthUser() user: User,
   ): Promise<PaginatedResult<ResponseUserDto>> {
-    const result = await this.userService.findAll(query);
+    const result = await this.userService.findAll(query, {
+      includeDeleted: true,
+      excludeUserId: user.id,
+    });
     return {
       data: result.data.map((user) => ResponseUserDto.fromEntity(user)),
       meta: result.meta,
@@ -116,7 +120,7 @@ export class UserController {
   @ApiErrorResponse(HttpStatus.FORBIDDEN, ERROR_MESSAGES.AUTH.FORBIDDEN)
   @ApiErrorResponse(HttpStatus.NOT_FOUND, ERROR_MESSAGES.USER.NOT_FOUND)
   async findOne(@Param('id') id: string): Promise<ResponseUserDto> {
-    const user = await this.userService.findOne(id);
+    const user = await this.userService.findOne(id, { includeDeleted: true });
     return ResponseUserDto.fromEntity(user);
   }
 
@@ -156,6 +160,6 @@ export class UserController {
   @ApiErrorResponse(HttpStatus.FORBIDDEN, ERROR_MESSAGES.AUTH.FORBIDDEN)
   @ApiErrorResponse(HttpStatus.NOT_FOUND, ERROR_MESSAGES.USER.NOT_FOUND)
   remove(@Param('id') id: string): Promise<void> {
-    return this.userService.softDelete(id);
+    return this.userService.remove(id);
   }
 }

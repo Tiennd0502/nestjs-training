@@ -15,7 +15,7 @@ describe('ClerkWebhookService', () => {
     create: Mock;
     findByClerkId: Mock;
     update: Mock;
-    softDelete: Mock;
+    remove: Mock;
   };
 
   const buildUser = (overrides: Partial<User> = {}): User =>
@@ -51,7 +51,7 @@ describe('ClerkWebhookService', () => {
       create: vi.fn(),
       findByClerkId: vi.fn(),
       update: vi.fn(),
-      softDelete: vi.fn(),
+      remove: vi.fn(),
     };
 
     service = new ClerkWebhookService(authProvider, userService as never);
@@ -235,7 +235,7 @@ describe('ClerkWebhookService', () => {
 
         await service.handleEvent(deletedEvent);
 
-        expect(userService.softDelete).toHaveBeenCalledWith(existing.id);
+        expect(userService.remove).toHaveBeenCalledWith(existing.id);
       });
 
       it('does not throw and does not delete when there is no local match', async () => {
@@ -251,7 +251,7 @@ describe('ClerkWebhookService', () => {
         await expect(
           service.handleEvent(deletedEvent),
         ).resolves.toBeUndefined();
-        expect(userService.softDelete).not.toHaveBeenCalled();
+        expect(userService.remove).not.toHaveBeenCalled();
       });
 
       it('does not throw and does not look up when the event has no clerk id', async () => {
@@ -275,7 +275,7 @@ describe('ClerkWebhookService', () => {
         expect(userService.create).not.toHaveBeenCalled();
         expect(userService.findByClerkId).not.toHaveBeenCalled();
         expect(userService.update).not.toHaveBeenCalled();
-        expect(userService.softDelete).not.toHaveBeenCalled();
+        expect(userService.remove).not.toHaveBeenCalled();
       });
     });
   });

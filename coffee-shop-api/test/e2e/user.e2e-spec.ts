@@ -37,7 +37,7 @@ describe('UserController auth (e2e)', () => {
   afterAll(async () => {
     await RequestContext.create(orm.em, async () => {
       for (const id of createdUserIds) {
-        await userService.softDelete(id).catch(() => undefined);
+        await userService.remove(id).catch(() => undefined);
       }
     });
     await app.close();
@@ -155,6 +155,7 @@ describe('UserController auth (e2e)', () => {
           role: user.role,
           status: user.status,
           avatarUrl: user.avatarUrl,
+          deletedAt: user.deletedAt,
         },
       });
     });
@@ -171,6 +172,53 @@ describe('UserController auth (e2e)', () => {
 
       expect(response.body).toHaveProperty('data');
       expect(response.body).toHaveProperty('meta');
+    });
+
+    it('GET /users excludes the calling admin from the results', async () => {
+      const admin = await createTestUser({ role: UserRole.ADMIN });
+      mockSessionFor(admin.clerkId);
+
+      const response = await request(app.getHttpServer())
+        .get(`${API_BASE_PATH}/users?limit=100`)
+        .expect(200);
+
+      const body = response.body as { data: Array<{ id: string }> };
+      const ids = body.data.map((u) => u.id);
+      expect(ids).not.toContain(admin.id);
+    });
+
+    it('GET /users includes a soft-deleted user', async () => {
+      const admin = await createTestUser({ role: UserRole.ADMIN });
+      const deletedUser = await createTestUser({ role: UserRole.USER });
+      await RequestContext.create(orm.em, () =>
+        userService.remove(deletedUser.id),
+      );
+      mockSessionFor(admin.clerkId);
+
+      const response = await request(app.getHttpServer())
+        .get(`${API_BASE_PATH}/users?limit=100`)
+        .expect(200);
+
+      const body = response.body as { data: Array<{ id: string }> };
+      const ids = body.data.map((u) => u.id);
+      expect(ids).toContain(deletedUser.id);
+    });
+
+    it('GET /users/:id returns a soft-deleted user', async () => {
+      const admin = await createTestUser({ role: UserRole.ADMIN });
+      const deletedUser = await createTestUser({ role: UserRole.USER });
+      await RequestContext.create(orm.em, () =>
+        userService.remove(deletedUser.id),
+      );
+      mockSessionFor(admin.clerkId);
+
+      const response = await request(app.getHttpServer())
+        .get(`${API_BASE_PATH}/users/${deletedUser.id}`)
+        .expect(200);
+
+      expect(response.body).toEqual({
+        data: expect.objectContaining({ id: deletedUser.id }) as unknown,
+      });
     });
   });
 });

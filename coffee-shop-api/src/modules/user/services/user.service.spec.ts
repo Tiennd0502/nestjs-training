@@ -115,7 +115,7 @@ describe('UserService', () => {
   });
 
   describe('findAll', () => {
-    it('forwards the pagination query to the repository and returns its result, unmodified', async () => {
+    it('forwards the pagination query and options to the repository and returns its result, unmodified', async () => {
       // Soft-delete exclusion is enforced by BaseEntity's default MikroORM
       // @Filter at the DB layer, not by this service — that mechanism can
       // only be genuinely verified against a real DB (see the e2e suite).
@@ -127,12 +127,15 @@ describe('UserService', () => {
       };
       userRepository.findAll.mockResolvedValue(paginatedUsers);
 
-      const result = await service.findAll({ page: 1, limit: 10 });
+      const result = await service.findAll(
+        { page: 1, limit: 10 },
+        { includeDeleted: true },
+      );
 
-      expect(userRepository.findAll).toHaveBeenCalledWith({
-        page: 1,
-        limit: 10,
-      });
+      expect(userRepository.findAll).toHaveBeenCalledWith(
+        { page: 1, limit: 10 },
+        { includeDeleted: true },
+      );
       expect(result).toBe(paginatedUsers);
     });
 
@@ -177,9 +180,13 @@ describe('UserService', () => {
       const user = buildUser();
       userRepository.findById.mockResolvedValue(user);
 
-      const result = await service.findOne('user-id-1');
+      const result = await service.findOne('user-id-1', {
+        includeDeleted: true,
+      });
 
-      expect(userRepository.findById).toHaveBeenCalledWith('user-id-1');
+      expect(userRepository.findById).toHaveBeenCalledWith('user-id-1', {
+        includeDeleted: true,
+      });
       expect(result).toBe(user);
     });
 
@@ -235,21 +242,22 @@ describe('UserService', () => {
     });
   });
 
-  describe('softDelete', () => {
-    it('sets deletedAt without removing the row', async () => {
+  describe('remove', () => {
+    it('sets deletedAt and status to INACTIVE without removing the row', async () => {
       const user = buildUser();
       userRepository.findById.mockResolvedValue(user);
 
-      await service.softDelete('user-id-1');
+      await service.remove('user-id-1');
 
       expect(user.deletedAt).toBeInstanceOf(Date);
+      expect(user.status).toBe(UserStatus.INACTIVE);
       expect(userRepository.save).toHaveBeenCalledWith(user);
     });
 
     it('throws ItemNotFoundException for a missing or already-deleted id', async () => {
       userRepository.findById.mockResolvedValue(null);
 
-      await expect(service.softDelete('missing-id')).rejects.toBeInstanceOf(
+      await expect(service.remove('missing-id')).rejects.toBeInstanceOf(
         ItemNotFoundException,
       );
       expect(userRepository.save).not.toHaveBeenCalled();
