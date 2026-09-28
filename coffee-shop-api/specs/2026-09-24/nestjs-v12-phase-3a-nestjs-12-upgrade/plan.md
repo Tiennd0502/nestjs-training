@@ -38,13 +38,13 @@ References: [Release v12.0.0](https://github.com/nestjs/nest/releases/tag/v12.0.
 
 ## 2. Desired Outcome (Checklist)
 
-- [ ] All `@nestjs/*` packages are on v12-compatible versions.
-- [ ] `pnpm install` reports no peer warnings for `@nestjs/*`, `@mikro-orm/nestjs` or `typescript`.
-- [ ] The app still builds and boots as CommonJS with `nest build`, including the Swagger CLI
+- [x] All `@nestjs/*` packages are on v12-compatible versions.
+- [x] `pnpm install` reports no peer warnings for `@nestjs/*`, `@mikro-orm/nestjs` or `typescript`.
+- [x] The app still builds and boots as CommonJS with `nest build`, including the Swagger CLI
       plugin.
-- [ ] Validation, error bodies, env validation, rate limiting and Swagger behave as in the
+- [x] Validation, error bodies, env validation, rate limiting and Swagger behave as in the
       baseline.
-- [ ] Lint, build, unit and e2e tests pass.
+- [x] Lint, build, unit and e2e tests pass.
 
 ## 3. Input (current state)
 
@@ -104,10 +104,10 @@ References: [Release v12.0.0](https://github.com/nestjs/nest/releases/tag/v12.0.
 
 ## Task Checklist
 
-- [ ] Task 1: Upgrade the NestJS runtime packages
-- [ ] Task 2: Upgrade the NestJS CLI, schematics and testing packages
-- [ ] Task 3: Confirm request validation and error shape are unchanged
-- [ ] Task 4: Confirm config validation, rate limiting and Swagger are unchanged
+- [x] Task 1: Upgrade the NestJS runtime packages
+- [x] Task 2: Upgrade the NestJS CLI, schematics and testing packages
+- [x] Task 3: Confirm request validation and error shape are unchanged
+- [x] Task 4: Confirm config validation, rate limiting and Swagger are unchanged
 
 ---
 
@@ -135,12 +135,12 @@ References: [Release v12.0.0](https://github.com/nestjs/nest/releases/tag/v12.0.
 
 **Acceptance Criteria:**
 
-- [ ] Every runtime `@nestjs/*` package resolves to a version that lists `@nestjs/core` ^12 as
+- [x] Every runtime `@nestjs/*` package resolves to a version that lists `@nestjs/core` ^12 as
       supported.
-- [ ] `@mikro-orm/nestjs` reports no peer warning against `@nestjs/*` 12.
-- [ ] Build passes. The compiled `dist/main.js` is still CommonJS at this point (Phase 3b switches
+- [x] `@mikro-orm/nestjs` reports no peer warning against `@nestjs/*` 12.
+- [x] Build passes. The compiled `dist/main.js` is still CommonJS at this point (Phase 3b switches
       to ESM) and boots the app.
-- [ ] No `ERR_REQUIRE_ASYNC_MODULE` or other ESM loading error on startup, or when Jest loads the
+- [x] No `ERR_REQUIRE_ASYNC_MODULE` or other ESM loading error on startup, or when Jest loads the
       packages.
 
 **Verification:**
@@ -178,11 +178,11 @@ References: [Release v12.0.0](https://github.com/nestjs/nest/releases/tag/v12.0.
 
 **Acceptance Criteria:**
 
-- [ ] `nest build` succeeds with the `@nestjs/swagger` compiler plugin still active. DTO
+- [x] `nest build` succeeds with the `@nestjs/swagger` compiler plugin still active. DTO
       properties without explicit `@ApiProperty()` still appear in the generated OpenAPI schema.
-- [ ] `nest start --watch` boots the app and rebuilds on a source change.
-- [ ] `typescript` is still on `~6.0.x`.
-- [ ] The Jest configuration is unchanged at this point. `package.json` `jest` and
+- [x] `nest start --watch` boots the app and rebuilds on a source change.
+- [x] `typescript` is still on `~6.0.x`.
+- [x] The Jest configuration is unchanged at this point. `package.json` `jest` and
       `test/jest-e2e.json` still use `ts-jest`. Phase 3b, Task 3 replaces them with Vitest.
 
 **Verification:**
@@ -215,10 +215,10 @@ References: [Release v12.0.0](https://github.com/nestjs/nest/releases/tag/v12.0.
 
 **Acceptance Criteria:**
 
-- [ ] The 400, 401, 403, 404 and 409 bodies match `baseline.md` exactly (status code, `message`,
+- [x] The 400, 401, 403, 404 and 409 bodies match `baseline.md` exactly (status code, `message`,
       every `errors[]` entry).
-- [ ] Unknown request properties are still stripped (`whitelist`).
-- [ ] Query and path params are still transformed to their DTO types (`transform`).
+- [x] Unknown request properties are still stripped (`whitelist`).
+- [x] Query and path params are still transformed to their DTO types (`transform`).
 
 **Verification:**
 
@@ -259,12 +259,12 @@ References: [Release v12.0.0](https://github.com/nestjs/nest/releases/tag/v12.0.
 
 **Acceptance Criteria:**
 
-- [ ] Starting the app with a required env variable missing fails at boot with the validation
+- [x] Starting the app with a required env variable missing fails at boot with the validation
       error from `env.validation.ts`, as on v11.
-- [ ] Exceeding the configured rate limit on any route returns 429 in the standard error envelope.
-- [ ] `/docs` loads outside production and lists every controller's routes. It shows the bearer
+- [x] Exceeding the configured rate limit on any route returns 429 in the standard error envelope.
+- [x] `/docs` loads outside production and lists every controller's routes. It shows the bearer
       auth scheme and the response/error schemas from `src/common/decorators/api-response.decorator.ts`.
-- [ ] `/docs` is not served when `NODE_ENV` is `production`.
+- [x] `/docs` is not served when `NODE_ENV` is `production`.
 
 **Verification:**
 

@@ -31,15 +31,15 @@ holds the full task docs.
 
 ## 2. Desired Outcome (Checklist)
 
-- [ ] [3a] All `@nestjs/*` packages are on v12-compatible versions, with no peer warnings.
-- [ ] [3a] Validation, error bodies, env validation, rate limiting and Swagger behave as in the
+- [x] [3a] All `@nestjs/*` packages are on v12-compatible versions, with no peer warnings.
+- [x] [3a] Validation, error bodies, env validation, rate limiting and Swagger behave as in the
       baseline.
 - [ ] [3b] The project is ESM (`"type": "module"`), and it builds and runs through every run path:
       `start:dev`, `start:prod`, MikroORM CLI, Docker, CI.
 - [ ] [3b] Unit and e2e tests run on Vitest, with the same test counts and titles as on Jest.
 - [ ] [3c] Graceful shutdown, `errorCode` support, route conflict diagnostics, the Standard
       Schema pilot and `@nestjs/observe` (outside production) are in place.
-- [ ] Lint, build, unit and e2e pass at the end of each plan.
+- [x] Lint, build, unit and e2e pass at the end of each plan.
 
 ## 3. Ordering
 
@@ -60,10 +60,10 @@ holds the full task docs.
 
 ### [Phase 3a: NestJS 12 upgrade](../nestjs-v12-phase-3a-nestjs-12-upgrade/plan.md)
 
-- [ ] Task 1: Upgrade the NestJS runtime packages
-- [ ] Task 2: Upgrade the NestJS CLI, schematics and testing packages
-- [ ] Task 3: Confirm request validation and error shape are unchanged
-- [ ] Task 4: Confirm config validation, rate limiting and Swagger are unchanged
+- [x] Task 1: Upgrade the NestJS runtime packages
+- [x] Task 2: Upgrade the NestJS CLI, schematics and testing packages
+- [x] Task 3: Confirm request validation and error shape are unchanged
+- [x] Task 4: Confirm config validation, rate limiting and Swagger are unchanged
 
 ### [Phase 3b: Move the project to ESM](../nestjs-v12-phase-3b-esm/plan.md)
 
