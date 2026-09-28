@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Category } from '../entities/category.entity.js';
-import { CreateCategoryDto } from '../dto/create-category.dto.js';
-import { UpdateCategoryDto } from '../dto/update-category.dto.js';
+import type { CreateCategoryInput } from '../dto/create-category.schema.js';
+import type { UpdateCategoryInput } from '../dto/update-category.schema.js';
 import {
   CATEGORY_REPOSITORY,
   type CategoryRepository,
@@ -29,7 +29,7 @@ export class CategoryService {
     private readonly categoryRepository: CategoryRepository,
   ) {}
 
-  async create(dto: CreateCategoryDto): Promise<Category> {
+  async create(dto: CreateCategoryInput): Promise<Category> {
     const existing = await this.categoryRepository.findByName(dto.name, {
       includeDeleted: true,
     });
@@ -69,7 +69,7 @@ export class CategoryService {
     return category;
   }
 
-  async update(id: string, dto: UpdateCategoryDto): Promise<Category> {
+  async update(id: string, dto: UpdateCategoryInput): Promise<Category> {
     const category = await this.findOne(id);
 
     if (dto.name !== undefined && dto.name !== category.name) {

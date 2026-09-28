@@ -5,6 +5,7 @@ export class ResponseCategoryDto {
   name!: string;
   slug!: string;
   createdAt!: Date;
+  updatedAt!: Date;
 
   static fromEntity(category: Category): ResponseCategoryDto {
     const dto = new ResponseCategoryDto();
@@ -12,6 +13,7 @@ export class ResponseCategoryDto {
     dto.name = category.name;
     dto.slug = category.slug;
     dto.createdAt = category.createdAt;
+    dto.updatedAt = category.updatedAt;
     return dto;
   }
 }

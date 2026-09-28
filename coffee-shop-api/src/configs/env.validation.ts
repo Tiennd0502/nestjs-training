@@ -3,6 +3,7 @@ import {
   IsIn,
   IsInt,
   IsNotEmpty,
+  IsOptional,
   IsString,
   validateSync,
 } from 'class-validator';
@@ -63,6 +64,16 @@ export class EnvironmentVariables {
   @IsString()
   @IsNotEmpty()
   CLERK_PUBLISHABLE_KEY!: string;
+
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  APP_KEY?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  APP_SECRET?: string;
 }
 
 export function validate(

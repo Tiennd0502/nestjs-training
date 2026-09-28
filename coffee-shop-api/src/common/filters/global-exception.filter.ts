@@ -60,6 +60,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         errors: [
           {
             errCode:
+              exception.errorCode ??
               DEFAULT_ERR_CODE_BY_STATUS[statusCode] ??
               ERROR_CODES.UNKNOWN_ERROR,
             field: '',

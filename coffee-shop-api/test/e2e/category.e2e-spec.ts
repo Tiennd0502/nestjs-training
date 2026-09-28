@@ -107,6 +107,7 @@ describe('CategoryController (e2e)', () => {
           name: category.name,
           slug: category.slug,
           createdAt: category.createdAt.toISOString(),
+          updatedAt: category.updatedAt.toISOString(),
         },
       });
     });
