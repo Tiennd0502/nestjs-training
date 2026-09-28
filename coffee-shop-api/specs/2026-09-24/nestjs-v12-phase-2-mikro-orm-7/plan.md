@@ -32,16 +32,28 @@ Reference: [MikroORM v6 → v7 upgrading guide](https://mikro-orm.io/docs/upgrad
 - Open item from the parent spec: the exact import path of `ReflectMetadataProvider` in v7 isn't
   stated in the upgrade guide. It is resolved in Task 2 against the installed package's type
   definitions.
+- **Found during implementation, not anticipated above:** the v7 CLI's own TS loader (`tsx`,
+  auto-detected — it runs esbuild) does not emit `design:type` metadata, so
+  `ReflectMetadataProvider` cannot resolve the column type for any `@Property()`/`@ManyToOne()`
+  that omitted `type` and relied on `emitDecoratorMetadata` (the app itself is unaffected, since it
+  runs through real `tsc`/`ts-jest`). Fixed by adding an explicit `type` to every such property
+  (Task 3) instead of swapping metadata providers — see Task 3's Output.
+- **Also found during implementation:** v7 removed the v6 behavior of inferring a relation's FK
+  `updateRule`/`deleteRule` from its `cascade` option. The three `@ManyToOne()` relations relied on
+  that inference to get `ON UPDATE CASCADE` (already present in the live schema); left unset, v7's
+  `migration:create` treats it as `NO ACTION` and diffs against the real DB. Fixed by setting
+  `updateRule: 'cascade'` explicitly on each relation (Task 6) — no DB/behavior change, just makes
+  v6's implicit default explicit.
 
 ## 2. Desired Outcome (Checklist)
 
-- [ ] All `@mikro-orm/*` packages are on v7, and `@mikro-orm/nestjs` is on 7.1.x.
-- [ ] Entities load with the same metadata as before. The schema diff against the current
+- [x] All `@mikro-orm/*` packages are on v7, and `@mikro-orm/nestjs` is on 7.1.x.
+- [x] Entities load with the same metadata as before. The schema diff against the current
       database is empty.
-- [ ] Test DB reset, migrations CLI and seeder CLI work through `tsx`.
-- [ ] Every repository adapter compiles against MikroORM 7 types, and every query returns the same
+- [x] Test DB reset, migrations CLI and seeder CLI work through `tsx`.
+- [x] Every repository adapter compiles against MikroORM 7 types, and every query returns the same
       results as the baseline.
-- [ ] Lint, build, unit and e2e pass on NestJS 11 + MikroORM 7.
+- [x] Lint, build, unit and e2e pass on NestJS 11 + MikroORM 7.
 
 ## 3. Input (current state)
 
@@ -109,12 +121,12 @@ Reference: [MikroORM v6 → v7 upgrading guide](https://mikro-orm.io/docs/upgrad
 
 ## Task Checklist
 
-- [ ] Task 1: Upgrade the MikroORM packages
-- [ ] Task 2: Configure the reflect-metadata provider explicitly
-- [ ] Task 3: Move entity decorators to `@mikro-orm/decorators`
-- [ ] Task 4: Update the test database reset script
-- [ ] Task 5: Run the MikroORM CLI through `tsx`
-- [ ] Task 6: Align repository adapters with MikroORM 7 types and defaults
+- [x] Task 1: Upgrade the MikroORM packages
+- [x] Task 2: Configure the reflect-metadata provider explicitly
+- [x] Task 3: Move entity decorators to `@mikro-orm/decorators`
+- [x] Task 4: Update the test database reset script
+- [x] Task 5: Run the MikroORM CLI through `tsx`
+- [x] Task 6: Align repository adapters with MikroORM 7 types and defaults
 
 ---
 
@@ -138,10 +150,10 @@ Reference: [MikroORM v6 → v7 upgrading guide](https://mikro-orm.io/docs/upgrad
 
 **Acceptance Criteria:**
 
-- [ ] Every `@mikro-orm/*` package in `package.json` is on a v7 range.
-- [ ] All `@mikro-orm/*` packages resolve to the same minor version, except `@mikro-orm/nestjs`,
+- [x] Every `@mikro-orm/*` package in `package.json` is on a v7 range.
+- [x] All `@mikro-orm/*` packages resolve to the same minor version, except `@mikro-orm/nestjs`,
       which is versioned separately.
-- [ ] `pnpm install` reports no peer warnings for `@mikro-orm/*`, including
+- [x] `pnpm install` reports no peer warnings for `@mikro-orm/*`, including
       `@mikro-orm/nestjs` → `@nestjs/*` ^11.0.5.
 
 **Verification:**
@@ -171,10 +183,10 @@ Reference: [MikroORM v6 → v7 upgrading guide](https://mikro-orm.io/docs/upgrad
 
 **Acceptance Criteria:**
 
-- [ ] The config sets the reflect-metadata provider explicitly.
-- [ ] The app boots and discovers all six entities: `BaseEntity` (abstract), `Category`,
+- [x] The config sets the reflect-metadata provider explicitly.
+- [x] The app boots and discovers all six entities: `BaseEntity` (abstract), `Category`,
       `Product`, `ProductImage`, `ProductVariant`, `User`.
-- [ ] Every entity property keeps the column type it had under v6, confirmed by the empty schema
+- [x] Every entity property keeps the column type it had under v6, confirmed by the empty schema
       diff in Task 5.
 
 **Verification:**
@@ -213,12 +225,18 @@ Reference: [MikroORM v6 → v7 upgrading guide](https://mikro-orm.io/docs/upgrad
 - Non-decorator symbols (`Opt`, `Collection`) keep importing from `@mikro-orm/core`.
 - Decorator arguments are unchanged: `fieldName`, `items`, `nullable`, `onCreate`/`onUpdate`,
   the `softDelete` filter definition.
+- **Revised during implementation:** every `@Property()`/`@ManyToOne()` that previously relied on
+  `emitDecoratorMetadata` for its type (no explicit `type`) now sets it explicitly (`type: 'string'`
+  / `'boolean'` / `'number'` / `Date`, and `updateRule: 'cascade'` on the three relations) — see
+  the "Found during implementation" notes in section 1. This was needed because the CLI's `tsx`
+  loader (Task 5) never emits that metadata, unlike the real `tsc` build the app itself runs
+  through.
 
 **Acceptance Criteria:**
 
-- [ ] No file under `src/` imports a decorator from `@mikro-orm/core`.
-- [ ] The `softDelete` filter on `BaseEntity` is still registered, and is on by default.
-- [ ] Build passes.
+- [x] No file under `src/` imports a decorator from `@mikro-orm/core`.
+- [x] The `softDelete` filter on `BaseEntity` is still registered, and is on by default.
+- [x] Build passes.
 
 **Verification:**
 
@@ -255,8 +273,8 @@ Reference: [MikroORM v6 → v7 upgrading guide](https://mikro-orm.io/docs/upgrad
 
 **Acceptance Criteria:**
 
-- [ ] `pretest:e2e` completes without error on an existing test database.
-- [ ] After it runs, every table is empty, and the migration history table is intact.
+- [x] `pretest:e2e` completes without error on an existing test database.
+- [x] After it runs, every table is empty, and the migration history table is intact.
 
 **Verification:**
 
@@ -290,19 +308,29 @@ Reference: [MikroORM v6 → v7 upgrading guide](https://mikro-orm.io/docs/upgrad
 
 **Acceptance Criteria:**
 
-- [ ] `migration:up` on a database already at the latest migration reports nothing to run.
-- [ ] None of the three existing migrations is re-executed.
-- [ ] `migration:create` reports no schema difference and writes no new file. This proves entity
+- [x] `migration:up` on a database already at the latest migration reports nothing to run.
+- [x] None of the three existing migrations is re-executed.
+- [x] `migration:create` reports no schema difference and writes no new file. This proves entity
       metadata matches the v6 schema.
-- [ ] When a diff does exist, e.g. from a temporary throwaway entity change, `migration:create`
+- [x] When a diff does exist, e.g. from a temporary throwaway entity change, `migration:create`
       writes a `.ts` file into `src/migrations/`, not `dist/`. The throwaway change and file are
       discarded afterwards.
-- [ ] The migration scripts don't require a prior build.
+- [x] The migration scripts don't require a prior build.
 
 **Verification:**
 
-- The CLI checks above, run against the dev database and the test database.
-- The full e2e suite still passes after `migration:up` on a fresh test database.
+- The CLI checks above, run against the test database (`coffee_shop_test`), confirmed clean
+  (`migration:pending` → none; `migration:create` → "No changes required, schema is up-to-date").
+  `seeder:create`/`seeder:run` were also exercised through `tsx` (create writes to `src/seeders/`
+  with no prior build; run reports the expected "no seeder class" error since none exist yet per
+  Non-goals); both throwaway artifacts were discarded.
+- **Dev database (`coffee_shop`) not verified**: this machine has two Postgres servers bound to
+  `localhost:5432` (a native install plus the project's Docker container), so it's unclear which
+  one the CLI/app actually reach at that host:port, and the Docker container's own `coffee_shop`
+  currently has only 1 of 3 migrations applied — a pre-existing local-environment state unrelated
+  to this phase's changes. Out of scope to fix here; flagged to the user separately.
+- The full e2e suite (56/56, all 5 suites) passes identically on two consecutive runs against the
+  test database after `pretest:e2e` resets it.
 
 ---
 
@@ -331,14 +359,18 @@ Reference: [MikroORM v6 → v7 upgrading guide](https://mikro-orm.io/docs/upgrad
 - Any type fix stays inside the adapter. Ports and services are untouched.
 - If `balanced` loading changes product list results, the product adapter sets the loading
   strategy it needs explicitly. A global default is not changed.
+- **Found during implementation:** no adapter code changed. Everything compiled against v7 types
+  unmodified, and `balanced` loading didn't change any product query result (confirmed by the
+  product e2e suite, unchanged). The FK `updateRule: 'cascade'` fix (relation default behavior,
+  Task 3's revised output) was the only defaults-related change this task surfaced.
 
 **Acceptance Criteria:**
 
-- [ ] Build passes, with no `@ts-ignore`, `@ts-expect-error` or `as any` added to adapters.
-- [ ] Repository port interfaces and services are unchanged.
-- [ ] Product list results match the baseline for every filter/sort combination: item set, order,
+- [x] Build passes, with no `@ts-ignore`, `@ts-expect-error` or `as any` added to adapters.
+- [x] Repository port interfaces and services are unchanged.
+- [x] Product list results match the baseline for every filter/sort combination: item set, order,
       `meta` totals, and populated `images`/`variants`.
-- [ ] Soft-deleted rows are excluded by default, and included only where the adapter disables the
+- [x] Soft-deleted rows are excluded by default, and included only where the adapter disables the
       filter.
 
 **Verification:**
