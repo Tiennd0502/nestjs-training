@@ -1,16 +1,13 @@
-import { Inject, Injectable, NestMiddleware } from '@nestjs/common';
+import { Injectable, NestMiddleware } from '@nestjs/common';
 import type { NextFunction, Request, Response } from 'express';
 import { UserService } from '../../modules/user/services/user.service.js';
-import {
-  AUTH_PROVIDER,
-  type AuthProvider,
-} from '../providers/auth-provider.interface.js';
+import { AuthProvider } from '../providers/auth.provider.js';
 import { ItemNotFoundException } from '../exceptions/base.exception.js';
 
 @Injectable()
 export class UserResolutionMiddleware implements NestMiddleware {
   constructor(
-    @Inject(AUTH_PROVIDER) private readonly authProvider: AuthProvider,
+    private readonly authProvider: AuthProvider,
     private readonly userService: UserService,
   ) {}
 
