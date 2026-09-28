@@ -14,7 +14,7 @@ describe('UserController', () => {
     findAll: Mock;
     findOne: Mock;
     update: Mock;
-    softDelete: Mock;
+    remove: Mock;
   };
 
   const user = {
@@ -38,7 +38,7 @@ describe('UserController', () => {
       findAll: vi.fn(),
       findOne: vi.fn(),
       update: vi.fn(),
-      softDelete: vi.fn(),
+      remove: vi.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -75,12 +75,12 @@ describe('UserController', () => {
       const meta = { limit: 10, currentPage: 1, pageCount: 1, totalCount: 1 };
       userService.findAll.mockResolvedValue({ data: [user], meta });
 
-      const result = await controller.findAll({ page: 1, limit: 10 });
+      const result = await controller.findAll({ page: 1, limit: 10 }, user);
 
-      expect(userService.findAll).toHaveBeenCalledWith({
-        page: 1,
-        limit: 10,
-      });
+      expect(userService.findAll).toHaveBeenCalledWith(
+        { page: 1, limit: 10 },
+        { includeDeleted: true, excludeUserId: user.id },
+      );
       expect(result).toEqual({
         data: [ResponseUserDto.fromEntity(user)],
         meta,
@@ -91,7 +91,7 @@ describe('UserController', () => {
       userService.findAll.mockRejectedValue(new BadRequestException());
 
       await expect(
-        controller.findAll({ page: 999, limit: 10 }),
+        controller.findAll({ page: 999, limit: 10 }, user),
       ).rejects.toBeInstanceOf(BadRequestException);
     });
   });
@@ -111,7 +111,9 @@ describe('UserController', () => {
 
       const result = await controller.findOne('user-id-1');
 
-      expect(userService.findOne).toHaveBeenCalledWith('user-id-1');
+      expect(userService.findOne).toHaveBeenCalledWith('user-id-1', {
+        includeDeleted: true,
+      });
       expect(result).toEqual(ResponseUserDto.fromEntity(user));
     });
 
@@ -146,16 +148,16 @@ describe('UserController', () => {
   });
 
   describe('remove', () => {
-    it('delegates to UserService.softDelete', async () => {
-      userService.softDelete.mockResolvedValue(undefined);
+    it('delegates to UserService.remove', async () => {
+      userService.remove.mockResolvedValue(undefined);
 
       await controller.remove('user-id-1');
 
-      expect(userService.softDelete).toHaveBeenCalledWith('user-id-1');
+      expect(userService.remove).toHaveBeenCalledWith('user-id-1');
     });
 
     it('propagates NotFoundException', async () => {
-      userService.softDelete.mockRejectedValue(new NotFoundException());
+      userService.remove.mockRejectedValue(new NotFoundException());
 
       await expect(controller.remove('missing-id')).rejects.toBeInstanceOf(
         NotFoundException,

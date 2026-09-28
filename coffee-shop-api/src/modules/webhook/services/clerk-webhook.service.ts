@@ -11,8 +11,13 @@ import {
   type AuthProvider,
   type AuthWebhookEvent,
 } from '../../../common/providers/auth-provider.interface.js';
-import { ClerkWebhookEventType } from '../clerk-webhook.enum.js';
 import { UserRole } from '../../../common/enums/user.enum.js';
+
+const ClerkWebhookEventType = {
+  USER_CREATED: 'user.created',
+  USER_UPDATED: 'user.updated',
+  USER_DELETED: 'user.deleted',
+} as const;
 
 // `user.created` and `user.updated` share the exact same `Webhook<'user.created' | 'user.updated', UserJSON>`
 // branch in @clerk/backend's UserWebhookEvent union, so Extract must target that combined literal
@@ -45,13 +50,13 @@ export class ClerkWebhookService {
     // boundary is crossed; AuthProvider itself stays provider-agnostic.
     const event = authEvent as unknown as WebhookEvent;
     switch (event.type) {
-      case ClerkWebhookEventType.USER_CREATED as 'user.created':
+      case ClerkWebhookEventType.USER_CREATED:
         await this.handleUserCreated(event);
         break;
-      case ClerkWebhookEventType.USER_UPDATED as 'user.updated':
+      case ClerkWebhookEventType.USER_UPDATED:
         await this.handleUserUpdated(event);
         break;
-      case ClerkWebhookEventType.USER_DELETED as 'user.deleted':
+      case ClerkWebhookEventType.USER_DELETED:
         await this.handleUserDeleted(event);
         break;
       default:
@@ -144,7 +149,7 @@ export class ClerkWebhookService {
       return;
     }
 
-    await this.userService.softDelete(existing.id);
+    await this.userService.remove(existing.id);
   }
 
   private async findByClerkIdOrNull(

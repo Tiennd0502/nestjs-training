@@ -5,7 +5,7 @@ import { UserRole, UserStatus } from '../../../common/enums/user.enum.js';
 import type { Mock } from 'vitest';
 describe('MikroOrmUserRepository', () => {
   let repository: MikroOrmUserRepository;
-  let entityRepository: { findAndCount: Mock };
+  let entityRepository: { findAndCount: Mock; findOne: Mock };
   let em: { persist: Mock };
 
   const buildUser = (overrides: Partial<User> = {}): User => ({
@@ -25,7 +25,7 @@ describe('MikroOrmUserRepository', () => {
   });
 
   beforeEach(() => {
-    entityRepository = { findAndCount: vi.fn() };
+    entityRepository = { findAndCount: vi.fn(), findOne: vi.fn() };
     em = { persist: vi.fn(() => ({ flush: vi.fn() })) };
 
     repository = new MikroOrmUserRepository(
@@ -42,7 +42,50 @@ describe('MikroOrmUserRepository', () => {
 
       expect(entityRepository.findAndCount).toHaveBeenCalledWith(
         {},
-        { limit: 10, offset: 20 },
+        {
+          limit: 10,
+          offset: 20,
+          orderBy: { createdAt: 'DESC' },
+          filters: { softDelete: true },
+        },
+      );
+    });
+
+    it('disables the softDelete filter when includeDeleted is true', async () => {
+      entityRepository.findAndCount.mockResolvedValue([[], 0]);
+
+      await repository.findAll(
+        { page: 1, limit: 10 },
+        { includeDeleted: true },
+      );
+
+      expect(entityRepository.findAndCount).toHaveBeenCalledWith(
+        {},
+        {
+          limit: 10,
+          offset: 0,
+          orderBy: { createdAt: 'DESC' },
+          filters: { softDelete: false },
+        },
+      );
+    });
+
+    it('excludes the given user id when excludeUserId is set', async () => {
+      entityRepository.findAndCount.mockResolvedValue([[], 0]);
+
+      await repository.findAll(
+        { page: 1, limit: 10 },
+        { excludeUserId: 'user-id-1' },
+      );
+
+      expect(entityRepository.findAndCount).toHaveBeenCalledWith(
+        { id: { $ne: 'user-id-1' } },
+        {
+          limit: 10,
+          offset: 0,
+          orderBy: { createdAt: 'DESC' },
+          filters: { softDelete: true },
+        },
       );
     });
 
@@ -66,6 +109,30 @@ describe('MikroOrmUserRepository', () => {
         pageCount: 3,
         totalCount: 25,
       });
+    });
+  });
+
+  describe('findById', () => {
+    it('applies the softDelete filter by default', async () => {
+      entityRepository.findOne.mockResolvedValue(null);
+
+      await repository.findById('user-id-1');
+
+      expect(entityRepository.findOne).toHaveBeenCalledWith(
+        { id: 'user-id-1' },
+        { filters: { softDelete: true } },
+      );
+    });
+
+    it('disables the softDelete filter when includeDeleted is true', async () => {
+      entityRepository.findOne.mockResolvedValue(null);
+
+      await repository.findById('user-id-1', { includeDeleted: true });
+
+      expect(entityRepository.findOne).toHaveBeenCalledWith(
+        { id: 'user-id-1' },
+        { filters: { softDelete: false } },
+      );
     });
   });
 });
