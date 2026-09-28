@@ -1,5 +1,5 @@
 import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
-import { BaseUserDto } from './base-user.dto';
+import { BaseUserDto } from './base-user.dto.js';
 
 export class CreateUserDto extends BaseUserDto {
   @IsString()

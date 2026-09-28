@@ -1,20 +1,21 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { CategoryService } from './category.service';
-import { Category } from '../entities/category.entity';
-import { CATEGORY_REPOSITORY } from '../repositories/category-repository.interface';
+import { CategoryService } from './category.service.js';
+import { Category } from '../entities/category.entity.js';
+import { CATEGORY_REPOSITORY } from '../repositories/category-repository.interface.js';
+import type { Mock } from 'vitest';
 import {
   DuplicateResourceException,
   ItemNotFoundException,
-} from '../../../common/exceptions/base.exception';
+} from '../../../common/exceptions/base.exception.js';
 
 describe('CategoryService', () => {
   let service: CategoryService;
   let categoryRepository: {
-    findById: jest.Mock;
-    findByName: jest.Mock;
-    findAll: jest.Mock;
-    create: jest.Mock;
-    save: jest.Mock;
+    findById: Mock;
+    findByName: Mock;
+    findAll: Mock;
+    create: Mock;
+    save: Mock;
   };
 
   const buildCategory = (overrides: Partial<Category> = {}): Category => ({
@@ -29,11 +30,11 @@ describe('CategoryService', () => {
 
   beforeEach(async () => {
     categoryRepository = {
-      findById: jest.fn(),
-      findByName: jest.fn(),
-      findAll: jest.fn(),
-      create: jest.fn(),
-      save: jest.fn(),
+      findById: vi.fn(),
+      findByName: vi.fn(),
+      findAll: vi.fn(),
+      create: vi.fn(),
+      save: vi.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -47,7 +48,7 @@ describe('CategoryService', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('create', () => {

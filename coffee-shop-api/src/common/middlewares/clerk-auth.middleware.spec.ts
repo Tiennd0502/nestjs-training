@@ -1,19 +1,20 @@
-import { ClerkAuthMiddleware } from './clerk-auth.middleware';
+import { ClerkAuthMiddleware } from './clerk-auth.middleware.js';
 import { clerkMiddleware } from '@clerk/express';
+import type { Mock } from 'vitest';
 
-jest.mock('@clerk/express', () => ({
-  clerkMiddleware: jest.fn(),
+vi.mock('@clerk/express', () => ({
+  clerkMiddleware: vi.fn(),
 }));
 
 describe('ClerkAuthMiddleware', () => {
-  let configService: { getOrThrow: jest.Mock };
-  const handler = jest.fn();
+  let configService: { getOrThrow: Mock };
+  const handler = vi.fn();
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    (clerkMiddleware as jest.Mock).mockReturnValue(handler);
+    vi.clearAllMocks();
+    (clerkMiddleware as Mock).mockReturnValue(handler);
     configService = {
-      getOrThrow: jest.fn((key: string) => `${key}-value`),
+      getOrThrow: vi.fn((key: string) => `${key}-value`),
     };
   });
 
@@ -34,7 +35,7 @@ describe('ClerkAuthMiddleware', () => {
     const middleware = new ClerkAuthMiddleware(configService as never);
     const req = {} as never;
     const res = {} as never;
-    const next = jest.fn();
+    const next = vi.fn();
 
     middleware.use(req, res, next);
 

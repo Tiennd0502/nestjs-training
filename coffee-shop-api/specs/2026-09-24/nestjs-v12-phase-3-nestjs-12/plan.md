@@ -34,9 +34,9 @@ holds the full task docs.
 - [x] [3a] All `@nestjs/*` packages are on v12-compatible versions, with no peer warnings.
 - [x] [3a] Validation, error bodies, env validation, rate limiting and Swagger behave as in the
       baseline.
-- [ ] [3b] The project is ESM (`"type": "module"`), and it builds and runs through every run path:
+- [x] [3b] The project is ESM (`"type": "module"`), and it builds and runs through every run path:
       `start:dev`, `start:prod`, MikroORM CLI, Docker, CI.
-- [ ] [3b] Unit and e2e tests run on Vitest, with the same test counts and titles as on Jest.
+- [x] [3b] Unit and e2e tests run on Vitest, with the same test counts and titles as on Jest.
 - [ ] [3c] Graceful shutdown, `errorCode` support, route conflict diagnostics, the Standard
       Schema pilot and `@nestjs/observe` (outside production) are in place.
 - [x] Lint, build, unit and e2e pass at the end of each plan.
@@ -67,10 +67,10 @@ holds the full task docs.
 
 ### [Phase 3b: Move the project to ESM](../nestjs-v12-phase-3b-esm/plan.md)
 
-- [ ] Task 1: Switch the project to ESM and add import extensions
-- [ ] Task 2: Replace CommonJS-only constructs
-- [ ] Task 3: Move the test suites from Jest to Vitest
-- [ ] Task 4: Verify the ESM build end to end
+- [x] Task 1: Switch the project to ESM and add import extensions
+- [x] Task 2: Replace CommonJS-only constructs
+- [x] Task 3: Move the test suites from Jest to Vitest
+- [x] Task 4: Verify the ESM build end to end
 
 ### [Phase 3c: Adopt NestJS 12 features](../nestjs-v12-phase-3c-v12-features/plan.md)
 

@@ -6,8 +6,8 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import type { Request } from 'express';
-import { UserStatus } from '../enums/user.enum';
-import { ERROR_MESSAGES } from '../constants/message.constant';
+import { UserStatus } from '../enums/user.enum.js';
+import { ERROR_MESSAGES } from '../constants/message.constant.js';
 
 @Injectable()
 export class AuthGuard implements CanActivate {

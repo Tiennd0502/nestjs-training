@@ -9,7 +9,7 @@ import {
   MinLength,
 } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { RoastLevel, ProductStatus } from '../enums/product.enum';
+import { RoastLevel, ProductStatus } from '../enums/product.enum.js';
 
 export class UpdateProductDto {
   @IsOptional()

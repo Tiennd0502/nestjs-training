@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { UserRole, UserStatus } from '../../../common/enums/user.enum';
-import { User } from '../entities/user.entity';
+import { UserRole, UserStatus } from '../../../common/enums/user.enum.js';
+import { User } from '../entities/user.entity.js';
 
 export class ResponseUserDto {
   id!: string;

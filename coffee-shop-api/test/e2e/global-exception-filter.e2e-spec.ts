@@ -2,10 +2,10 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { App } from 'supertest/types';
-import { AppModule } from './../../src/app.module';
-import { CategoryService } from './../../src/modules/category/services/category.service';
-import { API_BASE_PATH } from './../utils/api-path.util';
-import { initTestApp } from './../utils/init-test-app.util';
+import { AppModule } from './../../src/app.module.js';
+import { CategoryService } from './../../src/modules/category/services/category.service.js';
+import { API_BASE_PATH } from './../utils/api-path.util.js';
+import { initTestApp } from './../utils/init-test-app.util.js';
 
 describe('GlobalExceptionFilter (e2e)', () => {
   let app: INestApplication<App>;

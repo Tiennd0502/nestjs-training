@@ -2,34 +2,39 @@ import { BadRequestException } from '@nestjs/common';
 import type { ConfigService } from '@nestjs/config';
 import { createClerkClient, getAuth } from '@clerk/express';
 import { Webhook } from 'svix';
-import { ClerkAuthProvider } from './clerk-auth.provider';
-import { UserRole } from '../enums/user.enum';
+import type { Mock } from 'vitest';
+import { ClerkAuthProvider } from './clerk-auth.provider.js';
+import { UserRole } from '../enums/user.enum.js';
 
-const verify = jest.fn();
-const updateUserMetadata = jest.fn();
-
-jest.mock('svix', () => ({
-  Webhook: jest.fn().mockImplementation(() => ({ verify })),
+const { verify, updateUserMetadata } = vi.hoisted(() => ({
+  verify: vi.fn(),
+  updateUserMetadata: vi.fn(),
 }));
 
-jest.mock('@clerk/express', () => ({
-  getAuth: jest.fn(),
-  createClerkClient: jest.fn().mockImplementation(() => ({
+vi.mock('svix', () => ({
+  Webhook: vi.fn().mockImplementation(function Webhook() {
+    return { verify };
+  }),
+}));
+
+vi.mock('@clerk/express', () => ({
+  getAuth: vi.fn(),
+  createClerkClient: vi.fn().mockImplementation(() => ({
     users: { updateUserMetadata },
   })),
 }));
 
 describe('ClerkAuthProvider', () => {
   let provider: ClerkAuthProvider;
-  let configService: { getOrThrow: jest.Mock };
+  let configService: { getOrThrow: Mock };
 
   beforeEach(() => {
-    configService = { getOrThrow: jest.fn().mockReturnValue('secret') };
+    configService = { getOrThrow: vi.fn().mockReturnValue('secret') };
     provider = new ClerkAuthProvider(configService as never as ConfigService);
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('builds the Clerk client and webhook verifier from ConfigService', () => {
@@ -98,13 +103,13 @@ describe('ClerkAuthProvider', () => {
 
   describe('getSessionUserId', () => {
     it('returns the userId from the Clerk session', () => {
-      (getAuth as jest.Mock).mockReturnValue({ userId: 'clerk-1' });
+      (getAuth as Mock).mockReturnValue({ userId: 'clerk-1' });
 
       expect(provider.getSessionUserId({} as never)).toBe('clerk-1');
     });
 
     it('returns null when there is no Clerk session', () => {
-      (getAuth as jest.Mock).mockReturnValue({ userId: null });
+      (getAuth as Mock).mockReturnValue({ userId: null });
 
       expect(provider.getSessionUserId({} as never)).toBeNull();
     });

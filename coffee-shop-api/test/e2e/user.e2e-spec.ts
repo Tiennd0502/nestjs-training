@@ -4,16 +4,17 @@ import { MikroORM, RequestContext } from '@mikro-orm/core';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { getAuth } from '@clerk/express';
-import { AppModule } from './../../src/app.module';
-import { UserService } from './../../src/modules/user/services/user.service';
-import { UserRole, UserStatus } from './../../src/common/enums/user.enum';
-import { API_BASE_PATH } from './../utils/api-path.util';
-import { initTestApp } from './../utils/init-test-app.util';
-import type { User } from './../../src/modules/user/entities/user.entity';
+import type { Mock } from 'vitest';
+import { AppModule } from './../../src/app.module.js';
+import { UserService } from './../../src/modules/user/services/user.service.js';
+import { UserRole, UserStatus } from './../../src/common/enums/user.enum.js';
+import { API_BASE_PATH } from './../utils/api-path.util.js';
+import { initTestApp } from './../utils/init-test-app.util.js';
+import type { User } from './../../src/modules/user/entities/user.entity.js';
 
-jest.mock('@clerk/express', () => {
-  const actual: object = jest.requireActual('@clerk/express');
-  return { ...actual, getAuth: jest.fn() };
+vi.mock('@clerk/express', async () => {
+  const actual: object = await vi.importActual('@clerk/express');
+  return { ...actual, getAuth: vi.fn() };
 });
 
 describe('UserController auth (e2e)', () => {
@@ -43,7 +44,7 @@ describe('UserController auth (e2e)', () => {
   });
 
   beforeEach(() => {
-    (getAuth as jest.Mock).mockReturnValue({ userId: null });
+    (getAuth as Mock).mockReturnValue({ userId: null });
   });
 
   const createTestUser = async (
@@ -71,7 +72,7 @@ describe('UserController auth (e2e)', () => {
     });
 
   const mockSessionFor = (clerkId: string | null): void => {
-    (getAuth as jest.Mock).mockReturnValue({ userId: clerkId });
+    (getAuth as Mock).mockReturnValue({ userId: clerkId });
   };
 
   describe('no Clerk session', () => {

@@ -11,7 +11,7 @@ import {
   MinLength,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { DiscountType, ProductUnit } from '../enums/product-variant.enum';
+import { DiscountType, ProductUnit } from '../enums/product-variant.enum.js';
 
 export class CreateProductVariantDto {
   @IsString()

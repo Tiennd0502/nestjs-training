@@ -32,13 +32,13 @@ References:
 
 ## 2. Desired Outcome (Checklist)
 
-- [ ] `package.json` declares `"type": "module"`, and the build emits ESM.
-- [ ] No relative import lacks a file extension. No `require`, `module.exports`, `__dirname` or
+- [x] `package.json` declares `"type": "module"`, and the build emits ESM.
+- [x] No relative import lacks a file extension. No `require`, `module.exports`, `__dirname` or
       `__filename` remains outside a deliberate `.cjs` file.
-- [ ] Commits still pass the Husky `commit-msg` hook.
-- [ ] Unit and e2e tests run on Vitest with the same counts and titles as on Jest.
-- [ ] `start:dev`, `start:prod`, the MikroORM CLI, Docker and CI all work on the ESM build.
-- [ ] Baseline response bodies are unchanged.
+- [x] Commits still pass the Husky `commit-msg` hook.
+- [x] Unit and e2e tests run on Vitest with the same counts and titles as on Jest.
+- [x] `start:dev`, `start:prod`, the MikroORM CLI, Docker and CI all work on the ESM build.
+- [x] Baseline response bodies are unchanged.
 
 ## 3. Input (current state)
 
@@ -83,10 +83,10 @@ References:
 
 ## Task Checklist
 
-- [ ] Task 1: Switch the project to ESM and add import extensions
-- [ ] Task 2: Replace CommonJS-only constructs
-- [ ] Task 3: Move the test suites from Jest to Vitest
-- [ ] Task 4: Verify the ESM build end to end
+- [x] Task 1: Switch the project to ESM and add import extensions
+- [x] Task 2: Replace CommonJS-only constructs
+- [x] Task 3: Move the test suites from Jest to Vitest
+- [x] Task 4: Verify the ESM build end to end
 
 ---
 
@@ -124,11 +124,11 @@ References:
 
 **Acceptance Criteria:**
 
-- [ ] `package.json` has `"type": "module"`.
-- [ ] Build passes with no missing-extension or module-resolution errors.
-- [ ] `dist/` contains ESM output (`import`/`export`, no `require`/`module.exports`).
-- [ ] No relative import in `src/` or `test/` lacks a file extension.
-- [ ] `helmet` and `slugify` behave as before: security headers are present on responses, and
+- [x] `package.json` has `"type": "module"`.
+- [x] Build passes with no missing-extension or module-resolution errors.
+- [x] `dist/` contains ESM output (`import`/`export`, no `require`/`module.exports`).
+- [x] No relative import in `src/` or `test/` lacks a file extension.
+- [x] `helmet` and `slugify` behave as before: security headers are present on responses, and
       slugs are generated identically.
 
 **Verification:**
@@ -180,13 +180,13 @@ References:
 
 **Acceptance Criteria:**
 
-- [ ] A commit on the branch passes the Husky `commit-msg` hook, and commitlint still enforces
+- [x] A commit on the branch passes the Husky `commit-msg` hook, and commitlint still enforces
       Conventional Commits.
-- [ ] `pretest:e2e` still loads `.env.test` before the MikroORM config reads `process.env`.
-- [ ] `/docs` still shows the API title, description and version from `package.json`.
-- [ ] Lint passes with no new errors.
-- [ ] `start:prod` and the production Docker image boot the app.
-- [ ] No `require(`, `module.exports`, `__dirname` or `__filename` remains in `src/`, `test/` or
+- [x] `pretest:e2e` still loads `.env.test` before the MikroORM config reads `process.env`.
+- [x] `/docs` still shows the API title, description and version from `package.json`.
+- [x] Lint passes with no new errors.
+- [x] `start:prod` and the production Docker image boot the app.
+- [x] No `require(`, `module.exports`, `__dirname` or `__filename` remains in `src/`, `test/` or
       root config files, except inside a deliberate `.cjs` file.
 
 **Verification:**
@@ -249,15 +249,15 @@ References:
 
 **Acceptance Criteria:**
 
-- [ ] Unit and e2e test counts are equal to the Jest counts before the switch. No test is
+- [x] Unit and e2e test counts are equal to the Jest counts before the switch. No test is
       skipped, deleted or loosened.
-- [ ] Every test title is unchanged, so later phases can still reference them by name.
-- [ ] No `jest.` reference remains in `src/` or `test/`.
-- [ ] DI resolves in every `TestingModule`, which confirms decorator metadata is emitted.
-- [ ] e2e suites run sequentially against the test database and pass twice in a row.
-- [ ] `test:cov` produces a coverage report.
-- [ ] `test:debug` starts paused for a debugger.
-- [ ] The CI `test` step passes on the branch.
+- [x] Every test title is unchanged, so later phases can still reference them by name.
+- [x] No `jest.` reference remains in `src/` or `test/`.
+- [x] DI resolves in every `TestingModule`, which confirms decorator metadata is emitted.
+- [x] e2e suites run sequentially against the test database and pass twice in a row.
+- [x] `test:cov` produces a coverage report.
+- [x] `test:debug` starts paused for a debugger.
+- [x] The CI `test` step passes on the branch.
 
 **Verification:**
 
@@ -294,15 +294,15 @@ References:
 
 **Acceptance Criteria:**
 
-- [ ] `start:dev` boots and rebuilds on a source change, and the Swagger compiler plugin still
+- [x] `start:dev` boots and rebuilds on a source change, and the Swagger compiler plugin still
       populates the OpenAPI schema.
-- [ ] `start:prod` boots from `dist/`.
-- [ ] `migration:up` reports nothing pending, and `migration:create` reports no schema
+- [x] `start:prod` boots from `dist/`.
+- [x] `migration:up` reports nothing pending, and `migration:create` reports no schema
       difference, run through `tsx` on the ESM config.
-- [ ] Both Docker images build and serve a public route, with no module loading errors in the
+- [x] Both Docker images build and serve a public route, with no module loading errors in the
       logs.
-- [ ] The baseline 400/401/403/404/409 bodies still match (same check as Phase 3a, Task 3).
-- [ ] CI is green.
+- [x] The baseline 400/401/403/404/409 bodies still match (same check as Phase 3a, Task 3).
+- [x] CI is green.
 
 **Verification:**
 

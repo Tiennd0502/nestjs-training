@@ -1,12 +1,13 @@
 import { ExecutionContext, ForbiddenException } from '@nestjs/common';
-import { RolesGuard } from './roles.guard';
-import { ROLES_KEY } from '../decorators/roles.decorator';
-import { UserRole, UserStatus } from '../enums/user.enum';
-import type { User } from '../../modules/user/entities/user.entity';
+import { RolesGuard } from './roles.guard.js';
+import { ROLES_KEY } from '../decorators/roles.decorator.js';
+import { UserRole, UserStatus } from '../enums/user.enum.js';
+import type { User } from '../../modules/user/entities/user.entity.js';
 
+import type { Mock } from 'vitest';
 describe('RolesGuard', () => {
   let guard: RolesGuard;
-  let reflector: { getAllAndOverride: jest.Mock };
+  let reflector: { getAllAndOverride: Mock };
 
   const buildUser = (overrides: Partial<User> = {}): User => ({
     id: 'user-id-1',
@@ -27,12 +28,12 @@ describe('RolesGuard', () => {
   const buildContext = (user: User): ExecutionContext =>
     ({
       switchToHttp: () => ({ getRequest: () => ({ user }) }),
-      getHandler: () => jest.fn(),
-      getClass: () => jest.fn(),
+      getHandler: () => vi.fn(),
+      getClass: () => vi.fn(),
     }) as unknown as ExecutionContext;
 
   beforeEach(() => {
-    reflector = { getAllAndOverride: jest.fn() };
+    reflector = { getAllAndOverride: vi.fn() };
     guard = new RolesGuard(reflector as never);
   });
 

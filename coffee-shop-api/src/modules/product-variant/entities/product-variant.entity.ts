@@ -1,4 +1,5 @@
 import { Opt } from '@mikro-orm/core';
+import type { Rel } from '@mikro-orm/core';
 import {
   Entity,
   Enum,
@@ -6,14 +7,14 @@ import {
   Property,
   Unique,
 } from '@mikro-orm/decorators/legacy';
-import { BaseEntity } from '../../../common/entities/base.entity';
-import { Product } from '../../product/entities/product.entity';
-import { DiscountType, ProductUnit } from '../enums/product-variant.enum';
+import { BaseEntity } from '../../../common/entities/base.entity.js';
+import { Product } from '../../product/entities/product.entity.js';
+import { DiscountType, ProductUnit } from '../enums/product-variant.enum.js';
 
 @Entity({ tableName: 'product_variants' })
 export class ProductVariant extends BaseEntity {
   @ManyToOne(() => Product, { updateRule: 'cascade' })
-  product!: Product;
+  product!: Rel<Product>;
 
   @Property({ type: 'string' })
   @Unique()

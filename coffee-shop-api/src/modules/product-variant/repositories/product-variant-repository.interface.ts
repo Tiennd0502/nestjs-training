@@ -1,5 +1,5 @@
-import { ProductVariant } from '../entities/product-variant.entity';
-import { DiscountType, ProductUnit } from '../enums/product-variant.enum';
+import { ProductVariant } from '../entities/product-variant.entity.js';
+import { DiscountType, ProductUnit } from '../enums/product-variant.enum.js';
 
 export const PRODUCT_VARIANT_REPOSITORY = Symbol('PRODUCT_VARIANT_REPOSITORY');
 

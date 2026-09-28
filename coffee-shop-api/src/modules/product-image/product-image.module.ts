@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
-import { ProductImageService } from './services/product-image.service';
-import { ProductImage } from './entities/product-image.entity';
-import { PRODUCT_IMAGE_REPOSITORY } from './repositories/product-image-repository.interface';
-import { MikroOrmProductImageRepository } from './repositories/mikro-orm-product-image.repository';
+import { ProductImageService } from './services/product-image.service.js';
+import { ProductImage } from './entities/product-image.entity.js';
+import { PRODUCT_IMAGE_REPOSITORY } from './repositories/product-image-repository.interface.js';
+import { MikroOrmProductImageRepository } from './repositories/mikro-orm-product-image.repository.js';
 
 @Module({
   imports: [MikroOrmModule.forFeature([ProductImage])],

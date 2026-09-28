@@ -4,9 +4,9 @@ import { createClerkClient, getAuth, type ClerkClient } from '@clerk/express';
 import type { IncomingHttpHeaders } from 'http';
 import type { Request } from 'express';
 import { Webhook, type WebhookRequiredHeaders } from 'svix';
-import { AuthProvider, AuthWebhookEvent } from './auth-provider.interface';
-import { ERROR_MESSAGES } from '../constants/message.constant';
-import { UserRole } from '../enums/user.enum';
+import { AuthProvider, AuthWebhookEvent } from './auth-provider.interface.js';
+import { ERROR_MESSAGES } from '../constants/message.constant.js';
+import { UserRole } from '../enums/user.enum.js';
 
 function requiredHeader(
   headers: IncomingHttpHeaders,

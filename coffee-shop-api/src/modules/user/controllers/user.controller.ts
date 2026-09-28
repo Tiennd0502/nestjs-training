@@ -17,24 +17,24 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
-import { UserService } from '../services/user.service';
-import { CreateUserDto } from '../dto/create-user.dto';
-import { UpdateUserDto } from '../dto/update-user.dto';
-import { ResponseUserDto } from '../dto/response-user.dto';
-import { PaginationQueryDto } from '../../../common/dto/pagination-query.dto';
-import { PaginatedResult } from '../../../common/interfaces/pagination.interface';
-import { AuthGuard } from '../../../common/guards/auth.guard';
-import { RolesGuard } from '../../../common/guards/roles.guard';
-import { Roles } from '../../../common/decorators/roles.decorator';
-import { AuthUser } from '../../../common/decorators/auth-user.decorator';
+import { UserService } from '../services/user.service.js';
+import { CreateUserDto } from '../dto/create-user.dto.js';
+import { UpdateUserDto } from '../dto/update-user.dto.js';
+import { ResponseUserDto } from '../dto/response-user.dto.js';
+import { PaginationQueryDto } from '../../../common/dto/pagination-query.dto.js';
+import { PaginatedResult } from '../../../common/interfaces/pagination.interface.js';
+import { AuthGuard } from '../../../common/guards/auth.guard.js';
+import { RolesGuard } from '../../../common/guards/roles.guard.js';
+import { Roles } from '../../../common/decorators/roles.decorator.js';
+import { AuthUser } from '../../../common/decorators/auth-user.decorator.js';
 import {
   ApiDataResponse,
   ApiPaginatedResponse,
   ApiErrorResponse,
-} from '../../../common/decorators/api-response.decorator';
-import { UserRole } from '../../../common/enums/user.enum';
-import { User } from '../entities/user.entity';
-import { ERROR_MESSAGES } from '../../../common/constants/message.constant';
+} from '../../../common/decorators/api-response.decorator.js';
+import { UserRole } from '../../../common/enums/user.enum.js';
+import { User } from '../entities/user.entity.js';
+import { ERROR_MESSAGES } from '../../../common/constants/message.constant.js';
 
 @ApiTags('users')
 @ApiBearerAuth()

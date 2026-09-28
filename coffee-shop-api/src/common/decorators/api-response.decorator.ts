@@ -1,12 +1,12 @@
 import { applyDecorators, Type } from '@nestjs/common';
 import { ApiExtraModels, ApiResponse, getSchemaPath } from '@nestjs/swagger';
-import { MetaDto } from '../dto/meta.dto';
-import { ErrorResponseDto } from '../dto/error-response.dto';
-import { ERROR_CODES } from '../constants/error-code.constant';
+import { MetaDto } from '../dto/meta.dto.js';
+import { ErrorResponseDto } from '../dto/error-response.dto.js';
+import { ERROR_CODES } from '../constants/error-code.constant.js';
 import {
   DEFAULT_ERR_CODE_BY_STATUS,
   DEFAULT_MESSAGE_BY_STATUS,
-} from '../filters/global-exception.filter';
+} from '../filters/global-exception.filter.js';
 
 export const ApiDataResponse = <TModel extends Type<unknown>>(
   status: number,

@@ -1,16 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { EntityManager, EntityRepository } from '@mikro-orm/postgresql';
-import { Category } from '../entities/category.entity';
+import { Category } from '../entities/category.entity.js';
 import {
   CategoryRepository,
   CreateCategoryData,
   FindOptions,
-} from './category-repository.interface';
+} from './category-repository.interface.js';
 import {
   PaginatedResult,
   QueryParams,
-} from '../../../common/interfaces/pagination.interface';
+} from '../../../common/interfaces/pagination.interface.js';
 
 @Injectable()
 export class MikroOrmCategoryRepository implements CategoryRepository {

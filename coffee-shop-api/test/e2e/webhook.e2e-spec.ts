@@ -5,9 +5,9 @@ import { MikroORM, RequestContext } from '@mikro-orm/core';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { Webhook } from 'svix';
-import { AppModule } from './../../src/app.module';
-import { UserService } from './../../src/modules/user/services/user.service';
-import { initTestApp } from './../utils/init-test-app.util';
+import { AppModule } from './../../src/app.module.js';
+import { UserService } from './../../src/modules/user/services/user.service.js';
+import { initTestApp } from './../utils/init-test-app.util.js';
 
 describe('WebhookController (e2e)', () => {
   let app: INestApplication<App>;

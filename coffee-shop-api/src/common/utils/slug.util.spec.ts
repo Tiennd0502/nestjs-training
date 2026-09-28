@@ -1,4 +1,4 @@
-import { slugFrom } from './slug.util';
+import { slugFrom } from './slug.util.js';
 
 describe('slugFrom', () => {
   it('converts a simple name to a lowercase, hyphenated slug', () => {

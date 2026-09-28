@@ -8,10 +8,10 @@ import {
   Logger,
 } from '@nestjs/common';
 import type { Response } from 'express';
-import { ErrorResponseBody } from '../interfaces/error-response.interface';
-import { DomainException } from '../exceptions/base.exception';
-import { ERROR_MESSAGES } from '../constants/message.constant';
-import { ERROR_CODES } from '../constants/error-code.constant';
+import { ErrorResponseBody } from '../interfaces/error-response.interface.js';
+import { DomainException } from '../exceptions/base.exception.js';
+import { ERROR_MESSAGES } from '../constants/message.constant.js';
+import { ERROR_CODES } from '../constants/error-code.constant.js';
 
 export const DEFAULT_MESSAGE_BY_STATUS: Partial<Record<number, string>> = {
   [HttpStatus.BAD_REQUEST]: ERROR_MESSAGES.EXCEPTION.BAD_REQUEST,

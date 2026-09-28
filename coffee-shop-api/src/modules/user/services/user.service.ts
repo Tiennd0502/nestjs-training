@@ -1,25 +1,25 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { User } from '../entities/user.entity';
-import { CreateUserDto } from '../dto/create-user.dto';
-import { UpdateUserDto } from '../dto/update-user.dto';
+import { User } from '../entities/user.entity.js';
+import { CreateUserDto } from '../dto/create-user.dto.js';
+import { UpdateUserDto } from '../dto/update-user.dto.js';
 import {
   USER_REPOSITORY,
   type UserRepository,
-} from '../repositories/user-repository.interface';
+} from '../repositories/user-repository.interface.js';
 import {
   ERROR_MESSAGES,
   ERROR_DESCRIPTIONS,
-} from '../../../common/constants/message.constant';
-import { ERROR_CODES } from '../../../common/constants/error-code.constant';
+} from '../../../common/constants/message.constant.js';
+import { ERROR_CODES } from '../../../common/constants/error-code.constant.js';
 import {
   PaginatedResult,
   QueryParams,
-} from '../../../common/interfaces/pagination.interface';
+} from '../../../common/interfaces/pagination.interface.js';
 import {
   DuplicateResourceException,
   ItemNotFoundException,
   InvalidRequestException,
-} from '../../../common/exceptions/base.exception';
+} from '../../../common/exceptions/base.exception.js';
 
 @Injectable()
 export class UserService {

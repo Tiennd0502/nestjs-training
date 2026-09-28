@@ -1,19 +1,20 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException } from '@nestjs/common';
-import { WebhookController } from './webhook.controller';
-import { ClerkWebhookService } from '../services/clerk-webhook.service';
+import { WebhookController } from './webhook.controller.js';
+import { ClerkWebhookService } from '../services/clerk-webhook.service.js';
 
+import type { Mock } from 'vitest';
 describe('WebhookController', () => {
   let controller: WebhookController;
   let clerkWebhookService: {
-    verifyAndParse: jest.Mock;
-    handleEvent: jest.Mock;
+    verifyAndParse: Mock;
+    handleEvent: Mock;
   };
 
   beforeEach(async () => {
     clerkWebhookService = {
-      verifyAndParse: jest.fn(),
-      handleEvent: jest.fn(),
+      verifyAndParse: vi.fn(),
+      handleEvent: vi.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -27,7 +28,7 @@ describe('WebhookController', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('handleClerkWebhook', () => {

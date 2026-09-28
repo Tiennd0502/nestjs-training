@@ -1,6 +1,6 @@
 import { ValidationPipe } from '@nestjs/common';
-import { toErrorDetails } from '../common/utils/validation-error.util';
-import { ValidationException } from '../common/exceptions/base.exception';
+import { toErrorDetails } from '../common/utils/validation-error.util.js';
+import { ValidationException } from '../common/exceptions/base.exception.js';
 
 export function createValidationPipe(): ValidationPipe {
   return new ValidationPipe({

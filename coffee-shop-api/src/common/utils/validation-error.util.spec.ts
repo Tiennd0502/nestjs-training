@@ -1,5 +1,5 @@
 import { ValidationError } from 'class-validator';
-import { toErrorDetails } from './validation-error.util';
+import { toErrorDetails } from './validation-error.util.js';
 
 describe('toErrorDetails', () => {
   it('maps each constraint of a flat validation error into its own ErrorDetail', () => {

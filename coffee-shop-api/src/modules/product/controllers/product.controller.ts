@@ -17,22 +17,22 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
-import { ProductService } from '../services/product.service';
-import { CreateProductDto } from '../dto/create-product.dto';
-import { UpdateProductDto } from '../dto/update-product.dto';
-import { ResponseProductDto } from '../dto/response-product.dto';
-import { ProductQueryDto } from '../dto/product-query.dto';
-import { PaginatedResult } from '../../../common/interfaces/pagination.interface';
-import { AuthGuard } from '../../../common/guards/auth.guard';
-import { RolesGuard } from '../../../common/guards/roles.guard';
-import { Roles } from '../../../common/decorators/roles.decorator';
+import { ProductService } from '../services/product.service.js';
+import { CreateProductDto } from '../dto/create-product.dto.js';
+import { UpdateProductDto } from '../dto/update-product.dto.js';
+import { ResponseProductDto } from '../dto/response-product.dto.js';
+import { ProductQueryDto } from '../dto/product-query.dto.js';
+import { PaginatedResult } from '../../../common/interfaces/pagination.interface.js';
+import { AuthGuard } from '../../../common/guards/auth.guard.js';
+import { RolesGuard } from '../../../common/guards/roles.guard.js';
+import { Roles } from '../../../common/decorators/roles.decorator.js';
 import {
   ApiDataResponse,
   ApiPaginatedResponse,
   ApiErrorResponse,
-} from '../../../common/decorators/api-response.decorator';
-import { UserRole } from '../../../common/enums/user.enum';
-import { ERROR_MESSAGES } from '../../../common/constants/message.constant';
+} from '../../../common/decorators/api-response.decorator.js';
+import { UserRole } from '../../../common/enums/user.enum.js';
+import { ERROR_MESSAGES } from '../../../common/constants/message.constant.js';
 
 @ApiTags('products')
 @Controller('products')

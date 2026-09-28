@@ -1,16 +1,17 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
-import { ProductImageService } from './product-image.service';
-import { ProductImage } from '../entities/product-image.entity';
-import { PRODUCT_IMAGE_REPOSITORY } from '../repositories/product-image-repository.interface';
+import { ProductImageService } from './product-image.service.js';
+import { ProductImage } from '../entities/product-image.entity.js';
+import { PRODUCT_IMAGE_REPOSITORY } from '../repositories/product-image-repository.interface.js';
 
+import type { Mock } from 'vitest';
 describe('ProductImageService', () => {
   let service: ProductImageService;
   let productImageRepository: {
-    findById: jest.Mock;
-    findAllByProduct: jest.Mock;
-    create: jest.Mock;
-    save: jest.Mock;
+    findById: Mock;
+    findAllByProduct: Mock;
+    create: Mock;
+    save: Mock;
   };
 
   const buildImage = (overrides: Partial<ProductImage> = {}): ProductImage =>
@@ -27,10 +28,10 @@ describe('ProductImageService', () => {
 
   beforeEach(async () => {
     productImageRepository = {
-      findById: jest.fn(),
-      findAllByProduct: jest.fn(),
-      create: jest.fn(),
-      save: jest.fn(),
+      findById: vi.fn(),
+      findAllByProduct: vi.fn(),
+      create: vi.fn(),
+      save: vi.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -44,7 +45,7 @@ describe('ProductImageService', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('create', () => {

@@ -9,19 +9,19 @@ import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
-import mikroOrmConfig from './configs/mikro-orm.config';
-import { validate } from './configs/env.validation';
-import { rateLimitConfig } from './configs/rate-limit.config';
-import { UserModule } from './modules/user/user.module';
-import { WebhookModule } from './modules/webhook/webhook.module';
-import { CategoryModule } from './modules/category/category.module';
-import { ProductModule } from './modules/product/product.module';
-import { TransformResponseInterceptor } from './common/interceptors/transform-response.interceptor';
-import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
-import { createValidationPipe } from './configs/validation-pipe.config';
-import { ClerkAuthMiddleware } from './common/middlewares/clerk-auth.middleware';
-import { UserResolutionMiddleware } from './common/middlewares/user-resolution.middleware';
-import { AuthProviderModule } from './common/providers/auth-provider.module';
+import mikroOrmConfig from './configs/mikro-orm.config.js';
+import { validate } from './configs/env.validation.js';
+import { rateLimitConfig } from './configs/rate-limit.config.js';
+import { UserModule } from './modules/user/user.module.js';
+import { WebhookModule } from './modules/webhook/webhook.module.js';
+import { CategoryModule } from './modules/category/category.module.js';
+import { ProductModule } from './modules/product/product.module.js';
+import { TransformResponseInterceptor } from './common/interceptors/transform-response.interceptor.js';
+import { GlobalExceptionFilter } from './common/filters/global-exception.filter.js';
+import { createValidationPipe } from './configs/validation-pipe.config.js';
+import { ClerkAuthMiddleware } from './common/middlewares/clerk-auth.middleware.js';
+import { UserResolutionMiddleware } from './common/middlewares/user-resolution.middleware.js';
+import { AuthProviderModule } from './common/providers/auth-provider.module.js';
 
 @Module({
   imports: [

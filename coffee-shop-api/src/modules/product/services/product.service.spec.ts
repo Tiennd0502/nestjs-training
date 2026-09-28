@@ -1,25 +1,26 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConflictException, NotFoundException } from '@nestjs/common';
-import { ProductService } from './product.service';
-import { Product } from '../entities/product.entity';
-import { PRODUCT_REPOSITORY } from '../repositories/product-repository.interface';
-import { CategoryService } from '../../category/services/category.service';
-import { ProductImageService } from '../../product-image/services/product-image.service';
-import { ProductVariantService } from '../../product-variant/services/product-variant.service';
-import { ProductUnit } from '../../product-variant/enums/product-variant.enum';
+import { ProductService } from './product.service.js';
+import { Product } from '../entities/product.entity.js';
+import { PRODUCT_REPOSITORY } from '../repositories/product-repository.interface.js';
+import { CategoryService } from '../../category/services/category.service.js';
+import { ProductImageService } from '../../product-image/services/product-image.service.js';
+import { ProductVariantService } from '../../product-variant/services/product-variant.service.js';
+import { ProductUnit } from '../../product-variant/enums/product-variant.enum.js';
 
+import type { Mock } from 'vitest';
 describe('ProductService', () => {
   let service: ProductService;
   let productRepository: {
-    findById: jest.Mock;
-    findByName: jest.Mock;
-    findAll: jest.Mock;
-    create: jest.Mock;
-    save: jest.Mock;
+    findById: Mock;
+    findByName: Mock;
+    findAll: Mock;
+    create: Mock;
+    save: Mock;
   };
-  let categoryService: { findOne: jest.Mock };
-  let productImageService: { create: jest.Mock };
-  let productVariantService: { create: jest.Mock };
+  let categoryService: { findOne: Mock };
+  let productImageService: { create: Mock };
+  let productVariantService: { create: Mock };
 
   const buildProduct = (overrides: Partial<Product> = {}): Product =>
     ({
@@ -43,15 +44,15 @@ describe('ProductService', () => {
 
   beforeEach(async () => {
     productRepository = {
-      findById: jest.fn(),
-      findByName: jest.fn(),
-      findAll: jest.fn(),
-      create: jest.fn(),
-      save: jest.fn(),
+      findById: vi.fn(),
+      findByName: vi.fn(),
+      findAll: vi.fn(),
+      create: vi.fn(),
+      save: vi.fn(),
     };
-    categoryService = { findOne: jest.fn() };
-    productImageService = { create: jest.fn() };
-    productVariantService = { create: jest.fn() };
+    categoryService = { findOne: vi.fn() };
+    productImageService = { create: vi.fn() };
+    productVariantService = { create: vi.fn() };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -67,7 +68,7 @@ describe('ProductService', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   const createData = {

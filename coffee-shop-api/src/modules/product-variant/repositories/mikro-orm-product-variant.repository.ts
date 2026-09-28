@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { EntityManager, EntityRepository } from '@mikro-orm/postgresql';
-import { ProductVariant } from '../entities/product-variant.entity';
+import { ProductVariant } from '../entities/product-variant.entity.js';
 import {
   CreateProductVariantData,
   ProductVariantRepository,
-} from './product-variant-repository.interface';
+} from './product-variant-repository.interface.js';
 
 @Injectable()
 export class MikroOrmProductVariantRepository implements ProductVariantRepository {

@@ -4,10 +4,11 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { GlobalExceptionFilter } from './global-exception.filter';
-import { ErrorDetail } from '../interfaces/error-response.interface';
-import { DomainException } from '../exceptions/base.exception';
+import { GlobalExceptionFilter } from './global-exception.filter.js';
+import { ErrorDetail } from '../interfaces/error-response.interface.js';
+import { DomainException } from '../exceptions/base.exception.js';
 
+import type { Mock, MockInstance } from 'vitest';
 class TestDomainException extends DomainException {
   constructor(status: HttpStatus, message: string, errors: ErrorDetail[]) {
     super(status, message, errors);
@@ -16,16 +17,16 @@ class TestDomainException extends DomainException {
 
 describe('GlobalExceptionFilter', () => {
   let filter: GlobalExceptionFilter;
-  let jsonMock: jest.Mock;
-  let statusMock: jest.Mock;
+  let jsonMock: Mock;
+  let statusMock: Mock;
   let host: ArgumentsHost;
-  let errorSpy: jest.SpyInstance;
+  let errorSpy: MockInstance;
 
   beforeEach(() => {
     filter = new GlobalExceptionFilter();
-    jsonMock = jest.fn();
-    statusMock = jest.fn().mockReturnValue({ json: jsonMock });
-    errorSpy = jest
+    jsonMock = vi.fn();
+    statusMock = vi.fn().mockReturnValue({ json: jsonMock });
+    errorSpy = vi
       .spyOn(Logger.prototype, 'error')
       .mockImplementation(() => undefined);
 

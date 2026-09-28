@@ -1,26 +1,26 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { Category } from '../entities/category.entity';
-import { CreateCategoryDto } from '../dto/create-category.dto';
-import { UpdateCategoryDto } from '../dto/update-category.dto';
+import { Category } from '../entities/category.entity.js';
+import { CreateCategoryDto } from '../dto/create-category.dto.js';
+import { UpdateCategoryDto } from '../dto/update-category.dto.js';
 import {
   CATEGORY_REPOSITORY,
   type CategoryRepository,
   type FindOptions,
-} from '../repositories/category-repository.interface';
+} from '../repositories/category-repository.interface.js';
 import {
   ERROR_MESSAGES,
   ERROR_DESCRIPTIONS,
-} from '../../../common/constants/message.constant';
-import { ERROR_CODES } from '../../../common/constants/error-code.constant';
+} from '../../../common/constants/message.constant.js';
+import { ERROR_CODES } from '../../../common/constants/error-code.constant.js';
 import {
   PaginatedResult,
   QueryParams,
-} from '../../../common/interfaces/pagination.interface';
-import { slugFrom } from '../../../common/utils/slug.util';
+} from '../../../common/interfaces/pagination.interface.js';
+import { slugFrom } from '../../../common/utils/slug.util.js';
 import {
   DuplicateResourceException,
   ItemNotFoundException,
-} from '../../../common/exceptions/base.exception';
+} from '../../../common/exceptions/base.exception.js';
 
 @Injectable()
 export class CategoryService {

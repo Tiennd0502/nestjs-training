@@ -1,18 +1,18 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import type { WebhookEvent, UserWebhookEvent } from '@clerk/express';
 import type { IncomingHttpHeaders } from 'http';
-import { UserService } from '../../user/services/user.service';
+import { UserService } from '../../user/services/user.service.js';
 import {
   DuplicateResourceException,
   ItemNotFoundException,
-} from '../../../common/exceptions/base.exception';
+} from '../../../common/exceptions/base.exception.js';
 import {
   AUTH_PROVIDER,
   type AuthProvider,
   type AuthWebhookEvent,
-} from '../../../common/providers/auth-provider.interface';
-import { ClerkWebhookEventType } from '../clerk-webhook.enum';
-import { UserRole } from '../../../common/enums/user.enum';
+} from '../../../common/providers/auth-provider.interface.js';
+import { ClerkWebhookEventType } from '../clerk-webhook.enum.js';
+import { UserRole } from '../../../common/enums/user.enum.js';
 
 // `user.created` and `user.updated` share the exact same `Webhook<'user.created' | 'user.updated', UserJSON>`
 // branch in @clerk/backend's UserWebhookEvent union, so Extract must target that combined literal

@@ -1,11 +1,11 @@
 import { Inject, Injectable, NestMiddleware } from '@nestjs/common';
 import type { NextFunction, Request, Response } from 'express';
-import { UserService } from '../../modules/user/services/user.service';
+import { UserService } from '../../modules/user/services/user.service.js';
 import {
   AUTH_PROVIDER,
   type AuthProvider,
-} from '../providers/auth-provider.interface';
-import { ItemNotFoundException } from '../exceptions/base.exception';
+} from '../providers/auth-provider.interface.js';
+import { ItemNotFoundException } from '../exceptions/base.exception.js';
 
 @Injectable()
 export class UserResolutionMiddleware implements NestMiddleware {

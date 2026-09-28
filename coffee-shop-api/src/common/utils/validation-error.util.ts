@@ -1,5 +1,5 @@
 import { ValidationError } from 'class-validator';
-import { ErrorDetail } from '../interfaces/error-response.interface';
+import { ErrorDetail } from '../interfaces/error-response.interface.js';
 
 export function toErrorDetails(
   validationErrors: ValidationError[],

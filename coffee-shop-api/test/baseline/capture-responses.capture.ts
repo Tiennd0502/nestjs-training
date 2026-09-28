@@ -6,21 +6,22 @@ import { MikroORM, RequestContext } from '@mikro-orm/core';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { getAuth } from '@clerk/express';
-import { AppModule } from './../../src/app.module';
-import { UserService } from './../../src/modules/user/services/user.service';
-import { CategoryService } from './../../src/modules/category/services/category.service';
-import { ProductService } from './../../src/modules/product/services/product.service';
-import { UserRole } from './../../src/common/enums/user.enum';
+import type { Mock } from 'vitest';
+import { AppModule } from './../../src/app.module.js';
+import { UserService } from './../../src/modules/user/services/user.service.js';
+import { CategoryService } from './../../src/modules/category/services/category.service.js';
+import { ProductService } from './../../src/modules/product/services/product.service.js';
+import { UserRole } from './../../src/common/enums/user.enum.js';
 import {
   ProductStatus,
   RoastLevel,
-} from './../../src/modules/product/enums/product.enum';
+} from './../../src/modules/product/enums/product.enum.js';
 import {
   DiscountType,
   ProductUnit,
-} from './../../src/modules/product-variant/enums/product-variant.enum';
-import { API_BASE_PATH } from './../utils/api-path.util';
-import { initTestApp } from './../utils/init-test-app.util';
+} from './../../src/modules/product-variant/enums/product-variant.enum.js';
+import { API_BASE_PATH } from './../utils/api-path.util.js';
+import { initTestApp } from './../utils/init-test-app.util.js';
 
 /**
  * Captures the status and full JSON body of the user, category and product
@@ -30,13 +31,13 @@ import { initTestApp } from './../utils/init-test-app.util';
  *
  * Run against an empty test database:
  *   pnpm run pretest:e2e
- *   CAPTURE_OUT=<file.json> pnpm jest --config ./test/jest-e2e.json \
- *     --runInBand --testRegex 'capture-responses\.capture\.ts$'
+ *   CAPTURE_OUT=<file.json> pnpm vitest run --config ./vitest.config.e2e.ts \
+ *     test/baseline/capture-responses.capture.ts
  */
 
-jest.mock('@clerk/express', () => {
-  const actual: object = jest.requireActual('@clerk/express');
-  return { ...actual, getAuth: jest.fn() };
+vi.mock('@clerk/express', async () => {
+  const actual: object = await vi.importActual('@clerk/express');
+  return { ...actual, getAuth: vi.fn() };
 });
 
 interface CapturedResponse {
@@ -79,11 +80,11 @@ describe('API response capture', () => {
   });
 
   beforeEach(() => {
-    (getAuth as jest.Mock).mockReturnValue({ userId: null });
+    (getAuth as Mock).mockReturnValue({ userId: null });
   });
 
   const mockSessionFor = (clerkId: string | null): void => {
-    (getAuth as jest.Mock).mockReturnValue({ userId: clerkId });
+    (getAuth as Mock).mockReturnValue({ userId: clerkId });
   };
 
   const label = (id: string, name: string): void => {
