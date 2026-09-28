@@ -1,8 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Product } from '../entities/product.entity';
-import { RoastLevel, ProductStatus } from '../enums/product.enum';
-import { ResponseProductImageDto } from '../../product-image/dto/response-product-image.dto';
-import { ResponseProductVariantDto } from '../../product-variant/dto/response-product-variant.dto';
+import { Product } from '../entities/product.entity.js';
+import { RoastLevel, ProductStatus } from '../enums/product.enum.js';
+import { ResponseProductImageDto } from '../../product-image/dto/response-product-image.dto.js';
+import { ResponseProductVariantDto } from '../../product-variant/dto/response-product-variant.dto.js';
 
 export class ResponseProductDto {
   id!: string;

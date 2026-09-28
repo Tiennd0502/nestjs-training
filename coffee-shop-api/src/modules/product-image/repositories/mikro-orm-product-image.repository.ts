@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { EntityManager, EntityRepository } from '@mikro-orm/postgresql';
-import { ProductImage } from '../entities/product-image.entity';
+import { ProductImage } from '../entities/product-image.entity.js';
 import {
   CreateProductImageData,
   ProductImageRepository,
-} from './product-image-repository.interface';
+} from './product-image-repository.interface.js';
 
 @Injectable()
 export class MikroOrmProductImageRepository implements ProductImageRepository {

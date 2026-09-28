@@ -1,7 +1,7 @@
 import { IsEnum, IsOptional, IsString } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { UserStatus } from '../../../common/enums/user.enum';
-import { BaseUserDto } from './base-user.dto';
+import { UserStatus } from '../../../common/enums/user.enum.js';
+import { BaseUserDto } from './base-user.dto.js';
 
 export class UpdateUserDto extends BaseUserDto {
   @IsOptional()

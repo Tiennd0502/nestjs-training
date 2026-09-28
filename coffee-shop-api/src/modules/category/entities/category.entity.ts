@@ -1,5 +1,5 @@
 import { Entity, Property, Unique } from '@mikro-orm/decorators/legacy';
-import { BaseEntity } from '../../../common/entities/base.entity';
+import { BaseEntity } from '../../../common/entities/base.entity.js';
 
 @Entity({ tableName: 'categories' })
 export class Category extends BaseEntity {

@@ -1,6 +1,6 @@
 import { IsEnum, IsOptional, IsString } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { UserRole } from '../../../common/enums/user.enum';
+import { UserRole } from '../../../common/enums/user.enum.js';
 
 export abstract class BaseUserDto {
   @IsOptional()

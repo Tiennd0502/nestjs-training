@@ -1,20 +1,21 @@
 import { Logger } from '@nestjs/common';
-import { ClerkWebhookService } from './clerk-webhook.service';
-import { UserRole } from '../../../common/enums/user.enum';
-import type { User } from '../../user/entities/user.entity';
+import { ClerkWebhookService } from './clerk-webhook.service.js';
+import { UserRole } from '../../../common/enums/user.enum.js';
+import type { User } from '../../user/entities/user.entity.js';
+import type { Mock } from 'vitest';
 import {
   DuplicateResourceException,
   ItemNotFoundException,
-} from '../../../common/exceptions/base.exception';
+} from '../../../common/exceptions/base.exception.js';
 
 describe('ClerkWebhookService', () => {
   let service: ClerkWebhookService;
-  let authProvider: { verifyWebhook: jest.Mock; syncUserRole: jest.Mock };
+  let authProvider: { verifyWebhook: Mock; syncUserRole: Mock };
   let userService: {
-    create: jest.Mock;
-    findByClerkId: jest.Mock;
-    update: jest.Mock;
-    softDelete: jest.Mock;
+    create: Mock;
+    findByClerkId: Mock;
+    update: Mock;
+    softDelete: Mock;
   };
 
   const buildUser = (overrides: Partial<User> = {}): User =>
@@ -35,29 +36,29 @@ describe('ClerkWebhookService', () => {
     }) as User;
 
   beforeAll(() => {
-    jest.spyOn(Logger.prototype, 'log').mockImplementation(() => undefined);
-    jest.spyOn(Logger.prototype, 'warn').mockImplementation(() => undefined);
-    jest.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
+    vi.spyOn(Logger.prototype, 'log').mockImplementation(() => undefined);
+    vi.spyOn(Logger.prototype, 'warn').mockImplementation(() => undefined);
+    vi.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
   });
 
   afterAll(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   beforeEach(() => {
-    authProvider = { verifyWebhook: jest.fn(), syncUserRole: jest.fn() };
+    authProvider = { verifyWebhook: vi.fn(), syncUserRole: vi.fn() };
     userService = {
-      create: jest.fn(),
-      findByClerkId: jest.fn(),
-      update: jest.fn(),
-      softDelete: jest.fn(),
+      create: vi.fn(),
+      findByClerkId: vi.fn(),
+      update: vi.fn(),
+      softDelete: vi.fn(),
     };
 
     service = new ClerkWebhookService(authProvider, userService as never);
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   const headers = {

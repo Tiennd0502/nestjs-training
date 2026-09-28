@@ -7,11 +7,11 @@ import {
   Property,
   Unique,
 } from '@mikro-orm/decorators/legacy';
-import { BaseEntity } from '../../../common/entities/base.entity';
-import { Category } from '../../category/entities/category.entity';
-import { ProductImage } from '../../product-image/entities/product-image.entity';
-import { ProductVariant } from '../../product-variant/entities/product-variant.entity';
-import { RoastLevel, ProductStatus } from '../enums/product.enum';
+import { BaseEntity } from '../../../common/entities/base.entity.js';
+import { Category } from '../../category/entities/category.entity.js';
+import { ProductImage } from '../../product-image/entities/product-image.entity.js';
+import { ProductVariant } from '../../product-variant/entities/product-variant.entity.js';
+import { RoastLevel, ProductStatus } from '../enums/product.enum.js';
 
 @Entity({ tableName: 'products' })
 export class Product extends BaseEntity {

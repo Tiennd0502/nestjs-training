@@ -1,6 +1,6 @@
 import { INestApplication } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { name, description, version } from '../../package.json';
+import packageJson from '../../package.json' with { type: 'json' };
 
 export function setupSwagger(app: INestApplication): void {
   if (process.env.NODE_ENV === 'production') {
@@ -8,9 +8,9 @@ export function setupSwagger(app: INestApplication): void {
   }
 
   const documentConfig = new DocumentBuilder()
-    .setTitle(name)
-    .setDescription(description)
-    .setVersion(version)
+    .setTitle(packageJson.name)
+    .setDescription(packageJson.description)
+    .setVersion(packageJson.version)
     .addBearerAuth()
     .build();
 

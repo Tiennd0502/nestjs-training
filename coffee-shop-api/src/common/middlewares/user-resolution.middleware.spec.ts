@@ -1,15 +1,16 @@
 import type { Request, Response } from 'express';
-import { UserResolutionMiddleware } from './user-resolution.middleware';
-import { UserRole, UserStatus } from '../enums/user.enum';
-import type { User } from '../../modules/user/entities/user.entity';
-import { ItemNotFoundException } from '../exceptions/base.exception';
+import { UserResolutionMiddleware } from './user-resolution.middleware.js';
+import { UserRole, UserStatus } from '../enums/user.enum.js';
+import type { User } from '../../modules/user/entities/user.entity.js';
+import { ItemNotFoundException } from '../exceptions/base.exception.js';
 
+import type { Mock } from 'vitest';
 describe('UserResolutionMiddleware', () => {
   let middleware: UserResolutionMiddleware;
-  let authProvider: { getSessionUserId: jest.Mock };
-  let userService: { findByClerkId: jest.Mock };
+  let authProvider: { getSessionUserId: Mock };
+  let userService: { findByClerkId: Mock };
   let req: { user?: User };
-  let next: jest.Mock;
+  let next: Mock;
 
   const buildUser = (overrides: Partial<User> = {}): User => ({
     id: 'user-id-1',
@@ -29,13 +30,13 @@ describe('UserResolutionMiddleware', () => {
 
   beforeEach(() => {
     req = {};
-    authProvider = { getSessionUserId: jest.fn() };
-    userService = { findByClerkId: jest.fn() };
+    authProvider = { getSessionUserId: vi.fn() };
+    userService = { findByClerkId: vi.fn() };
     middleware = new UserResolutionMiddleware(
       authProvider as never,
       userService as never,
     );
-    next = jest.fn();
+    next = vi.fn();
   });
 
   describe('use', () => {

@@ -4,7 +4,7 @@ import {
   DEFAULT_LIMIT,
   DEFAULT_PAGE,
   MAX_LIMIT,
-} from '../constants/pagination.constant';
+} from '../constants/pagination.constant.js';
 
 export class PaginationQueryDto {
   @IsOptional()

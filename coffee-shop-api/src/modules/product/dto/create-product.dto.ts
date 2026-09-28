@@ -13,9 +13,9 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { RoastLevel, ProductStatus } from '../enums/product.enum';
-import { CreateProductImageDto } from '../../product-image/dto/create-product-image.dto';
-import { CreateProductVariantDto } from '../../product-variant/dto/create-product-variant.dto';
+import { RoastLevel, ProductStatus } from '../enums/product.enum.js';
+import { CreateProductImageDto } from '../../product-image/dto/create-product-image.dto.js';
+import { CreateProductVariantDto } from '../../product-variant/dto/create-product-variant.dto.js';
 
 export class CreateProductDto {
   @IsUUID()

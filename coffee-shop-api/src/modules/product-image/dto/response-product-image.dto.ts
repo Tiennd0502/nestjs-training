@@ -1,4 +1,4 @@
-import { ProductImage } from '../entities/product-image.entity';
+import { ProductImage } from '../entities/product-image.entity.js';
 
 export class ResponseProductImageDto {
   id!: string;

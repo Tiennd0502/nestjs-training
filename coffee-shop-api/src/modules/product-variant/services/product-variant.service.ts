@@ -4,14 +4,14 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { ProductVariant } from '../entities/product-variant.entity';
+import { ProductVariant } from '../entities/product-variant.entity.js';
 import {
   CreateProductVariantData,
   PRODUCT_VARIANT_REPOSITORY,
   type ProductVariantRepository,
-} from '../repositories/product-variant-repository.interface';
-import { ERROR_MESSAGES } from '../../../common/constants/message.constant';
-import { DiscountType, ProductUnit } from '../enums/product-variant.enum';
+} from '../repositories/product-variant-repository.interface.js';
+import { ERROR_MESSAGES } from '../../../common/constants/message.constant.js';
+import { DiscountType, ProductUnit } from '../enums/product-variant.enum.js';
 
 export type CreateProductVariantInput = Omit<CreateProductVariantData, 'name'>;
 

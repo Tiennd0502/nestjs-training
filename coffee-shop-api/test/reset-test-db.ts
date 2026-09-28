@@ -1,7 +1,7 @@
 // Must stay first: loads .env.test before the MikroORM config reads process.env
-import './setup-env';
+import './setup-env.js';
 import { MikroORM } from '@mikro-orm/postgresql';
-import mikroOrmConfig from '../src/configs/mikro-orm.config';
+import mikroOrmConfig from '../src/configs/mikro-orm.config.js';
 
 // tsx (esbuild) does not emit decorator metadata, so entities cannot be discovered here.
 // Truncate every table except the migrations bookkeeping table instead, which is what

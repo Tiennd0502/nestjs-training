@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { ProductVariant } from '../entities/product-variant.entity';
-import { DiscountType, ProductUnit } from '../enums/product-variant.enum';
+import { ProductVariant } from '../entities/product-variant.entity.js';
+import { DiscountType, ProductUnit } from '../enums/product-variant.enum.js';
 
 export class ResponseProductVariantDto {
   id!: string;

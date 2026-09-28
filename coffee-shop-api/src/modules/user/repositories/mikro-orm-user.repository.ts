@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { EntityManager, EntityRepository } from '@mikro-orm/postgresql';
-import { User } from '../entities/user.entity';
-import { CreateUserData, UserRepository } from './user-repository.interface';
+import { User } from '../entities/user.entity.js';
+import { CreateUserData, UserRepository } from './user-repository.interface.js';
 import {
   PaginatedResult,
   QueryParams,
-} from '../../../common/interfaces/pagination.interface';
+} from '../../../common/interfaces/pagination.interface.js';
 
 @Injectable()
 export class MikroOrmUserRepository implements UserRepository {

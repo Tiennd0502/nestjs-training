@@ -1,11 +1,11 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { ProductImage } from '../entities/product-image.entity';
+import { ProductImage } from '../entities/product-image.entity.js';
 import {
   CreateProductImageData,
   PRODUCT_IMAGE_REPOSITORY,
   type ProductImageRepository,
-} from '../repositories/product-image-repository.interface';
-import { ERROR_MESSAGES } from '../../../common/constants/message.constant';
+} from '../repositories/product-image-repository.interface.js';
+import { ERROR_MESSAGES } from '../../../common/constants/message.constant.js';
 
 @Injectable()
 export class ProductImageService {

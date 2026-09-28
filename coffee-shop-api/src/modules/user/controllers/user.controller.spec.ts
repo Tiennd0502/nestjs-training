@@ -1,19 +1,20 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
-import { UserController } from './user.controller';
-import { UserService } from '../services/user.service';
-import { User } from '../entities/user.entity';
-import { ResponseUserDto } from '../dto/response-user.dto';
-import { UserRole, UserStatus } from '../../../common/enums/user.enum';
+import { UserController } from './user.controller.js';
+import { UserService } from '../services/user.service.js';
+import { User } from '../entities/user.entity.js';
+import { ResponseUserDto } from '../dto/response-user.dto.js';
+import { UserRole, UserStatus } from '../../../common/enums/user.enum.js';
 
+import type { Mock } from 'vitest';
 describe('UserController', () => {
   let controller: UserController;
   let userService: {
-    create: jest.Mock;
-    findAll: jest.Mock;
-    findOne: jest.Mock;
-    update: jest.Mock;
-    softDelete: jest.Mock;
+    create: Mock;
+    findAll: Mock;
+    findOne: Mock;
+    update: Mock;
+    softDelete: Mock;
   };
 
   const user = {
@@ -33,11 +34,11 @@ describe('UserController', () => {
 
   beforeEach(async () => {
     userService = {
-      create: jest.fn(),
-      findAll: jest.fn(),
-      findOne: jest.fn(),
-      update: jest.fn(),
-      softDelete: jest.fn(),
+      create: vi.fn(),
+      findAll: vi.fn(),
+      findOne: vi.fn(),
+      update: vi.fn(),
+      softDelete: vi.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -49,7 +50,7 @@ describe('UserController', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('create', () => {

@@ -7,12 +7,12 @@ import {
   IsUUID,
   Min,
 } from 'class-validator';
-import { PaginationQueryDto } from '../../../common/dto/pagination-query.dto';
+import { PaginationQueryDto } from '../../../common/dto/pagination-query.dto.js';
 import {
   ProductSortBy,
   ProductStatus,
   RoastLevel,
-} from '../enums/product.enum';
+} from '../enums/product.enum.js';
 
 const toArray = ({ value }: { value: unknown }): unknown =>
   typeof value === 'string' ? value.split(',') : value;

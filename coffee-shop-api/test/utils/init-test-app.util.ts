@@ -6,7 +6,10 @@ import {
 } from '@nestjs/common';
 import { TestingModule } from '@nestjs/testing';
 import type { App } from 'supertest/types';
-import { API_PREFIX, DEFAULT_API_VERSION } from './../../src/common/constants';
+import {
+  API_PREFIX,
+  DEFAULT_API_VERSION,
+} from './../../src/common/constants/env.constant.js';
 
 /**
  * Mirrors main.ts's bootstrap (global prefix + URI versioning) so e2e tests

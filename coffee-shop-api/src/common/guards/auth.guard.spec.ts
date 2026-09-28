@@ -3,9 +3,9 @@ import {
   ForbiddenException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { AuthGuard } from './auth.guard';
-import { UserRole, UserStatus } from '../enums/user.enum';
-import type { User } from '../../modules/user/entities/user.entity';
+import { AuthGuard } from './auth.guard.js';
+import { UserRole, UserStatus } from '../enums/user.enum.js';
+import type { User } from '../../modules/user/entities/user.entity.js';
 
 describe('AuthGuard', () => {
   let guard: AuthGuard;

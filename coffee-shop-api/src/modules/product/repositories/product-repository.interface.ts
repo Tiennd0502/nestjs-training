@@ -1,13 +1,13 @@
-import { Product } from '../entities/product.entity';
+import { Product } from '../entities/product.entity.js';
 import {
   RoastLevel,
   ProductStatus,
   ProductSortBy,
-} from '../enums/product.enum';
+} from '../enums/product.enum.js';
 import {
   PaginatedResult,
   QueryParams,
-} from '../../../common/interfaces/pagination.interface';
+} from '../../../common/interfaces/pagination.interface.js';
 
 export const PRODUCT_REPOSITORY = Symbol('PRODUCT_REPOSITORY');
 

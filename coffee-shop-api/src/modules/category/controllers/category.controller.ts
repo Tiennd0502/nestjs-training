@@ -17,24 +17,24 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
-import { CategoryService } from '../services/category.service';
-import { CreateCategoryDto } from '../dto/create-category.dto';
-import { UpdateCategoryDto } from '../dto/update-category.dto';
-import { ResponseCategoryDto } from '../dto/response-category.dto';
-import { PaginationQueryDto } from '../../../common/dto/pagination-query.dto';
-import { PaginatedResult } from '../../../common/interfaces/pagination.interface';
-import { AuthGuard } from '../../../common/guards/auth.guard';
-import { RolesGuard } from '../../../common/guards/roles.guard';
-import { Roles } from '../../../common/decorators/roles.decorator';
-import { AuthUser } from '../../../common/decorators/auth-user.decorator';
+import { CategoryService } from '../services/category.service.js';
+import { CreateCategoryDto } from '../dto/create-category.dto.js';
+import { UpdateCategoryDto } from '../dto/update-category.dto.js';
+import { ResponseCategoryDto } from '../dto/response-category.dto.js';
+import { PaginationQueryDto } from '../../../common/dto/pagination-query.dto.js';
+import { PaginatedResult } from '../../../common/interfaces/pagination.interface.js';
+import { AuthGuard } from '../../../common/guards/auth.guard.js';
+import { RolesGuard } from '../../../common/guards/roles.guard.js';
+import { Roles } from '../../../common/decorators/roles.decorator.js';
+import { AuthUser } from '../../../common/decorators/auth-user.decorator.js';
 import {
   ApiDataResponse,
   ApiPaginatedResponse,
   ApiErrorResponse,
-} from '../../../common/decorators/api-response.decorator';
-import { UserRole, UserStatus } from '../../../common/enums/user.enum';
-import { User } from '../../user/entities/user.entity';
-import { ERROR_MESSAGES } from '../../../common/constants/message.constant';
+} from '../../../common/decorators/api-response.decorator.js';
+import { UserRole, UserStatus } from '../../../common/enums/user.enum.js';
+import { User } from '../../user/entities/user.entity.js';
+import { ERROR_MESSAGES } from '../../../common/constants/message.constant.js';
 
 const isActiveAdmin = (user?: User): boolean =>
   user?.role === UserRole.ADMIN &&

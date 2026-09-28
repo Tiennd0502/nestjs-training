@@ -1,17 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { EntityManager, EntityRepository } from '@mikro-orm/postgresql';
-import { Product } from '../entities/product.entity';
-import { ProductSortBy } from '../enums/product.enum';
+import { Product } from '../entities/product.entity.js';
+import { ProductSortBy } from '../enums/product.enum.js';
 import {
   CreateProductData,
   ProductFilters,
   ProductRepository,
-} from './product-repository.interface';
+} from './product-repository.interface.js';
 import {
   PaginatedResult,
   QueryParams,
-} from '../../../common/interfaces/pagination.interface';
+} from '../../../common/interfaces/pagination.interface.js';
 
 const minVariantPrice = (product: Product): number => {
   const prices = product.variants

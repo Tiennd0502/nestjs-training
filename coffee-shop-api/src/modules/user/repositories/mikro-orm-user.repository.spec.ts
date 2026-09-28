@@ -1,11 +1,12 @@
-import { MikroOrmUserRepository } from './mikro-orm-user.repository';
-import { User } from '../entities/user.entity';
-import { UserRole, UserStatus } from '../../../common/enums/user.enum';
+import { MikroOrmUserRepository } from './mikro-orm-user.repository.js';
+import { User } from '../entities/user.entity.js';
+import { UserRole, UserStatus } from '../../../common/enums/user.enum.js';
 
+import type { Mock } from 'vitest';
 describe('MikroOrmUserRepository', () => {
   let repository: MikroOrmUserRepository;
-  let entityRepository: { findAndCount: jest.Mock };
-  let em: { persist: jest.Mock };
+  let entityRepository: { findAndCount: Mock };
+  let em: { persist: Mock };
 
   const buildUser = (overrides: Partial<User> = {}): User => ({
     id: 'user-id-1',
@@ -24,8 +25,8 @@ describe('MikroOrmUserRepository', () => {
   });
 
   beforeEach(() => {
-    entityRepository = { findAndCount: jest.fn() };
-    em = { persist: jest.fn(() => ({ flush: jest.fn() })) };
+    entityRepository = { findAndCount: vi.fn() };
+    em = { persist: vi.fn(() => ({ flush: vi.fn() })) };
 
     repository = new MikroOrmUserRepository(
       entityRepository as never,

@@ -1,12 +1,12 @@
 import 'reflect-metadata';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
-import { PaginationQueryDto } from './pagination-query.dto';
+import { PaginationQueryDto } from './pagination-query.dto.js';
 import {
   DEFAULT_LIMIT,
   DEFAULT_PAGE,
   MAX_LIMIT,
-} from '../constants/pagination.constant';
+} from '../constants/pagination.constant.js';
 
 describe('PaginationQueryDto', () => {
   it('defaults page and limit when both are omitted', async () => {

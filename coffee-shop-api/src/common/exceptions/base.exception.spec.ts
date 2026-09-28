@@ -5,8 +5,8 @@ import {
   InvalidRequestException,
   ItemNotFoundException,
   DuplicateResourceException,
-} from './base.exception';
-import { ErrorDetail } from '../interfaces/error-response.interface';
+} from './base.exception.js';
+import { ErrorDetail } from '../interfaces/error-response.interface.js';
 
 class TestDomainException extends DomainException {
   constructor(status: number, message: string, errors: ErrorDetail[]) {

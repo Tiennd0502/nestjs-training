@@ -1,8 +1,8 @@
-import { User } from '../entities/user.entity';
+import { User } from '../entities/user.entity.js';
 import {
   PaginatedResult,
   QueryParams,
-} from '../../../common/interfaces/pagination.interface';
+} from '../../../common/interfaces/pagination.interface.js';
 
 export const USER_REPOSITORY = Symbol('USER_REPOSITORY');
 

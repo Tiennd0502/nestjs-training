@@ -1,23 +1,24 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { UserService } from './user.service';
-import { User } from '../entities/user.entity';
-import { UserRole, UserStatus } from '../../../common/enums/user.enum';
-import { USER_REPOSITORY } from '../repositories/user-repository.interface';
+import { UserService } from './user.service.js';
+import { User } from '../entities/user.entity.js';
+import { UserRole, UserStatus } from '../../../common/enums/user.enum.js';
+import { USER_REPOSITORY } from '../repositories/user-repository.interface.js';
+import type { Mock } from 'vitest';
 import {
   DuplicateResourceException,
   ItemNotFoundException,
   InvalidRequestException,
-} from '../../../common/exceptions/base.exception';
+} from '../../../common/exceptions/base.exception.js';
 
 describe('UserService', () => {
   let service: UserService;
   let userRepository: {
-    findById: jest.Mock;
-    findByEmail: jest.Mock;
-    findByClerkId: jest.Mock;
-    findAll: jest.Mock;
-    create: jest.Mock;
-    save: jest.Mock;
+    findById: Mock;
+    findByEmail: Mock;
+    findByClerkId: Mock;
+    findAll: Mock;
+    create: Mock;
+    save: Mock;
   };
 
   const buildUser = (overrides: Partial<User> = {}): User => ({
@@ -38,12 +39,12 @@ describe('UserService', () => {
 
   beforeEach(async () => {
     userRepository = {
-      findById: jest.fn(),
-      findByEmail: jest.fn(),
-      findByClerkId: jest.fn(),
-      findAll: jest.fn(),
-      create: jest.fn(),
-      save: jest.fn(),
+      findById: vi.fn(),
+      findByEmail: vi.fn(),
+      findByClerkId: vi.fn(),
+      findAll: vi.fn(),
+      create: vi.fn(),
+      save: vi.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -57,7 +58,7 @@ describe('UserService', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('create', () => {

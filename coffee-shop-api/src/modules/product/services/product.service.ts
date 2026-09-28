@@ -4,24 +4,24 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Product } from '../entities/product.entity';
+import { Product } from '../entities/product.entity.js';
 import {
   CreateProductData,
   PRODUCT_REPOSITORY,
   type ProductFilters,
   type ProductRepository,
-} from '../repositories/product-repository.interface';
-import { ERROR_MESSAGES } from '../../../common/constants/message.constant';
+} from '../repositories/product-repository.interface.js';
+import { ERROR_MESSAGES } from '../../../common/constants/message.constant.js';
 import {
   PaginatedResult,
   QueryParams,
-} from '../../../common/interfaces/pagination.interface';
-import { slugFrom } from '../../../common/utils/slug.util';
-import { CategoryService } from '../../category/services/category.service';
-import { ProductImageService } from '../../product-image/services/product-image.service';
-import { CreateProductImageData } from '../../product-image/repositories/product-image-repository.interface';
-import { ProductVariantService } from '../../product-variant/services/product-variant.service';
-import { CreateProductVariantData } from '../../product-variant/repositories/product-variant-repository.interface';
+} from '../../../common/interfaces/pagination.interface.js';
+import { slugFrom } from '../../../common/utils/slug.util.js';
+import { CategoryService } from '../../category/services/category.service.js';
+import { ProductImageService } from '../../product-image/services/product-image.service.js';
+import { CreateProductImageData } from '../../product-image/repositories/product-image-repository.interface.js';
+import { ProductVariantService } from '../../product-variant/services/product-variant.service.js';
+import { CreateProductVariantData } from '../../product-variant/repositories/product-variant-repository.interface.js';
 
 export interface CreateProductWithCatalogData extends Omit<
   CreateProductData,

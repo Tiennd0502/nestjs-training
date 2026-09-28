@@ -1,6 +1,6 @@
 import type { IncomingHttpHeaders } from 'http';
 import type { Request } from 'express';
-import { UserRole } from '../enums/user.enum';
+import { UserRole } from '../enums/user.enum.js';
 
 export const AUTH_PROVIDER = Symbol('AUTH_PROVIDER');
 

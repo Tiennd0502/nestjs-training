@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus } from '@nestjs/common';
-import { ErrorDetail } from '../interfaces/error-response.interface';
-import { ERROR_MESSAGES } from '../constants/message.constant';
+import { ErrorDetail } from '../interfaces/error-response.interface.js';
+import { ERROR_MESSAGES } from '../constants/message.constant.js';
 
 export abstract class DomainException extends HttpException {
   private readonly errors: ErrorDetail[];

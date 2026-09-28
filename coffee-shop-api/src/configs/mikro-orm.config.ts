@@ -11,6 +11,13 @@ export default defineConfig({
 
   metadataProvider: ReflectMetadataProvider,
 
+  // Vitest sets process.env.VITEST, which MikroORM's TS auto-detection reads as a
+  // signal to import entitiesTs (raw .ts) directly. That import bypasses Vitest's
+  // transform pipeline and hits Node's native ESM loader, which cannot parse
+  // TypeScript. Force the compiled dist entities under Vitest; tsx (migrations,
+  // seeders) keeps using entitiesTs via the default auto-detection.
+  preferTs: process.env.VITEST ? false : undefined,
+
   entities: ['dist/**/*.entity.js'],
   entitiesTs: ['src/**/*.entity.ts'],
 

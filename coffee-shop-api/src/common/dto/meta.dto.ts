@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Meta } from '../interfaces/pagination.interface';
+import { Meta } from '../interfaces/pagination.interface.js';
 
 export class MetaDto implements Meta {
   @ApiProperty()

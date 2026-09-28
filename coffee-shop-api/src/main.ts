@@ -3,14 +3,14 @@ import { ConfigService } from '@nestjs/config';
 import { RequestMethod, VersioningType } from '@nestjs/common';
 import helmet from 'helmet';
 
-import { AppModule } from './app.module';
+import { AppModule } from './app.module.js';
 import {
   DEFAULT_PORT,
   DEFAULT_API_VERSION,
   API_PREFIX,
-} from './common/constants';
-import { corsConfig } from './configs/cors.config';
-import { setupSwagger } from './configs/swagger.config';
+} from './common/constants/env.constant.js';
+import { corsConfig } from './configs/cors.config.js';
+import { setupSwagger } from './configs/swagger.config.js';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { rawBody: true });
@@ -29,4 +29,4 @@ async function bootstrap() {
 
   await app.listen(process.env.PORT ?? DEFAULT_PORT);
 }
-bootstrap();
+await bootstrap();

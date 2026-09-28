@@ -4,19 +4,20 @@ import { MikroORM, RequestContext } from '@mikro-orm/core';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { getAuth } from '@clerk/express';
-import { AppModule } from './../../src/app.module';
-import { UserService } from './../../src/modules/user/services/user.service';
-import { CategoryService } from './../../src/modules/category/services/category.service';
-import { UserRole } from './../../src/common/enums/user.enum';
-import type { User } from './../../src/modules/user/entities/user.entity';
-import type { Category } from './../../src/modules/category/entities/category.entity';
-import { slugFrom } from './../../src/common/utils/slug.util';
-import { API_BASE_PATH } from './../utils/api-path.util';
-import { initTestApp } from './../utils/init-test-app.util';
+import type { Mock } from 'vitest';
+import { AppModule } from './../../src/app.module.js';
+import { UserService } from './../../src/modules/user/services/user.service.js';
+import { CategoryService } from './../../src/modules/category/services/category.service.js';
+import { UserRole } from './../../src/common/enums/user.enum.js';
+import type { User } from './../../src/modules/user/entities/user.entity.js';
+import type { Category } from './../../src/modules/category/entities/category.entity.js';
+import { slugFrom } from './../../src/common/utils/slug.util.js';
+import { API_BASE_PATH } from './../utils/api-path.util.js';
+import { initTestApp } from './../utils/init-test-app.util.js';
 
-jest.mock('@clerk/express', () => {
-  const actual: object = jest.requireActual('@clerk/express');
-  return { ...actual, getAuth: jest.fn() };
+vi.mock('@clerk/express', async () => {
+  const actual: object = await vi.importActual('@clerk/express');
+  return { ...actual, getAuth: vi.fn() };
 });
 
 describe('CategoryController (e2e)', () => {
@@ -52,7 +53,7 @@ describe('CategoryController (e2e)', () => {
   });
 
   beforeEach(() => {
-    (getAuth as jest.Mock).mockReturnValue({ userId: null });
+    (getAuth as Mock).mockReturnValue({ userId: null });
   });
 
   const createTestUser = async (role: UserRole): Promise<User> =>
@@ -77,7 +78,7 @@ describe('CategoryController (e2e)', () => {
     });
 
   const mockSessionFor = (clerkId: string | null): void => {
-    (getAuth as jest.Mock).mockReturnValue({ userId: clerkId });
+    (getAuth as Mock).mockReturnValue({ userId: clerkId });
   };
 
   const uniqueName = (base: string): string =>

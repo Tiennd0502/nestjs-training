@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { PaginatedResult } from '../interfaces/pagination.interface';
+import { PaginatedResult } from '../interfaces/pagination.interface.js';
 
 function isPaginatedResult(value: unknown): value is PaginatedResult<unknown> {
   return (

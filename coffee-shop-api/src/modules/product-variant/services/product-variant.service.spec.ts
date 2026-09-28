@@ -1,18 +1,19 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConflictException, NotFoundException } from '@nestjs/common';
-import { ProductVariantService } from './product-variant.service';
-import { ProductVariant } from '../entities/product-variant.entity';
-import { PRODUCT_VARIANT_REPOSITORY } from '../repositories/product-variant-repository.interface';
-import { ProductUnit } from '../enums/product-variant.enum';
+import { ProductVariantService } from './product-variant.service.js';
+import { ProductVariant } from '../entities/product-variant.entity.js';
+import { PRODUCT_VARIANT_REPOSITORY } from '../repositories/product-variant-repository.interface.js';
+import { ProductUnit } from '../enums/product-variant.enum.js';
 
+import type { Mock } from 'vitest';
 describe('ProductVariantService', () => {
   let service: ProductVariantService;
   let productVariantRepository: {
-    findById: jest.Mock;
-    findBySku: jest.Mock;
-    findAllByProduct: jest.Mock;
-    create: jest.Mock;
-    save: jest.Mock;
+    findById: Mock;
+    findBySku: Mock;
+    findAllByProduct: Mock;
+    create: Mock;
+    save: Mock;
   };
 
   const buildVariant = (
@@ -36,11 +37,11 @@ describe('ProductVariantService', () => {
 
   beforeEach(async () => {
     productVariantRepository = {
-      findById: jest.fn(),
-      findBySku: jest.fn(),
-      findAllByProduct: jest.fn(),
-      create: jest.fn(),
-      save: jest.fn(),
+      findById: vi.fn(),
+      findBySku: vi.fn(),
+      findAllByProduct: vi.fn(),
+      create: vi.fn(),
+      save: vi.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -57,7 +58,7 @@ describe('ProductVariantService', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   const createData = {

@@ -4,29 +4,30 @@ import { MikroORM, RequestContext } from '@mikro-orm/core';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { getAuth } from '@clerk/express';
-import { AppModule } from './../../src/app.module';
-import { UserService } from './../../src/modules/user/services/user.service';
-import { CategoryService } from './../../src/modules/category/services/category.service';
-import { ProductService } from './../../src/modules/product/services/product.service';
-import { ProductImageService } from './../../src/modules/product-image/services/product-image.service';
-import { ProductVariantService } from './../../src/modules/product-variant/services/product-variant.service';
-import { UserRole } from './../../src/common/enums/user.enum';
-import { API_BASE_PATH } from './../utils/api-path.util';
-import { initTestApp } from './../utils/init-test-app.util';
-import { ProductUnit } from './../../src/modules/product-variant/enums/product-variant.enum';
-import type { User } from './../../src/modules/user/entities/user.entity';
-import type { Category } from './../../src/modules/category/entities/category.entity';
-import type { Product } from './../../src/modules/product/entities/product.entity';
-import { slugFrom } from './../../src/common/utils/slug.util';
+import type { Mock } from 'vitest';
+import { AppModule } from './../../src/app.module.js';
+import { UserService } from './../../src/modules/user/services/user.service.js';
+import { CategoryService } from './../../src/modules/category/services/category.service.js';
+import { ProductService } from './../../src/modules/product/services/product.service.js';
+import { ProductImageService } from './../../src/modules/product-image/services/product-image.service.js';
+import { ProductVariantService } from './../../src/modules/product-variant/services/product-variant.service.js';
+import { UserRole } from './../../src/common/enums/user.enum.js';
+import { API_BASE_PATH } from './../utils/api-path.util.js';
+import { initTestApp } from './../utils/init-test-app.util.js';
+import { ProductUnit } from './../../src/modules/product-variant/enums/product-variant.enum.js';
+import type { User } from './../../src/modules/user/entities/user.entity.js';
+import type { Category } from './../../src/modules/category/entities/category.entity.js';
+import type { Product } from './../../src/modules/product/entities/product.entity.js';
+import { slugFrom } from './../../src/common/utils/slug.util.js';
 import {
   ProductSortBy,
   ProductStatus,
   RoastLevel,
-} from './../../src/modules/product/enums/product.enum';
+} from './../../src/modules/product/enums/product.enum.js';
 
-jest.mock('@clerk/express', () => {
-  const actual: object = jest.requireActual('@clerk/express');
-  return { ...actual, getAuth: jest.fn() };
+vi.mock('@clerk/express', async () => {
+  const actual: object = await vi.importActual('@clerk/express');
+  return { ...actual, getAuth: vi.fn() };
 });
 
 describe('ProductController (e2e)', () => {
@@ -72,7 +73,7 @@ describe('ProductController (e2e)', () => {
   });
 
   beforeEach(() => {
-    (getAuth as jest.Mock).mockReturnValue({ userId: null });
+    (getAuth as Mock).mockReturnValue({ userId: null });
   });
 
   const uniqueName = (base: string): string =>
@@ -102,7 +103,7 @@ describe('ProductController (e2e)', () => {
     });
 
   const mockSessionFor = (clerkId: string | null): void => {
-    (getAuth as jest.Mock).mockReturnValue({ userId: clerkId });
+    (getAuth as Mock).mockReturnValue({ userId: clerkId });
   };
 
   describe('public GET routes', () => {

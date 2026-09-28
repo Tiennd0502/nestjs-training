@@ -9,7 +9,7 @@ import {
 import type { RawBodyRequest } from '@nestjs/common';
 import { ApiExcludeController } from '@nestjs/swagger';
 import type { Request } from 'express';
-import { ClerkWebhookService } from '../services/clerk-webhook.service';
+import { ClerkWebhookService } from '../services/clerk-webhook.service.js';
 
 @ApiExcludeController()
 @Controller({ path: 'webhooks', version: VERSION_NEUTRAL })

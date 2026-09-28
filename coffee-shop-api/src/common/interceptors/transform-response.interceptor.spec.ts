@@ -1,7 +1,7 @@
 import { CallHandler, ExecutionContext } from '@nestjs/common';
 import { of } from 'rxjs';
-import { TransformResponseInterceptor } from './transform-response.interceptor';
-import { PaginatedResult } from '../interfaces/pagination.interface';
+import { TransformResponseInterceptor } from './transform-response.interceptor.js';
+import { PaginatedResult } from '../interfaces/pagination.interface.js';
 
 describe('TransformResponseInterceptor', () => {
   let interceptor: TransformResponseInterceptor<unknown>;
