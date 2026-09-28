@@ -39,7 +39,7 @@ export function ProductTrustRow({ className }: ProductTrustRowProps) {
         return (
           <li
             key={item.id}
-            className="flex flex-col items-center gap-2 rounded-2xl px-2 py-3 text-center"
+            className="flex flex-col items-center gap-2 rounded-2xl py-3 text-center"
           >
             <Icon className="size-7 text-primary" aria-hidden />
             <p className="text-sm leading-tight font-semibold whitespace-pre-line text-on-surface">

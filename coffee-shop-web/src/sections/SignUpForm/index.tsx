@@ -16,6 +16,7 @@ import { parseSignUpStartForm } from '@/schemas/user'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Separator } from '@/components/ui/separator'
+import Loading from '@/components/Loading'
 import { Spinner } from '@/components/ui/spinner'
 
 import SocialButtons from '../SocialButtons'
@@ -69,24 +70,10 @@ const SignUpForm = () => {
   return (
     <>
       <SignUp.Root
-        fallback={
-          <div className="flex justify-center py-20">
-            <Spinner
-              size="lg"
-              label="Loading sign up form"
-              className="text-primary"
-            />
-          </div>
-        }
+        fallback={<Loading fullScreen size="lg" label="Loading sign up form" />}
       >
         {isSsoCallback && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-background">
-            <Spinner
-              size="lg"
-              label="Completing sign up"
-              className="text-primary"
-            />
-          </div>
+          <Loading fullScreen size="lg" label="Completing sign up" />
         )}
         <Clerk.Loading scope="global">
           {(isGlobalLoading) => (

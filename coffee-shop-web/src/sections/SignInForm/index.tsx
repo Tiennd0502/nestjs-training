@@ -12,6 +12,7 @@ import { parseSignInCredentialsForm } from '@/schemas/user'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Separator } from '@/components/ui/separator'
+import Loading from '@/components/Loading'
 import { Spinner } from '@/components/ui/spinner'
 
 import SocialButtons from '../SocialButtons'
@@ -52,23 +53,10 @@ const SignInForm = () => {
   return (
     <>
       <SignIn.Root
-        fallback={
-          <div className="flex justify-center py-20">
-            <Spinner
-              size="lg"
-              label="Loading sign in form"
-              className="text-primary"
-            />
-          </div>
-        }
+        fallback={<Loading fullScreen size="lg" label="Loading sign in form" />}
       >
         <SignIn.Step name="sso-callback">
-          <Spinner
-            decorative={false}
-            size="lg"
-            label="Completing sign in"
-            className="text-primary"
-          />
+          <Loading fullScreen size="lg" label="Completing sign in" />
         </SignIn.Step>
         <Clerk.Loading scope="global">
           {(isGlobalLoading) => (
