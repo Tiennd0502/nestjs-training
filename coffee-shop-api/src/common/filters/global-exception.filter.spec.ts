@@ -5,12 +5,12 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { GlobalExceptionFilter } from './global-exception.filter.js';
-import { ErrorDetail } from '../interfaces/error-response.interface.js';
+import { ErrorDetailDto } from '../dto/error.dto.js';
 import { DomainException } from '../exceptions/base.exception.js';
 
 import type { Mock, MockInstance } from 'vitest';
 class TestDomainException extends DomainException {
-  constructor(status: HttpStatus, message: string, errors: ErrorDetail[]) {
+  constructor(status: HttpStatus, message: string, errors: ErrorDetailDto[]) {
     super(status, message, errors);
   }
 }

@@ -12,10 +12,8 @@ import {
   ERROR_DESCRIPTIONS,
 } from '../../../common/constants/message.constant.js';
 import { ERROR_CODES } from '../../../common/constants/error-code.constant.js';
-import {
-  PaginatedResult,
-  QueryParams,
-} from '../../../common/interfaces/pagination.interface.js';
+import { PaginatedResult } from '../../../common/dto/pagination.dto.js';
+import { QueryParams } from '../../../common/dto/query-params.dto.js';
 import { slugFrom } from '../../../common/utils/slug.util.js';
 import {
   DuplicateResourceException,

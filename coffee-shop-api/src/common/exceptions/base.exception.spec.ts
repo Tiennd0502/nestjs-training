@@ -6,17 +6,17 @@ import {
   ItemNotFoundException,
   DuplicateResourceException,
 } from './base.exception.js';
-import { ErrorDetail } from '../interfaces/error-response.interface.js';
+import { ErrorDetailDto } from '../dto/error.dto.js';
 
 class TestDomainException extends DomainException {
-  constructor(status: number, message: string, errors: ErrorDetail[]) {
+  constructor(status: number, message: string, errors: ErrorDetailDto[]) {
     super(status, message, errors);
   }
 }
 
 describe('DomainException', () => {
   it('exposes the status and message via HttpException accessors', () => {
-    const errors: ErrorDetail[] = [
+    const errors: ErrorDetailDto[] = [
       {
         errCode: 'TEST_ERROR',
         field: 'name',
@@ -36,7 +36,7 @@ describe('DomainException', () => {
   });
 
   it('exposes all structured error entries in order via getErrors()', () => {
-    const errors: ErrorDetail[] = [
+    const errors: ErrorDetailDto[] = [
       {
         errCode: 'ERR_1',
         field: 'name',

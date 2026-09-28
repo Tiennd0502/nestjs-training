@@ -9,10 +9,8 @@ import {
   ProductFilters,
   ProductRepository,
 } from './product-repository.interface.js';
-import {
-  PaginatedResult,
-  QueryParams,
-} from '../../../common/interfaces/pagination.interface.js';
+import { PaginatedResult } from '../../../common/dto/pagination.dto.js';
+import { QueryParams } from '../../../common/dto/query-params.dto.js';
 
 const minVariantPrice = (product: Product): number => {
   const prices = product.variants

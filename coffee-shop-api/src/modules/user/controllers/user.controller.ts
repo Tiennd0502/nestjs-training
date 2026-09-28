@@ -21,8 +21,10 @@ import { UserService } from '../services/user.service.js';
 import { CreateUserDto } from '../dto/create-user.dto.js';
 import { UpdateUserDto } from '../dto/update-user.dto.js';
 import { ResponseUserDto } from '../dto/response-user.dto.js';
-import { PaginationQueryDto } from '../../../common/dto/pagination-query.dto.js';
-import { PaginatedResult } from '../../../common/interfaces/pagination.interface.js';
+import {
+  PaginationQueryDto,
+  PaginatedResult,
+} from '../../../common/dto/pagination.dto.js';
 import { AuthGuard } from '../../../common/guards/auth.guard.js';
 import { RolesGuard } from '../../../common/guards/roles.guard.js';
 import { Roles } from '../../../common/decorators/roles.decorator.js';

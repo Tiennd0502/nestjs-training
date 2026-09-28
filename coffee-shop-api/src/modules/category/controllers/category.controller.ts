@@ -27,8 +27,10 @@ import {
   type UpdateCategoryInput,
 } from '../dto/update-category.schema.js';
 import { ResponseCategoryDto } from '../dto/response-category.dto.js';
-import { PaginationQueryDto } from '../../../common/dto/pagination-query.dto.js';
-import { PaginatedResult } from '../../../common/interfaces/pagination.interface.js';
+import {
+  PaginationQueryDto,
+  PaginatedResult,
+} from '../../../common/dto/pagination.dto.js';
 import { AuthGuard } from '../../../common/guards/auth.guard.js';
 import { RolesGuard } from '../../../common/guards/roles.guard.js';
 import { Roles } from '../../../common/decorators/roles.decorator.js';

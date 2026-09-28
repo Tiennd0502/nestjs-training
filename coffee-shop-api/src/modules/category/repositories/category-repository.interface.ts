@@ -1,8 +1,6 @@
 import { Category } from '../entities/category.entity.js';
-import {
-  PaginatedResult,
-  QueryParams,
-} from '../../../common/interfaces/pagination.interface.js';
+import { PaginatedResult } from '../../../common/dto/pagination.dto.js';
+import { QueryParams } from '../../../common/dto/query-params.dto.js';
 
 export const CATEGORY_REPOSITORY = Symbol('CATEGORY_REPOSITORY');
 

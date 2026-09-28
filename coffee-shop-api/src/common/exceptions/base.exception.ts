@@ -1,20 +1,20 @@
 import { HttpException, HttpStatus } from '@nestjs/common';
-import { ErrorDetail } from '../interfaces/error-response.interface.js';
+import { ErrorDetailDto } from '../dto/error.dto.js';
 import { ERROR_MESSAGES } from '../constants/message.constant.js';
 
 export abstract class DomainException extends HttpException {
-  private readonly errors: ErrorDetail[];
+  private readonly errors: ErrorDetailDto[];
 
   protected constructor(
     status: number,
     message: string,
-    errors: ErrorDetail[],
+    errors: ErrorDetailDto[],
   ) {
     super(message, status);
     this.errors = errors;
   }
 
-  getErrors(): ErrorDetail[] {
+  getErrors(): ErrorDetailDto[] {
     return this.errors;
   }
 }
@@ -23,14 +23,14 @@ export abstract class SingleErrorDomainException extends DomainException {
   protected constructor(
     status: HttpStatus,
     topLevelMessage: string,
-    error: ErrorDetail,
+    error: ErrorDetailDto,
   ) {
     super(status, topLevelMessage, [error]);
   }
 }
 
 export class ValidationException extends DomainException {
-  constructor(errors: ErrorDetail[]) {
+  constructor(errors: ErrorDetailDto[]) {
     super(
       HttpStatus.BAD_REQUEST,
       ERROR_MESSAGES.EXCEPTION.VALIDATION_FAILED,
@@ -40,19 +40,19 @@ export class ValidationException extends DomainException {
 }
 
 export class InvalidRequestException extends SingleErrorDomainException {
-  constructor(error: ErrorDetail) {
+  constructor(error: ErrorDetailDto) {
     super(HttpStatus.BAD_REQUEST, ERROR_MESSAGES.EXCEPTION.BAD_REQUEST, error);
   }
 }
 
 export class ItemNotFoundException extends SingleErrorDomainException {
-  constructor(error: ErrorDetail) {
+  constructor(error: ErrorDetailDto) {
     super(HttpStatus.NOT_FOUND, ERROR_MESSAGES.EXCEPTION.ITEM_NOT_FOUND, error);
   }
 }
 
 export class DuplicateResourceException extends SingleErrorDomainException {
-  constructor(error: ErrorDetail) {
+  constructor(error: ErrorDetailDto) {
     super(HttpStatus.CONFLICT, ERROR_MESSAGES.EXCEPTION.CONFLICT, error);
   }
 }

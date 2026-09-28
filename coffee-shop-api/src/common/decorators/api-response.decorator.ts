@@ -1,7 +1,7 @@
 import { applyDecorators, Type } from '@nestjs/common';
 import { ApiExtraModels, ApiResponse, getSchemaPath } from '@nestjs/swagger';
-import { MetaDto } from '../dto/meta.dto.js';
-import { ErrorResponseDto } from '../dto/error-response.dto.js';
+import { MetaDto } from '../dto/pagination.dto.js';
+import { ErrorResponseDto } from '../dto/error.dto.js';
 import { ERROR_CODES } from '../constants/error-code.constant.js';
 import {
   DEFAULT_ERR_CODE_BY_STATUS,

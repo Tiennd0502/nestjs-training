@@ -8,7 +8,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import type { Response } from 'express';
-import { ErrorResponseBody } from '../interfaces/error-response.interface.js';
+import { ErrorResponseDto } from '../dto/error.dto.js';
 import { DomainException } from '../exceptions/base.exception.js';
 import { ERROR_MESSAGES } from '../constants/message.constant.js';
 import { ERROR_CODES } from '../constants/error-code.constant.js';
@@ -41,7 +41,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     response.status(body.statusCode).json(body);
   }
 
-  private toErrorResponseBody(exception: unknown): ErrorResponseBody {
+  private toErrorResponseBody(exception: unknown): ErrorResponseDto {
     if (exception instanceof DomainException) {
       return {
         statusCode: exception.getStatus(),

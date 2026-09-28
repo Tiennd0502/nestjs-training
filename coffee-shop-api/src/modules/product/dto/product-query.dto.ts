@@ -7,7 +7,7 @@ import {
   IsUUID,
   Min,
 } from 'class-validator';
-import { PaginationQueryDto } from '../../../common/dto/pagination-query.dto.js';
+import { PaginationQueryDto } from '../../../common/dto/pagination.dto.js';
 import {
   ProductSortBy,
   ProductStatus,
