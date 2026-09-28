@@ -92,6 +92,27 @@ describe('GlobalExceptionFilter', () => {
     });
   });
 
+  it('uses the errorCode carried by a built-in HttpException as errors[0].errCode', () => {
+    const exception = new NotFoundException('User not found', {
+      errorCode: 'CUSTOM_USER_NOT_FOUND',
+    });
+
+    filter.catch(exception, host);
+
+    expect(jsonMock).toHaveBeenCalledWith({
+      statusCode: HttpStatus.NOT_FOUND,
+      message: 'Item not found',
+      errors: [
+        {
+          errCode: 'CUSTOM_USER_NOT_FOUND',
+          field: '',
+          message: 'User not found',
+          description: 'User not found',
+        },
+      ],
+    });
+  });
+
   it('returns 500 with a system error entry for a non-HttpException, without leaking internals', () => {
     const exception = new Error('secret db connection string exposed');
 

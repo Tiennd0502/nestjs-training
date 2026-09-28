@@ -9,16 +9,21 @@ import type { App } from 'supertest/types';
 import {
   API_PREFIX,
   DEFAULT_API_VERSION,
+  ROUTE_CONFLICT_POLICY,
 } from './../../src/common/constants/env.constant.js';
 
 /**
- * Mirrors main.ts's bootstrap (global prefix + URI versioning) so e2e tests
- * hit the app the same way production does, without repeating it per spec.
+ * Mirrors main.ts's bootstrap (global prefix + URI versioning + route conflict
+ * policy) so e2e tests hit the app the same way production does, without
+ * repeating it per spec.
  */
 export async function initTestApp<
   T extends INestApplication = INestApplication<App>,
 >(moduleFixture: TestingModule, options?: NestApplicationOptions): Promise<T> {
-  const app = moduleFixture.createNestApplication<T>(options);
+  const app = moduleFixture.createNestApplication<T>({
+    routeConflictPolicy: ROUTE_CONFLICT_POLICY,
+    ...options,
+  });
   app.setGlobalPrefix(API_PREFIX, {
     exclude: [{ path: 'webhooks/clerk', method: RequestMethod.POST }],
   });

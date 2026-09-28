@@ -1,5 +1,9 @@
 import { ValidationError } from 'class-validator';
-import { toErrorDetails } from './validation-error.util.js';
+import {
+  toErrorDetails,
+  toErrorDetailsFromStandardSchemaIssues,
+} from './validation-error.util.js';
+import { createCategorySchema } from '../../modules/category/dto/create-category.schema.js';
 
 describe('toErrorDetails', () => {
   it('maps each constraint of a flat validation error into its own ErrorDetail', () => {
@@ -88,5 +92,76 @@ describe('toErrorDetails', () => {
 
   it('returns an empty array for no validation errors', () => {
     expect(toErrorDetails([])).toEqual([]);
+  });
+});
+
+describe('toErrorDetailsFromStandardSchemaIssues (Standard Schema pilot: createCategorySchema)', () => {
+  const validate = async (input: unknown) =>
+    createCategorySchema['~standard'].validate(input);
+
+  it('has no issues for a valid name', async () => {
+    const result = await validate({ name: 'Espresso' });
+
+    expect(result.issues).toBeUndefined();
+  });
+
+  it('matches the baseline minLength body for a too-short name', async () => {
+    const result = await validate({ name: 'a' });
+
+    expect(toErrorDetailsFromStandardSchemaIssues(result.issues ?? [])).toEqual(
+      [
+        {
+          errCode: 'minLength',
+          field: 'name',
+          message: 'name must be longer than or equal to 2 characters',
+          description: 'name must be longer than or equal to 2 characters',
+        },
+      ],
+    );
+  });
+
+  it('maps a too-long name to maxLength', async () => {
+    const result = await validate({ name: 'x'.repeat(101) });
+
+    expect(toErrorDetailsFromStandardSchemaIssues(result.issues ?? [])).toEqual(
+      [
+        {
+          errCode: 'maxLength',
+          field: 'name',
+          message: 'name must be shorter than or equal to 100 characters',
+          description: 'name must be shorter than or equal to 100 characters',
+        },
+      ],
+    );
+  });
+
+  it('maps a missing name to isNotEmpty', async () => {
+    const result = await validate({});
+
+    expect(toErrorDetailsFromStandardSchemaIssues(result.issues ?? [])).toEqual(
+      [
+        {
+          errCode: 'isNotEmpty',
+          field: 'name',
+          message: 'name should not be empty',
+          description: 'name should not be empty',
+        },
+      ],
+    );
+  });
+
+  it('maps a non-string name to isString', async () => {
+    const result = await validate({ name: 123 });
+
+    expect(toErrorDetailsFromStandardSchemaIssues(result.issues ?? [])).toEqual(
+      [
+        {
+          errCode: 'isString',
+          field: 'name',
+          message: 'name must be a string',
+          description: 'name must be a string',
+        },
+      ],
+    );
   });
 });

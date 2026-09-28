@@ -21,14 +21,14 @@ References: [Release v12.0.0](https://github.com/nestjs/nest/releases/tag/v12.0.
 
 ## 2. Desired Outcome (Checklist)
 
-- [ ] The app drains in-flight requests and closes cleanly on SIGTERM.
-- [ ] `GlobalExceptionFilter` honors an `errorCode` carried by an `HttpException`.
-- [ ] Duplicate routes fail at boot, and shadowed routes log a warning.
-- [ ] One route validates its body through `StandardSchemaValidationPipe`, with an unchanged
+- [x] The app drains in-flight requests and closes cleanly on SIGTERM.
+- [x] `GlobalExceptionFilter` honors an `errorCode` carried by an `HttpException`.
+- [x] Duplicate routes fail at boot, and shadowed routes log a warning.
+- [x] One route validates its body through `StandardSchemaValidationPipe`, with an unchanged
       contract.
-- [ ] `@nestjs/observe` instruments the app outside production. Where its telemetry goes is
+- [x] `@nestjs/observe` instruments the app outside production. Where its telemetry goes is
       documented.
-- [ ] Lint, build, unit and e2e tests pass. Baseline response bodies are unchanged.
+- [x] Lint, build, unit and e2e tests pass. Baseline response bodies are unchanged.
 
 ## 3. Input (current state)
 
@@ -72,11 +72,11 @@ References: [Release v12.0.0](https://github.com/nestjs/nest/releases/tag/v12.0.
 
 ## Task Checklist
 
-- [ ] Task 1: Enable graceful shutdown
-- [ ] Task 2: Honor `errorCode` in `GlobalExceptionFilter`
-- [ ] Task 3: Enable route conflict diagnostics
-- [ ] Task 4: Pilot `StandardSchemaValidationPipe` on `POST /categories`
-- [ ] Task 5: Add `@nestjs/observe` outside production
+- [x] Task 1: Enable graceful shutdown
+- [x] Task 2: Honor `errorCode` in `GlobalExceptionFilter`
+- [x] Task 3: Enable route conflict diagnostics
+- [x] Task 4: Pilot `StandardSchemaValidationPipe` on `POST /categories`
+- [x] Task 5: Add `@nestjs/observe` outside production
 
 ---
 
@@ -103,12 +103,12 @@ References: [Release v12.0.0](https://github.com/nestjs/nest/releases/tag/v12.0.
 
 **Acceptance Criteria:**
 
-- [ ] On SIGTERM, a request that is already in flight completes with its normal response before
+- [x] On SIGTERM, a request that is already in flight completes with its normal response before
       the process exits.
-- [ ] No new request is accepted after SIGTERM.
-- [ ] The process exits with code 0, and the MikroORM connection is closed. No "connection
+- [x] No new request is accepted after SIGTERM.
+- [x] The process exits with code 0, and the MikroORM connection is closed. No "connection
       terminated" error is logged by Postgres.
-- [ ] Startup and normal request handling are unchanged.
+- [x] Startup and normal request handling are unchanged.
 
 **Verification:**
 
@@ -144,10 +144,10 @@ References: [Release v12.0.0](https://github.com/nestjs/nest/releases/tag/v12.0.
 
 **Acceptance Criteria:**
 
-- [ ] A built-in exception thrown with an `errorCode` yields a body whose `errors[0].errCode` is
+- [x] A built-in exception thrown with an `errorCode` yields a body whose `errors[0].errCode` is
       that code. Status and `message` follow the current rules.
-- [ ] Every existing error body (baseline 400/401/403/404/409 and the 500 path) is unchanged.
-- [ ] No throw site in `src/` is changed by this task.
+- [x] Every existing error body (baseline 400/401/403/404/409 and the 500 path) is unchanged.
+- [x] No throw site in `src/` is changed by this task.
 
 **Verification:**
 
@@ -184,9 +184,9 @@ References: [Release v12.0.0](https://github.com/nestjs/nest/releases/tag/v12.0.
 
 - [ ] The app boots with no duplicate-route error and no shadow warning. Any warning found is
       fixed by reordering handlers, not by relaxing the policy.
-- [ ] A deliberately added duplicate route, used as a temporary local check and then removed,
+- [x] A deliberately added duplicate route, used as a temporary local check and then removed,
       makes boot fail.
-- [ ] Routing is otherwise unchanged. `GET /users/me` still resolves to the current-user handler.
+- [x] Routing is otherwise unchanged. `GET /users/me` still resolves to the current-user handler.
 
 **Verification:**
 
@@ -236,11 +236,11 @@ References: [Release v12.0.0](https://github.com/nestjs/nest/releases/tag/v12.0.
 
 - [ ] An invalid name (missing, too short, too long, not a string) returns 400 with a body
       identical to the baseline: same `message`, and `errors[]` with `field: 'name'`.
-- [ ] A valid request returns 201 with an unchanged body.
-- [ ] Unknown body properties are still stripped or rejected exactly as today.
-- [ ] `/docs` still documents the `POST /categories` request body with the same fields and
+- [x] A valid request returns 201 with an unchanged body.
+- [x] Unknown body properties are still stripped or rejected exactly as today.
+- [x] `/docs` still documents the `POST /categories` request body with the same fields and
       constraints.
-- [ ] Every other route still validates through class-validator, with unchanged behavior.
+- [x] Every other route still validates through class-validator, with unchanged behavior.
 
 **Verification:**
 
@@ -283,12 +283,12 @@ References: [Release v12.0.0](https://github.com/nestjs/nest/releases/tag/v12.0.
 
 **Acceptance Criteria:**
 
-- [ ] `observe-notes.md` answers all four questions in the Output, with links to the docs.
-- [ ] In dev, an HTTP request produces telemetry visible where the notes say it goes.
-- [ ] With `NODE_ENV=production`, the app boots without the observe module or instrument, and
+- [x] `observe-notes.md` answers all four questions in the Output, with links to the docs.
+- [x] In dev, an HTTP request produces telemetry visible where the notes say it goes.
+- [x] With `NODE_ENV=production`, the app boots without the observe module or instrument, and
       behaves exactly as before.
-- [ ] Request latency and responses are unchanged in dev (no errors, no altered bodies).
-- [ ] The e2e suite runs without observe, or with it disabled, and passes.
+- [x] Request latency and responses are unchanged in dev (no errors, no altered bodies).
+- [x] The e2e suite runs without observe, or with it disabled, and passes.
 
 **Verification:**
 

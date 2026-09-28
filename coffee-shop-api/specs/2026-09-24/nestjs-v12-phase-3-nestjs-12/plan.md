@@ -37,7 +37,7 @@ holds the full task docs.
 - [x] [3b] The project is ESM (`"type": "module"`), and it builds and runs through every run path:
       `start:dev`, `start:prod`, MikroORM CLI, Docker, CI.
 - [x] [3b] Unit and e2e tests run on Vitest, with the same test counts and titles as on Jest.
-- [ ] [3c] Graceful shutdown, `errorCode` support, route conflict diagnostics, the Standard
+- [x] [3c] Graceful shutdown, `errorCode` support, route conflict diagnostics, the Standard
       Schema pilot and `@nestjs/observe` (outside production) are in place.
 - [x] Lint, build, unit and e2e pass at the end of each plan.
 
@@ -74,8 +74,8 @@ holds the full task docs.
 
 ### [Phase 3c: Adopt NestJS 12 features](../nestjs-v12-phase-3c-v12-features/plan.md)
 
-- [ ] Task 1: Enable graceful shutdown
-- [ ] Task 2: Honor `errorCode` in `GlobalExceptionFilter`
-- [ ] Task 3: Enable route conflict diagnostics
-- [ ] Task 4: Pilot `StandardSchemaValidationPipe` on `POST /categories`
-- [ ] Task 5: Add `@nestjs/observe` outside production
+- [x] Task 1: Enable graceful shutdown
+- [x] Task 2: Honor `errorCode` in `GlobalExceptionFilter`
+- [x] Task 3: Enable route conflict diagnostics
+- [x] Task 4: Pilot `StandardSchemaValidationPipe` on `POST /categories`
+- [x] Task 5: Add `@nestjs/observe` outside production

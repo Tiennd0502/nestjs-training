@@ -18,8 +18,14 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { CategoryService } from '../services/category.service.js';
-import { CreateCategoryDto } from '../dto/create-category.dto.js';
-import { UpdateCategoryDto } from '../dto/update-category.dto.js';
+import {
+  createCategorySchema,
+  type CreateCategoryInput,
+} from '../dto/create-category.schema.js';
+import {
+  updateCategorySchema,
+  type UpdateCategoryInput,
+} from '../dto/update-category.schema.js';
 import { ResponseCategoryDto } from '../dto/response-category.dto.js';
 import { PaginationQueryDto } from '../../../common/dto/pagination-query.dto.js';
 import { PaginatedResult } from '../../../common/interfaces/pagination.interface.js';
@@ -99,7 +105,9 @@ export class CategoryController {
   )
   @ApiErrorResponse(HttpStatus.FORBIDDEN, ERROR_MESSAGES.AUTH.FORBIDDEN)
   @ApiErrorResponse(HttpStatus.CONFLICT, ERROR_MESSAGES.CATEGORY.NAME_EXISTS)
-  async create(@Body() dto: CreateCategoryDto): Promise<ResponseCategoryDto> {
+  async create(
+    @Body({ schema: createCategorySchema }) dto: CreateCategoryInput,
+  ): Promise<ResponseCategoryDto> {
     const category = await this.categoryService.create(dto);
     return ResponseCategoryDto.fromEntity(category);
   }
@@ -123,7 +131,7 @@ export class CategoryController {
   @ApiErrorResponse(HttpStatus.CONFLICT, ERROR_MESSAGES.CATEGORY.NAME_EXISTS)
   async update(
     @Param('id') id: string,
-    @Body() dto: UpdateCategoryDto,
+    @Body({ schema: updateCategorySchema }) dto: UpdateCategoryInput,
   ): Promise<ResponseCategoryDto> {
     const category = await this.categoryService.update(id, dto);
     return ResponseCategoryDto.fromEntity(category);

@@ -12,13 +12,17 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import mikroOrmConfig from './configs/mikro-orm.config.js';
 import { validate } from './configs/env.validation.js';
 import { rateLimitConfig } from './configs/rate-limit.config.js';
+import { ObserveModule, observeConfig } from './configs/observe.config.js';
 import { UserModule } from './modules/user/user.module.js';
 import { WebhookModule } from './modules/webhook/webhook.module.js';
 import { CategoryModule } from './modules/category/category.module.js';
 import { ProductModule } from './modules/product/product.module.js';
 import { TransformResponseInterceptor } from './common/interceptors/transform-response.interceptor.js';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter.js';
-import { createValidationPipe } from './configs/validation-pipe.config.js';
+import {
+  createValidationPipe,
+  createStandardSchemaValidationPipe,
+} from './configs/validation-pipe.config.js';
 import { ClerkAuthMiddleware } from './common/middlewares/clerk-auth.middleware.js';
 import { UserResolutionMiddleware } from './common/middlewares/user-resolution.middleware.js';
 import { AuthProviderModule } from './common/providers/auth-provider.module.js';
@@ -36,6 +40,14 @@ import { AuthProviderModule } from './common/providers/auth-provider.module.js';
     WebhookModule,
     CategoryModule,
     ProductModule,
+    ...(process.env.NODE_ENV !== 'production'
+      ? [
+          ObserveModule.forRootAsync({
+            inject: [ConfigService],
+            useFactory: observeConfig,
+          }),
+        ]
+      : []),
   ],
   providers: [
     {
@@ -53,6 +65,10 @@ import { AuthProviderModule } from './common/providers/auth-provider.module.js';
     {
       provide: APP_PIPE,
       useFactory: createValidationPipe,
+    },
+    {
+      provide: APP_PIPE,
+      useFactory: createStandardSchemaValidationPipe,
     },
   ],
 })
