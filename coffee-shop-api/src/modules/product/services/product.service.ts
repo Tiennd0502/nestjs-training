@@ -5,9 +5,11 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Product } from '../entities/product.entity.js';
+import { ProductStatus } from '../enums/product.enum.js';
 import {
   CreateProductData,
   PRODUCT_REPOSITORY,
+  type FindOptions,
   type ProductFilters,
   type ProductRepository,
 } from '../repositories/product-repository.interface.js';
@@ -57,7 +59,9 @@ export class ProductService {
   async create(data: CreateProductWithCatalogData): Promise<Product> {
     const { images = [], variants = [], ...productData } = data;
 
-    const existing = await this.productRepository.findByName(productData.name);
+    const existing = await this.productRepository.findByName(productData.name, {
+      includeDeleted: true,
+    });
     if (existing) {
       throw new ConflictException(ERROR_MESSAGES.PRODUCT.NAME_EXISTS);
     }
@@ -91,12 +95,13 @@ export class ProductService {
   findAll(
     query: QueryParams,
     filters: ProductFilters = {},
+    options?: FindOptions,
   ): Promise<PaginatedResult<Product>> {
-    return this.productRepository.findAll(query, filters);
+    return this.productRepository.findAll(query, filters, options);
   }
 
-  async findOne(id: string): Promise<Product> {
-    const product = await this.productRepository.findById(id);
+  async findOne(id: string, options?: FindOptions): Promise<Product> {
+    const product = await this.productRepository.findById(id, options);
     if (!product) {
       throw new NotFoundException(ERROR_MESSAGES.PRODUCT.NOT_FOUND);
     }
@@ -108,7 +113,9 @@ export class ProductService {
     const product = await this.findOne(id);
 
     if (data.name !== undefined && data.name !== product.name) {
-      const existing = await this.productRepository.findByName(data.name);
+      const existing = await this.productRepository.findByName(data.name, {
+        includeDeleted: true,
+      });
       if (existing && existing.id !== id) {
         throw new ConflictException(ERROR_MESSAGES.PRODUCT.NAME_EXISTS);
       }
@@ -139,6 +146,7 @@ export class ProductService {
   async remove(id: string): Promise<void> {
     const product = await this.findOne(id);
     product.deletedAt = new Date();
+    product.status = ProductStatus.ARCHIVED;
     await this.productRepository.save(product);
   }
 }

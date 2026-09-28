@@ -32,6 +32,7 @@ export class ResponseProductDto {
   processingMethod: string | null = null;
 
   createdAt!: Date;
+  deletedAt!: Date | null;
 
   @ApiProperty({ type: () => ResponseProductImageDto, isArray: true })
   images!: ResponseProductImageDto[];
@@ -54,6 +55,7 @@ export class ResponseProductDto {
     dto.origin = product.origin;
     dto.processingMethod = product.processingMethod;
     dto.createdAt = product.createdAt;
+    dto.deletedAt = product.deletedAt;
     dto.images = product.images
       .getItems()
       .map((image) => ResponseProductImageDto.fromEntity(image));

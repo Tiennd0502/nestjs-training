@@ -46,7 +46,7 @@ describe('CategoryController (e2e)', () => {
         await categoryService.remove(id).catch(() => undefined);
       }
       for (const id of createdUserIds) {
-        await userService.softDelete(id).catch(() => undefined);
+        await userService.remove(id).catch(() => undefined);
       }
     });
     await app.close();
@@ -108,6 +108,9 @@ describe('CategoryController (e2e)', () => {
           slug: category.slug,
           createdAt: category.createdAt.toISOString(),
           updatedAt: category.updatedAt.toISOString(),
+          deletedAt: category.deletedAt
+            ? category.deletedAt.toISOString()
+            : null,
         },
       });
     });

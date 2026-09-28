@@ -5,6 +5,7 @@ import { Product } from '../entities/product.entity.js';
 import { ProductSortBy } from '../enums/product.enum.js';
 import {
   CreateProductData,
+  FindOptions,
   ProductFilters,
   ProductRepository,
 } from './product-repository.interface.js';
@@ -28,20 +29,27 @@ export class MikroOrmProductRepository implements ProductRepository {
     private readonly em: EntityManager,
   ) {}
 
-  findById(id: string): Promise<Product | null> {
+  findById(id: string, options?: FindOptions): Promise<Product | null> {
     return this.repository.findOne(
       { id },
-      { populate: ['images', 'variants'] },
+      {
+        populate: ['images', 'variants'],
+        filters: { softDelete: !options?.includeDeleted },
+      },
     );
   }
 
-  findByName(name: string): Promise<Product | null> {
-    return this.repository.findOne({ name });
+  findByName(name: string, options?: FindOptions): Promise<Product | null> {
+    return this.repository.findOne(
+      { name },
+      { filters: { softDelete: !options?.includeDeleted } },
+    );
   }
 
   async findAll(
     query: QueryParams,
     filters: ProductFilters = {},
+    options?: FindOptions,
   ): Promise<PaginatedResult<Product>> {
     const { page, limit, search } = query;
     const { categoryId, status, roastLevels, minPrice, maxPrice, sortBy } =
@@ -81,7 +89,8 @@ export class MikroOrmProductRepository implements ProductRepository {
         limit,
         offset: (page - 1) * limit,
         populate: ['images', 'variants'],
-        ...(nameOrderBy ? { orderBy: nameOrderBy } : {}),
+        orderBy: nameOrderBy ?? { createdAt: 'DESC' },
+        filters: { softDelete: !options?.includeDeleted },
       });
 
       return {
@@ -97,7 +106,8 @@ export class MikroOrmProductRepository implements ProductRepository {
 
     let candidates = await this.repository.find(where, {
       populate: ['images', 'variants'],
-      ...(nameOrderBy ? { orderBy: nameOrderBy } : {}),
+      orderBy: nameOrderBy ?? { createdAt: 'DESC' },
+      filters: { softDelete: !options?.includeDeleted },
     });
 
     if (minPrice !== undefined || maxPrice !== undefined) {

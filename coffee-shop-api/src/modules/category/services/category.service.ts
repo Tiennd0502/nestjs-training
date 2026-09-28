@@ -81,8 +81,7 @@ export class CategoryService {
           errCode: ERROR_CODES.CATEGORY.NAME_EXISTS,
           field: 'name',
           message: ERROR_MESSAGES.CATEGORY.NAME_EXISTS,
-          description:
-            'A category with this name already exists. Please choose a different name.',
+          description: ERROR_DESCRIPTIONS.CATEGORY.NAME_EXISTS,
         });
       }
 
