@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import type { WebhookEvent, UserWebhookEvent } from '@clerk/express';
 import type { IncomingHttpHeaders } from 'http';
 import { UserService } from '../../user/services/user.service.js';
@@ -7,10 +7,9 @@ import {
   ItemNotFoundException,
 } from '../../../common/exceptions/base.exception.js';
 import {
-  AUTH_PROVIDER,
-  type AuthProvider,
+  AuthProvider,
   type AuthWebhookEvent,
-} from '../../../common/providers/auth-provider.interface.js';
+} from '../../../common/providers/auth.provider.js';
 import { UserRole } from '../../../common/enums/user.enum.js';
 
 const ClerkWebhookEventType = {
@@ -33,7 +32,7 @@ export class ClerkWebhookService {
   private readonly logger = new Logger(ClerkWebhookService.name);
 
   constructor(
-    @Inject(AUTH_PROVIDER) private readonly authProvider: AuthProvider,
+    private readonly authProvider: AuthProvider,
     private readonly userService: UserService,
   ) {}
 
