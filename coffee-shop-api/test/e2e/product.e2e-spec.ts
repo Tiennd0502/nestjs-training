@@ -18,6 +18,7 @@ import { ProductUnit } from './../../src/modules/product-variant/enums/product-v
 import type { User } from './../../src/modules/user/entities/user.entity.js';
 import type { Category } from './../../src/modules/category/entities/category.entity.js';
 import type { Product } from './../../src/modules/product/entities/product.entity.js';
+import { ERROR_CODES } from './../../src/common/constants/error-code.constant.js';
 import { slugFrom } from './../../src/common/utils/slug.util.js';
 import {
   ProductSortBy,
@@ -142,9 +143,14 @@ describe('ProductController (e2e)', () => {
     });
 
     it('GET /products/:id responds 404 for a missing product', async () => {
-      await request(app.getHttpServer())
+      const response = await request(app.getHttpServer())
         .get(`${API_BASE_PATH}/products/00000000-0000-0000-0000-000000000000`)
         .expect(404);
+
+      const body = response.body as {
+        errors: Array<{ errCode: string }>;
+      };
+      expect(body.errors[0].errCode).toBe(ERROR_CODES.PRODUCT.NOT_FOUND);
     });
   });
 
@@ -597,10 +603,15 @@ describe('ProductController (e2e)', () => {
       );
       createdProductIds.push(product.id);
 
-      await request(app.getHttpServer())
+      const response = await request(app.getHttpServer())
         .post(`${API_BASE_PATH}/products`)
         .send({ categoryId: category.id, name })
         .expect(409);
+
+      const body = response.body as {
+        errors: Array<{ errCode: string }>;
+      };
+      expect(body.errors[0].errCode).toBe(ERROR_CODES.PRODUCT.NAME_EXISTS);
     });
 
     it('POST /products responds 404 for a nonexistent category', async () => {

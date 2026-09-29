@@ -60,6 +60,19 @@ export const ERROR_DESCRIPTIONS = {
     NOT_FOUND_BY_CLERK_ID:
       'The user might have been deleted, or the clerk id is incorrect.',
   },
+  PRODUCT: {
+    NAME_EXISTS:
+      'A product with this name already exists. Please choose a different name.',
+    NOT_FOUND: 'The product might have been deleted, or the id is incorrect.',
+  },
+  PRODUCT_VARIANT: {
+    SKU_EXISTS:
+      'A variant with this SKU already exists. Please choose a different SKU.',
+    NOT_FOUND: 'The variant might have been deleted, or the id is incorrect.',
+  },
+  PRODUCT_IMAGE: {
+    NOT_FOUND: 'The image might have been deleted, or the id is incorrect.',
+  },
   PAGINATION: {
     PAGE_OUT_OF_RANGE: (pageCount: number) =>
       `The requested page exceeds the available range of ${pageCount} page(s).`,

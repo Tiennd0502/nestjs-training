@@ -1,9 +1,4 @@
-import {
-  BadRequestException,
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { Product } from '../entities/product.entity.js';
 import { ProductStatus } from '../enums/product.enum.js';
 import {
@@ -13,11 +8,20 @@ import {
 } from '../dto/product.schema.js';
 import { ProductRepository } from '../repositories/product.repository.js';
 import type { FindOptions } from '../../../common/interfaces/repository-options.interface.js';
-import { ERROR_MESSAGES } from '../../../common/constants/message.constant.js';
+import {
+  ERROR_MESSAGES,
+  ERROR_DESCRIPTIONS,
+} from '../../../common/constants/message.constant.js';
+import { ERROR_CODES } from '../../../common/constants/error-code.constant.js';
 import { VALIDATION_RULES } from '../../../common/constants/validation.constant.js';
+import {
+  DuplicateResourceException,
+  ItemNotFoundException,
+} from '../../../common/exceptions/base.exception.js';
 import { PaginatedResult } from '../../../common/dto/pagination.dto.js';
 import { QueryParams } from '../../../common/dto/query-params.dto.js';
 import { slugFrom } from '../../../common/utils/slug.util.js';
+import { assignDefinedFields } from '../../../common/utils/object.util.js';
 import { CategoryService } from '../../category/services/category.service.js';
 import { ProductImage } from '../../product-image/entities/product-image.entity.js';
 import { ProductImageService } from '../../product-image/services/product-image.service.js';
@@ -39,7 +43,12 @@ export class ProductService {
       includeDeleted: true,
     });
     if (existing) {
-      throw new ConflictException(ERROR_MESSAGES.PRODUCT.NAME_EXISTS);
+      throw new DuplicateResourceException({
+        errCode: ERROR_CODES.PRODUCT.NAME_EXISTS,
+        field: 'name',
+        message: ERROR_MESSAGES.PRODUCT.NAME_EXISTS,
+        description: ERROR_DESCRIPTIONS.PRODUCT.NAME_EXISTS,
+      });
     }
 
     await this.categoryService.findOne(productData.categoryId);
@@ -79,7 +88,12 @@ export class ProductService {
   async findOne(id: string, options?: FindOptions): Promise<Product> {
     const product = await this.productRepository.findById(id, options);
     if (!product) {
-      throw new NotFoundException(ERROR_MESSAGES.PRODUCT.NOT_FOUND);
+      throw new ItemNotFoundException({
+        errCode: ERROR_CODES.PRODUCT.NOT_FOUND,
+        field: 'id',
+        message: ERROR_MESSAGES.PRODUCT.NOT_FOUND,
+        description: ERROR_DESCRIPTIONS.PRODUCT.NOT_FOUND,
+      });
     }
 
     return product;
@@ -93,7 +107,12 @@ export class ProductService {
         includeDeleted: true,
       });
       if (existing && existing.id !== id) {
-        throw new ConflictException(ERROR_MESSAGES.PRODUCT.NAME_EXISTS);
+        throw new DuplicateResourceException({
+          errCode: ERROR_CODES.PRODUCT.NAME_EXISTS,
+          field: 'name',
+          message: ERROR_MESSAGES.PRODUCT.NAME_EXISTS,
+          description: ERROR_DESCRIPTIONS.PRODUCT.NAME_EXISTS,
+        });
       }
     }
 
@@ -101,8 +120,7 @@ export class ProductService {
       data;
 
     if (categoryId !== undefined && categoryId !== product.category.id) {
-      await this.categoryService.findOne(categoryId);
-      product.category = categoryId as unknown as Product['category'];
+      product.category = await this.categoryService.findOne(categoryId);
     }
 
     this.applyImageChanges(product, {
@@ -111,12 +129,7 @@ export class ProductService {
       addImages,
     });
 
-    Object.assign(
-      product,
-      Object.fromEntries(
-        Object.entries(rest).filter(([, value]) => value !== undefined),
-      ),
-    );
+    assignDefinedFields(product, rest);
     if (rest.name !== undefined) {
       product.slug = slugFrom(rest.name);
     }
@@ -128,9 +141,8 @@ export class ProductService {
 
   async remove(id: string): Promise<void> {
     const product = await this.findOne(id);
-    product.deletedAt = new Date();
     product.status = ProductStatus.ARCHIVED;
-    await this.productRepository.save(product);
+    await this.productRepository.softDelete(product);
   }
 
   /**

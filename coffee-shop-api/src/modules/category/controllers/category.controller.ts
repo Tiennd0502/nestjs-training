@@ -9,14 +9,8 @@ import {
   Patch,
   Post,
   Query,
-  UseGuards,
 } from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiNoContentResponse,
-  ApiOperation,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiNoContentResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CategoryService } from '../services/category.service.js';
 import {
   createCategorySchema,
@@ -34,22 +28,17 @@ import {
   paginationQuerySchema,
   type PaginationQueryInput,
 } from '../../../common/dto/pagination.schema.js';
-import { AuthGuard } from '../../../common/guards/auth.guard.js';
-import { RolesGuard } from '../../../common/guards/roles.guard.js';
-import { Roles } from '../../../common/decorators/roles.decorator.js';
 import { AuthUser } from '../../../common/decorators/auth-user.decorator.js';
+import { AdminOnly } from '../../../common/decorators/admin-only.decorator.js';
 import {
   ApiDataResponse,
   ApiPaginatedResponse,
   ApiErrorResponse,
 } from '../../../common/decorators/api-response.decorator.js';
-import { UserRole, UserStatus } from '../../../common/enums/user.enum.js';
 import { User } from '../../user/entities/user.entity.js';
 import { ERROR_MESSAGES } from '../../../common/constants/message.constant.js';
-
-const isActiveAdmin = (user?: User): boolean =>
-  user?.role === UserRole.ADMIN &&
-  (user.status as UserStatus) === UserStatus.ACTIVE;
+import { mapPaginatedResult } from '../../../common/utils/pagination.util.js';
+import { isActiveAdmin } from '../../../common/utils/user.util.js';
 
 @ApiTags('categories')
 @Controller('categories')
@@ -71,12 +60,9 @@ export class CategoryController {
       includeDeleted: isActiveAdmin(user),
     });
 
-    return {
-      data: result.data.map((category) =>
-        ResponseCategoryDto.fromEntity(category),
-      ),
-      meta: result.meta,
-    };
+    return mapPaginatedResult(result, (category) =>
+      ResponseCategoryDto.fromEntity(category),
+    );
   }
 
   @Get(':id')
@@ -95,20 +81,13 @@ export class CategoryController {
   }
 
   @Post()
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles([UserRole.ADMIN])
-  @ApiBearerAuth()
+  @AdminOnly()
   @ApiOperation({ summary: 'Create a category (admin only)' })
   @ApiDataResponse(HttpStatus.CREATED, ResponseCategoryDto)
   @ApiErrorResponse(
     HttpStatus.BAD_REQUEST,
     ERROR_MESSAGES.EXCEPTION.VALIDATION_FAILED,
   )
-  @ApiErrorResponse(
-    HttpStatus.UNAUTHORIZED,
-    ERROR_MESSAGES.AUTH.UNAUTHENTICATED,
-  )
-  @ApiErrorResponse(HttpStatus.FORBIDDEN, ERROR_MESSAGES.AUTH.FORBIDDEN)
   @ApiErrorResponse(HttpStatus.CONFLICT, ERROR_MESSAGES.CATEGORY.NAME_EXISTS)
   async create(
     @Body({ schema: createCategorySchema }) dto: CreateCategoryInput,
@@ -118,20 +97,13 @@ export class CategoryController {
   }
 
   @Patch(':id')
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles([UserRole.ADMIN])
-  @ApiBearerAuth()
+  @AdminOnly()
   @ApiOperation({ summary: 'Update a category (admin only)' })
   @ApiDataResponse(HttpStatus.OK, ResponseCategoryDto)
   @ApiErrorResponse(
     HttpStatus.BAD_REQUEST,
     ERROR_MESSAGES.EXCEPTION.VALIDATION_FAILED,
   )
-  @ApiErrorResponse(
-    HttpStatus.UNAUTHORIZED,
-    ERROR_MESSAGES.AUTH.UNAUTHENTICATED,
-  )
-  @ApiErrorResponse(HttpStatus.FORBIDDEN, ERROR_MESSAGES.AUTH.FORBIDDEN)
   @ApiErrorResponse(HttpStatus.NOT_FOUND, ERROR_MESSAGES.CATEGORY.NOT_FOUND)
   @ApiErrorResponse(HttpStatus.CONFLICT, ERROR_MESSAGES.CATEGORY.NAME_EXISTS)
   async update(
@@ -143,17 +115,10 @@ export class CategoryController {
   }
 
   @Delete(':id')
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles([UserRole.ADMIN])
+  @AdminOnly()
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete a category (admin only)' })
   @ApiNoContentResponse({ description: 'Category deleted' })
-  @ApiErrorResponse(
-    HttpStatus.UNAUTHORIZED,
-    ERROR_MESSAGES.AUTH.UNAUTHENTICATED,
-  )
-  @ApiErrorResponse(HttpStatus.FORBIDDEN, ERROR_MESSAGES.AUTH.FORBIDDEN)
   @ApiErrorResponse(HttpStatus.NOT_FOUND, ERROR_MESSAGES.CATEGORY.NOT_FOUND)
   async remove(
     @Param({ schema: idParamSchema }) { id }: IdParam,

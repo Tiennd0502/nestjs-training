@@ -36,6 +36,11 @@ export abstract class BaseRepository<T extends BaseEntity> {
     await this.em.persist(entity).flush();
   }
 
+  async softDelete(entity: T): Promise<void> {
+    entity.deletedAt = new Date();
+    await this.save(entity);
+  }
+
   protected findOneBy(
     where: Criteria<T>,
     options?: FindOptions & Pick<ListOptions<T>, 'relations'>,

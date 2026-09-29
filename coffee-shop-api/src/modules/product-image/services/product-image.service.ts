@@ -1,8 +1,13 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ProductImage } from '../entities/product-image.entity.js';
 import type { CreateProductImageInput } from '../dto/product-image.schema.js';
 import { ProductImageRepository } from '../repositories/product-image.repository.js';
-import { ERROR_MESSAGES } from '../../../common/constants/message.constant.js';
+import {
+  ERROR_MESSAGES,
+  ERROR_DESCRIPTIONS,
+} from '../../../common/constants/message.constant.js';
+import { ERROR_CODES } from '../../../common/constants/error-code.constant.js';
+import { ItemNotFoundException } from '../../../common/exceptions/base.exception.js';
 
 @Injectable()
 export class ProductImageService {
@@ -23,7 +28,12 @@ export class ProductImageService {
   async findOne(id: string): Promise<ProductImage> {
     const image = await this.productImageRepository.findById(id);
     if (!image) {
-      throw new NotFoundException(ERROR_MESSAGES.PRODUCT_IMAGE.NOT_FOUND);
+      throw new ItemNotFoundException({
+        errCode: ERROR_CODES.PRODUCT_IMAGE.NOT_FOUND,
+        field: 'id',
+        message: ERROR_MESSAGES.PRODUCT_IMAGE.NOT_FOUND,
+        description: ERROR_DESCRIPTIONS.PRODUCT_IMAGE.NOT_FOUND,
+      });
     }
 
     return image;
@@ -31,7 +41,6 @@ export class ProductImageService {
 
   async remove(id: string): Promise<void> {
     const image = await this.findOne(id);
-    image.deletedAt = new Date();
-    await this.productImageRepository.save(image);
+    await this.productImageRepository.softDelete(image);
   }
 }

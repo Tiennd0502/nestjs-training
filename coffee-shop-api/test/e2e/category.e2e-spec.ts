@@ -132,7 +132,7 @@ describe('CategoryController (e2e)', () => {
       };
       expect(body.statusCode).toBe(400);
       expect(body.errors).toEqual([
-        expect.objectContaining({ errCode: 'invalidRequest' }),
+        expect.objectContaining({ errCode: 'isUuid', field: 'id' }),
       ]);
     });
   });

@@ -21,6 +21,7 @@ describe('UserService', () => {
     findAll: Mock;
     create: Mock;
     save: Mock;
+    softDelete: Mock;
   };
 
   const buildUser = (overrides: Partial<User> = {}): User => ({
@@ -48,6 +49,7 @@ describe('UserService', () => {
       findAll: vi.fn(),
       create: vi.fn(),
       save: vi.fn(),
+      softDelete: vi.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -355,15 +357,14 @@ describe('UserService', () => {
   });
 
   describe('remove', () => {
-    it('sets deletedAt and status to INACTIVE without removing the row', async () => {
+    it('sets status to INACTIVE and soft-deletes the user', async () => {
       const user = buildUser();
       userRepository.findById.mockResolvedValue(user);
 
       await service.remove('user-id-1');
 
-      expect(user.deletedAt).toBeInstanceOf(Date);
       expect(user.status).toBe(UserStatus.INACTIVE);
-      expect(userRepository.save).toHaveBeenCalledWith(user);
+      expect(userRepository.softDelete).toHaveBeenCalledWith(user);
     });
 
     it('throws ItemNotFoundException for a missing or already-deleted id', async () => {
@@ -372,7 +373,7 @@ describe('UserService', () => {
       await expect(service.remove('missing-id')).rejects.toBeInstanceOf(
         ItemNotFoundException,
       );
-      expect(userRepository.save).not.toHaveBeenCalled();
+      expect(userRepository.softDelete).not.toHaveBeenCalled();
     });
   });
 });

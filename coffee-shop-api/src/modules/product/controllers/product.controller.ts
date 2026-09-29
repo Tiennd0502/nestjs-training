@@ -9,14 +9,8 @@ import {
   Patch,
   Post,
   Query,
-  UseGuards,
 } from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiNoContentResponse,
-  ApiOperation,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiNoContentResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ProductService } from '../services/product.service.js';
 import {
   createProductSchema,
@@ -32,22 +26,17 @@ import {
   idParamSchema,
   type IdParam,
 } from '../../../common/dto/id-param.schema.js';
-import { AuthGuard } from '../../../common/guards/auth.guard.js';
-import { RolesGuard } from '../../../common/guards/roles.guard.js';
-import { Roles } from '../../../common/decorators/roles.decorator.js';
 import { AuthUser } from '../../../common/decorators/auth-user.decorator.js';
+import { AdminOnly } from '../../../common/decorators/admin-only.decorator.js';
 import {
   ApiDataResponse,
   ApiPaginatedResponse,
   ApiErrorResponse,
 } from '../../../common/decorators/api-response.decorator.js';
-import { UserRole, UserStatus } from '../../../common/enums/user.enum.js';
 import { User } from '../../user/entities/user.entity.js';
 import { ERROR_MESSAGES } from '../../../common/constants/message.constant.js';
-
-const isActiveAdmin = (user?: User): boolean =>
-  user?.role === UserRole.ADMIN &&
-  (user.status as UserStatus) === UserStatus.ACTIVE;
+import { mapPaginatedResult } from '../../../common/utils/pagination.util.js';
+import { isActiveAdmin } from '../../../common/utils/user.util.js';
 
 @ApiTags('products')
 @Controller('products')
@@ -72,12 +61,9 @@ export class ProductController {
       { includeDeleted: isActiveAdmin(user) },
     );
 
-    return {
-      data: result.data.map((product) =>
-        ResponseProductDto.fromEntity(product),
-      ),
-      meta: result.meta,
-    };
+    return mapPaginatedResult(result, (product) =>
+      ResponseProductDto.fromEntity(product),
+    );
   }
 
   @Get(':id')
@@ -95,20 +81,13 @@ export class ProductController {
   }
 
   @Post()
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles([UserRole.ADMIN])
-  @ApiBearerAuth()
+  @AdminOnly()
   @ApiOperation({ summary: 'Create a product (admin only)' })
   @ApiDataResponse(HttpStatus.CREATED, ResponseProductDto)
   @ApiErrorResponse(
     HttpStatus.BAD_REQUEST,
     ERROR_MESSAGES.EXCEPTION.VALIDATION_FAILED,
   )
-  @ApiErrorResponse(
-    HttpStatus.UNAUTHORIZED,
-    ERROR_MESSAGES.AUTH.UNAUTHENTICATED,
-  )
-  @ApiErrorResponse(HttpStatus.FORBIDDEN, ERROR_MESSAGES.AUTH.FORBIDDEN)
   @ApiErrorResponse(HttpStatus.NOT_FOUND, ERROR_MESSAGES.CATEGORY.NOT_FOUND)
   @ApiErrorResponse(HttpStatus.CONFLICT, ERROR_MESSAGES.PRODUCT.NAME_EXISTS)
   async create(
@@ -119,20 +98,13 @@ export class ProductController {
   }
 
   @Patch(':id')
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles([UserRole.ADMIN])
-  @ApiBearerAuth()
+  @AdminOnly()
   @ApiOperation({ summary: 'Update a product (admin only)' })
   @ApiDataResponse(HttpStatus.OK, ResponseProductDto)
   @ApiErrorResponse(
     HttpStatus.BAD_REQUEST,
     ERROR_MESSAGES.EXCEPTION.VALIDATION_FAILED,
   )
-  @ApiErrorResponse(
-    HttpStatus.UNAUTHORIZED,
-    ERROR_MESSAGES.AUTH.UNAUTHENTICATED,
-  )
-  @ApiErrorResponse(HttpStatus.FORBIDDEN, ERROR_MESSAGES.AUTH.FORBIDDEN)
   @ApiErrorResponse(HttpStatus.NOT_FOUND, ERROR_MESSAGES.PRODUCT.NOT_FOUND)
   @ApiErrorResponse(HttpStatus.CONFLICT, ERROR_MESSAGES.PRODUCT.NAME_EXISTS)
   async update(
@@ -144,17 +116,10 @@ export class ProductController {
   }
 
   @Delete(':id')
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles([UserRole.ADMIN])
+  @AdminOnly()
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete a product (admin only)' })
   @ApiNoContentResponse({ description: 'Product deleted' })
-  @ApiErrorResponse(
-    HttpStatus.UNAUTHORIZED,
-    ERROR_MESSAGES.AUTH.UNAUTHENTICATED,
-  )
-  @ApiErrorResponse(HttpStatus.FORBIDDEN, ERROR_MESSAGES.AUTH.FORBIDDEN)
   @ApiErrorResponse(HttpStatus.NOT_FOUND, ERROR_MESSAGES.PRODUCT.NOT_FOUND)
   async remove(
     @Param({ schema: idParamSchema }) { id }: IdParam,

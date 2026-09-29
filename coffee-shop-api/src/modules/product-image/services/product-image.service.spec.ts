@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { NotFoundException } from '@nestjs/common';
+import { ItemNotFoundException } from '../../../common/exceptions/base.exception.js';
+import { ERROR_CODES } from '../../../common/constants/error-code.constant.js';
 import { ProductImageService } from './product-image.service.js';
 import { ProductImage } from '../entities/product-image.entity.js';
 import { ProductImageRepository } from '../repositories/product-image.repository.js';
@@ -12,6 +13,7 @@ describe('ProductImageService', () => {
     findAllByProduct: Mock;
     create: Mock;
     save: Mock;
+    softDelete: Mock;
   };
 
   const buildImage = (overrides: Partial<ProductImage> = {}): ProductImage =>
@@ -32,6 +34,7 @@ describe('ProductImageService', () => {
       findAllByProduct: vi.fn(),
       create: vi.fn(),
       save: vi.fn(),
+      softDelete: vi.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -91,33 +94,38 @@ describe('ProductImageService', () => {
       expect(result).toBe(image);
     });
 
-    it('throws NotFoundException when the repository has no match', async () => {
+    it('throws ItemNotFoundException when the repository has no match', async () => {
       productImageRepository.findById.mockResolvedValue(null);
+      expect.assertions(2);
 
-      await expect(service.findOne('missing-id')).rejects.toBeInstanceOf(
-        NotFoundException,
-      );
+      try {
+        await service.findOne('missing-id');
+      } catch (error) {
+        expect(error).toBeInstanceOf(ItemNotFoundException);
+        expect((error as ItemNotFoundException).getErrors()[0].errCode).toBe(
+          ERROR_CODES.PRODUCT_IMAGE.NOT_FOUND,
+        );
+      }
     });
   });
 
   describe('remove', () => {
-    it('sets deletedAt and saves the image', async () => {
+    it('soft-deletes the loaded image', async () => {
       const image = buildImage();
       productImageRepository.findById.mockResolvedValue(image);
 
       await service.remove('image-id-1');
 
-      expect(image.deletedAt).toBeInstanceOf(Date);
-      expect(productImageRepository.save).toHaveBeenCalledWith(image);
+      expect(productImageRepository.softDelete).toHaveBeenCalledWith(image);
     });
 
-    it('throws NotFoundException for a missing id, without calling save', async () => {
+    it('throws ItemNotFoundException for a missing id, without calling softDelete', async () => {
       productImageRepository.findById.mockResolvedValue(null);
 
       await expect(service.remove('missing-id')).rejects.toBeInstanceOf(
-        NotFoundException,
+        ItemNotFoundException,
       );
-      expect(productImageRepository.save).not.toHaveBeenCalled();
+      expect(productImageRepository.softDelete).not.toHaveBeenCalled();
     });
   });
 });

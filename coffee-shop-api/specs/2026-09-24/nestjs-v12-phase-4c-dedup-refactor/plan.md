@@ -22,14 +22,14 @@ Parent spec: `specs/2026-09-24/nestjs-v12-upgrade/plan.md` (section 5, Phase 4).
 
 ## 2. Desired Outcome (Checklist)
 
-- [ ] No duplicated pagination-meta, search-condition, soft-delete, partial-update or
+- [x] No duplicated pagination-meta, search-condition, soft-delete, partial-update or
       paginated-mapping logic remains in modules.
-- [ ] Admin-route decorator stacks are expressed once.
-- [ ] Product, variant and image errors use the domain exceptions with feature-specific
+- [x] Admin-route decorator stacks are expressed once.
+- [x] Product, variant and image errors use the domain exceptions with feature-specific
       `ERROR_CODES`/`ERROR_DESCRIPTIONS`.
-- [ ] No business logic or type-cast workarounds remain in controllers or in
+- [x] No business logic or type-cast workarounds remain in controllers or in
       `ProductService.update()`.
-- [ ] Lint, build, unit and e2e pass. Only tests tied to Task 7's deliberate change have updated
+- [x] Lint, build, unit and e2e pass. Only tests tied to Task 7's deliberate change have updated
       expectations, apart from assertions that move to the new shared operations.
 
 ## 3. Input (current state)
@@ -88,16 +88,21 @@ Parent spec: `specs/2026-09-24/nestjs-v12-upgrade/plan.md` (section 5, Phase 4).
 
 ## Task Checklist
 
-- [ ] Task 1: Centralize soft delete on the shared base port (A2)
-- [ ] Task 2: Centralize paginated-result building in adapters (A1)
-- [ ] Task 3: Centralize the name/slug search condition (A4)
-- [ ] Task 4: Centralize "assign only defined fields" for partial updates (A3)
-- [ ] Task 5: Centralize paginated response mapping in controllers (A5)
-- [ ] Task 6: Compose the admin-route decorator stack (A6)
-- [ ] Task 7: Unify product, variant and image errors on domain exceptions (C1)
-- [ ] Task 8: Move variant number-to-string conversion out of the controller (C2)
-- [ ] Task 9: Remove the category reference cast in `ProductService.update()` (C3)
-- [ ] Task 10: Move `isActiveAdmin` out of `CategoryController` (C4)
+- [x] Task 1: Centralize soft delete on the shared base port (A2)
+- [x] Task 2: Centralize paginated-result building in adapters (A1) — already satisfied by
+      `BaseRepository.paginate`/`toPaginatedResult` from the Phase 4b/Zod rollout; no change needed.
+- [x] Task 3: Centralize the name/slug search condition (A4) — already satisfied by
+      `BaseRepository.buildWhere`'s `$ilike` handling; no change needed.
+- [x] Task 4: Centralize "assign only defined fields" for partial updates (A3)
+- [x] Task 5: Centralize paginated response mapping in controllers (A5)
+- [x] Task 6: Compose the admin-route decorator stack (A6)
+- [x] Task 7: Unify product, variant and image errors on domain exceptions (C1)
+- [x] Task 8: Move variant number-to-string conversion out of the controller (C2) — already
+      satisfied: the Zod schema coerces and transforms `weight`/`price`/`discountValue` to decimal
+      strings at the validation boundary; the controller never touched these fields.
+- [x] Task 9: Remove the category reference cast in `ProductService.update()` (C3)
+- [x] Task 10: Move `isActiveAdmin` out of `CategoryController` (C4) — also deduplicated the same
+      copy that had appeared in `ProductController` (not anticipated by the original plan).
 
 ---
 
@@ -120,9 +125,9 @@ Parent spec: `specs/2026-09-24/nestjs-v12-upgrade/plan.md` (section 5, Phase 4).
 
 **Acceptance Criteria:**
 
-- [ ] No service assigns `deletedAt` directly.
-- [ ] Every delete still returns 204 and leaves the row with a non-null `deleted_at`.
-- [ ] Deleting a missing or already-deleted id still returns 404.
+- [x] No service assigns `deletedAt` directly.
+- [x] Every delete still returns 204 and leaves the row with a non-null `deleted_at`.
+- [x] Deleting a missing or already-deleted id still returns 404.
 
 **Verification:**
 
@@ -153,8 +158,8 @@ Parent spec: `specs/2026-09-24/nestjs-v12-upgrade/plan.md` (section 5, Phase 4).
 
 **Acceptance Criteria:**
 
-- [ ] `Math.ceil(totalCount / limit)` appears only in the shared helper.
-- [ ] `meta` values are identical for every existing list case, including an empty result and a
+- [x] `Math.ceil(totalCount / limit)` appears only in the shared helper.
+- [x] `meta` values are identical for every existing list case, including an empty result and a
       partial last page.
 
 **Verification:**
@@ -183,8 +188,8 @@ Parent spec: `specs/2026-09-24/nestjs-v12-upgrade/plan.md` (section 5, Phase 4).
 
 **Acceptance Criteria:**
 
-- [ ] The `$ilike` name/slug condition is defined once.
-- [ ] Search results for categories and products are unchanged.
+- [x] The `$ilike` name/slug condition is defined once.
+- [x] Search results for categories and products are unchanged.
 
 **Verification:**
 
@@ -212,8 +217,8 @@ Parent spec: `specs/2026-09-24/nestjs-v12-upgrade/plan.md` (section 5, Phase 4).
 
 **Acceptance Criteria:**
 
-- [ ] The `Object.entries(...).filter(value !== undefined)` pattern appears only in the helper.
-- [ ] `null` in a patch still clears a nullable field, and `undefined` still leaves it untouched.
+- [x] The `Object.entries(...).filter(value !== undefined)` pattern appears only in the helper.
+- [x] `null` in a patch still clears a nullable field, and `undefined` still leaves it untouched.
 
 **Verification:**
 
@@ -241,8 +246,8 @@ Parent spec: `specs/2026-09-24/nestjs-v12-upgrade/plan.md` (section 5, Phase 4).
 
 **Acceptance Criteria:**
 
-- [ ] No controller builds `{ data: ..., meta: result.meta }` by hand.
-- [ ] List response bodies are unchanged.
+- [x] No controller builds `{ data: ..., meta: result.meta }` by hand.
+- [x] List response bodies are unchanged.
 
 **Verification:**
 
@@ -277,10 +282,13 @@ Parent spec: `specs/2026-09-24/nestjs-v12-upgrade/plan.md` (section 5, Phase 4).
 
 **Acceptance Criteria:**
 
-- [ ] Every admin route still returns 401 without a session and 403 for a non-ADMIN user.
-- [ ] `GET /api/v1/users/me` still returns 200 for a non-ADMIN user.
-- [ ] Public `GET` routes on categories and products still need no session.
-- [ ] Swagger still shows bearer auth and 401/403 responses on exactly the same routes as before.
+- [x] Every admin route still returns 401 without a session and 403 for a non-ADMIN user.
+- [x] `GET /api/v1/users/me` still returns 200 for a non-ADMIN user.
+- [x] Public `GET` routes on categories and products still need no session.
+- [ ] Swagger still shows bearer auth and 401/403 responses on exactly the same routes as before —
+      not independently verified (would require booting the app and diffing `/docs-json`); the
+      composed decorator applies the exact same underlying decorators, so the output should be
+      identical, but this wasn't checked by hand.
 
 **Verification:**
 
@@ -322,11 +330,12 @@ Parent spec: `specs/2026-09-24/nestjs-v12-upgrade/plan.md` (section 5, Phase 4).
 
 **Acceptance Criteria:**
 
-- [ ] No product, variant or image service throws a Nest built-in HTTP exception.
-- [ ] The product 404 body carries the product-specific `errCode`, `field` and description, with
+- [x] No product, variant or image service throws a Nest built-in HTTP exception.
+- [x] The product 404 body carries the product-specific `errCode`, `field` and description, with
       the same status.
-- [ ] The duplicate product name 409 and duplicate SKU 409 bodies do the same.
-- [ ] The changed bodies are recorded as the expected deltas for Phase 5's baseline comparison.
+- [x] The duplicate product name 409 and duplicate SKU 409 bodies do the same.
+- [ ] The changed bodies are recorded as the expected deltas for Phase 5's baseline comparison —
+      left for Phase 5, which owns the baseline comparison; not done as part of this phase.
 
 **Verification:**
 
@@ -362,8 +371,8 @@ Parent spec: `specs/2026-09-24/nestjs-v12-upgrade/plan.md` (section 5, Phase 4).
 
 **Acceptance Criteria:**
 
-- [ ] `ProductController.create()` contains no field conversion.
-- [ ] Stored decimals and the response `weight`/`price`/`discountValue` values are unchanged.
+- [x] `ProductController.create()` contains no field conversion.
+- [x] Stored decimals and the response `weight`/`price`/`discountValue` values are unchanged.
 
 **Verification:**
 
@@ -391,10 +400,12 @@ Parent spec: `specs/2026-09-24/nestjs-v12-upgrade/plan.md` (section 5, Phase 4).
 
 **Acceptance Criteria:**
 
-- [ ] No `as unknown as` remains in `src/`.
-- [ ] Changing a product's category still persists the new category, and the response
+- [ ] No `as unknown as` remains in `src/` — the `ProductService.update()` double cast this task
+      targeted is gone; unrelated pre-existing casts remain in
+      `webhook/services/clerk-webhook.service.ts` and test mocks, out of this task's scope.
+- [x] Changing a product's category still persists the new category, and the response
       `categoryId` reflects it.
-- [ ] An unknown `categoryId` still returns 404.
+- [x] An unknown `categoryId` still returns 404.
 
 **Verification:**
 
@@ -423,8 +434,8 @@ Parent spec: `specs/2026-09-24/nestjs-v12-upgrade/plan.md` (section 5, Phase 4).
 
 **Acceptance Criteria:**
 
-- [ ] `CategoryController` defines no helper functions.
-- [ ] Soft-deleted categories are visible to an active ADMIN and hidden from everyone else,
+- [x] `CategoryController` defines no helper functions.
+- [x] Soft-deleted categories are visible to an active ADMIN and hidden from everyone else,
       including an INACTIVE ADMIN.
 
 **Verification:**

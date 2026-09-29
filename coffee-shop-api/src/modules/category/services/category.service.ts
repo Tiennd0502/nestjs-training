@@ -90,7 +90,6 @@ export class CategoryService {
 
   async remove(id: string): Promise<void> {
     const category = await this.findOne(id);
-    category.deletedAt = new Date();
-    await this.categoryRepository.save(category);
+    await this.categoryRepository.softDelete(category);
   }
 }

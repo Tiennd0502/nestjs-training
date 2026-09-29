@@ -33,39 +33,30 @@ import {
   type IdParam,
 } from '../../../common/dto/id-param.schema.js';
 import { AuthGuard } from '../../../common/guards/auth.guard.js';
-import { RolesGuard } from '../../../common/guards/roles.guard.js';
-import { Roles } from '../../../common/decorators/roles.decorator.js';
 import { AuthUser } from '../../../common/decorators/auth-user.decorator.js';
+import { AdminOnly } from '../../../common/decorators/admin-only.decorator.js';
 import {
   ApiDataResponse,
   ApiPaginatedResponse,
   ApiErrorResponse,
 } from '../../../common/decorators/api-response.decorator.js';
-import { UserRole } from '../../../common/enums/user.enum.js';
 import { User } from '../entities/user.entity.js';
 import { ERROR_MESSAGES } from '../../../common/constants/message.constant.js';
+import { mapPaginatedResult } from '../../../common/utils/pagination.util.js';
 
 @ApiTags('users')
-@ApiBearerAuth()
 @Controller('users')
-@UseGuards(AuthGuard)
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post()
-  @UseGuards(RolesGuard)
-  @Roles([UserRole.ADMIN])
+  @AdminOnly()
   @ApiOperation({ summary: 'Create a user (admin only)' })
   @ApiDataResponse(HttpStatus.CREATED, ResponseUserDto)
   @ApiErrorResponse(
     HttpStatus.BAD_REQUEST,
     ERROR_MESSAGES.EXCEPTION.VALIDATION_FAILED,
   )
-  @ApiErrorResponse(
-    HttpStatus.UNAUTHORIZED,
-    ERROR_MESSAGES.AUTH.UNAUTHENTICATED,
-  )
-  @ApiErrorResponse(HttpStatus.FORBIDDEN, ERROR_MESSAGES.AUTH.FORBIDDEN)
   @ApiErrorResponse(
     HttpStatus.CONFLICT,
     `${ERROR_MESSAGES.USER.EMAIL_EXISTS} / ${ERROR_MESSAGES.USER.CLERK_ID_EXISTS}`,
@@ -78,19 +69,13 @@ export class UserController {
   }
 
   @Get()
-  @UseGuards(RolesGuard)
-  @Roles([UserRole.ADMIN])
+  @AdminOnly()
   @ApiOperation({ summary: 'List users (admin only)' })
   @ApiPaginatedResponse(ResponseUserDto)
   @ApiErrorResponse(
     HttpStatus.BAD_REQUEST,
     ERROR_MESSAGES.PAGINATION.PAGE_OUT_OF_RANGE,
   )
-  @ApiErrorResponse(
-    HttpStatus.UNAUTHORIZED,
-    ERROR_MESSAGES.AUTH.UNAUTHENTICATED,
-  )
-  @ApiErrorResponse(HttpStatus.FORBIDDEN, ERROR_MESSAGES.AUTH.FORBIDDEN)
   async findAll(
     @Query({ schema: userQuerySchema }) query: UserQueryInput,
     @AuthUser() user: User,
@@ -101,13 +86,14 @@ export class UserController {
       filters,
       { includeDeleted: true, excludeId: user.id },
     );
-    return {
-      data: result.data.map((user) => ResponseUserDto.fromEntity(user)),
-      meta: result.meta,
-    };
+    return mapPaginatedResult(result, (user) =>
+      ResponseUserDto.fromEntity(user),
+    );
   }
 
   @Get('me')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({
     summary:
       'Get the currently authenticated user (any authenticated user, not just admin)',
@@ -122,15 +108,9 @@ export class UserController {
   }
 
   @Get(':id')
-  @UseGuards(RolesGuard)
-  @Roles([UserRole.ADMIN])
+  @AdminOnly()
   @ApiOperation({ summary: 'Get a user by id (admin only)' })
   @ApiDataResponse(HttpStatus.OK, ResponseUserDto)
-  @ApiErrorResponse(
-    HttpStatus.UNAUTHORIZED,
-    ERROR_MESSAGES.AUTH.UNAUTHENTICATED,
-  )
-  @ApiErrorResponse(HttpStatus.FORBIDDEN, ERROR_MESSAGES.AUTH.FORBIDDEN)
   @ApiErrorResponse(HttpStatus.NOT_FOUND, ERROR_MESSAGES.USER.NOT_FOUND)
   async findOne(
     @Param({ schema: idParamSchema }) { id }: IdParam,
@@ -140,19 +120,13 @@ export class UserController {
   }
 
   @Patch(':id')
-  @UseGuards(RolesGuard)
-  @Roles([UserRole.ADMIN])
+  @AdminOnly()
   @ApiOperation({ summary: 'Update a user (admin only)' })
   @ApiDataResponse(HttpStatus.OK, ResponseUserDto)
   @ApiErrorResponse(
     HttpStatus.BAD_REQUEST,
     ERROR_MESSAGES.EXCEPTION.VALIDATION_FAILED,
   )
-  @ApiErrorResponse(
-    HttpStatus.UNAUTHORIZED,
-    ERROR_MESSAGES.AUTH.UNAUTHENTICATED,
-  )
-  @ApiErrorResponse(HttpStatus.FORBIDDEN, ERROR_MESSAGES.AUTH.FORBIDDEN)
   @ApiErrorResponse(HttpStatus.NOT_FOUND, ERROR_MESSAGES.USER.NOT_FOUND)
   async update(
     @Param({ schema: idParamSchema }) { id }: IdParam,
@@ -163,16 +137,10 @@ export class UserController {
   }
 
   @Delete(':id')
-  @UseGuards(RolesGuard)
-  @Roles([UserRole.ADMIN])
+  @AdminOnly()
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Soft-delete a user (admin only)' })
   @ApiNoContentResponse({ description: 'User deleted' })
-  @ApiErrorResponse(
-    HttpStatus.UNAUTHORIZED,
-    ERROR_MESSAGES.AUTH.UNAUTHENTICATED,
-  )
-  @ApiErrorResponse(HttpStatus.FORBIDDEN, ERROR_MESSAGES.AUTH.FORBIDDEN)
   @ApiErrorResponse(HttpStatus.NOT_FOUND, ERROR_MESSAGES.USER.NOT_FOUND)
   remove(@Param({ schema: idParamSchema }) { id }: IdParam): Promise<void> {
     return this.userService.remove(id);
