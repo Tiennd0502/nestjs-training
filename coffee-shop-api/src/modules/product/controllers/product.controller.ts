@@ -18,11 +18,20 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { ProductService } from '../services/product.service.js';
-import { CreateProductDto } from '../dto/create-product.dto.js';
-import { UpdateProductDto } from '../dto/update-product.dto.js';
+import {
+  createProductSchema,
+  type CreateProductInput,
+  updateProductSchema,
+  type UpdateProductInput,
+  productQuerySchema,
+  type ProductQueryInput,
+} from '../dto/product.schema.js';
 import { ResponseProductDto } from '../dto/response-product.dto.js';
-import { ProductQueryDto } from '../dto/product-query.dto.js';
 import { PaginatedResult } from '../../../common/dto/pagination.dto.js';
+import {
+  idParamSchema,
+  type IdParam,
+} from '../../../common/dto/id-param.schema.js';
 import { AuthGuard } from '../../../common/guards/auth.guard.js';
 import { RolesGuard } from '../../../common/guards/roles.guard.js';
 import { Roles } from '../../../common/decorators/roles.decorator.js';
@@ -53,30 +62,13 @@ export class ProductController {
     ERROR_MESSAGES.EXCEPTION.VALIDATION_FAILED,
   )
   async findAll(
-    @Query() query: ProductQueryDto,
+    @Query({ schema: productQuerySchema }) query: ProductQueryInput,
     @AuthUser() user?: User,
   ): Promise<PaginatedResult<ResponseProductDto>> {
-    const {
-      page,
-      limit,
-      search,
-      categoryId,
-      status,
-      roastLevel,
-      minPrice,
-      maxPrice,
-      sortBy,
-    } = query;
+    const { page, limit, search, ...filters } = query;
     const result = await this.productService.findAll(
       { page, limit, search },
-      {
-        categoryId,
-        status,
-        roastLevels: roastLevel,
-        minPrice,
-        maxPrice,
-        sortBy,
-      },
+      filters,
       { includeDeleted: isActiveAdmin(user) },
     );
 
@@ -93,7 +85,7 @@ export class ProductController {
   @ApiDataResponse(HttpStatus.OK, ResponseProductDto)
   @ApiErrorResponse(HttpStatus.NOT_FOUND, ERROR_MESSAGES.PRODUCT.NOT_FOUND)
   async findOne(
-    @Param('id') id: string,
+    @Param({ schema: idParamSchema }) { id }: IdParam,
     @AuthUser() user?: User,
   ): Promise<ResponseProductDto> {
     const product = await this.productService.findOne(id, {
@@ -119,19 +111,10 @@ export class ProductController {
   @ApiErrorResponse(HttpStatus.FORBIDDEN, ERROR_MESSAGES.AUTH.FORBIDDEN)
   @ApiErrorResponse(HttpStatus.NOT_FOUND, ERROR_MESSAGES.CATEGORY.NOT_FOUND)
   @ApiErrorResponse(HttpStatus.CONFLICT, ERROR_MESSAGES.PRODUCT.NAME_EXISTS)
-  async create(@Body() dto: CreateProductDto): Promise<ResponseProductDto> {
-    const product = await this.productService.create({
-      ...dto,
-      variants: dto.variants?.map((variant) => ({
-        ...variant,
-        weight: String(variant.weight),
-        price: String(variant.price),
-        discountValue:
-          variant.discountValue === undefined || variant.discountValue === null
-            ? variant.discountValue
-            : String(variant.discountValue),
-      })),
-    });
+  async create(
+    @Body({ schema: createProductSchema }) dto: CreateProductInput,
+  ): Promise<ResponseProductDto> {
+    const product = await this.productService.create(dto);
     return ResponseProductDto.fromEntity(product);
   }
 
@@ -153,8 +136,8 @@ export class ProductController {
   @ApiErrorResponse(HttpStatus.NOT_FOUND, ERROR_MESSAGES.PRODUCT.NOT_FOUND)
   @ApiErrorResponse(HttpStatus.CONFLICT, ERROR_MESSAGES.PRODUCT.NAME_EXISTS)
   async update(
-    @Param('id') id: string,
-    @Body() dto: UpdateProductDto,
+    @Param({ schema: idParamSchema }) { id }: IdParam,
+    @Body({ schema: updateProductSchema }) dto: UpdateProductInput,
   ): Promise<ResponseProductDto> {
     const product = await this.productService.update(id, dto);
     return ResponseProductDto.fromEntity(product);
@@ -173,7 +156,9 @@ export class ProductController {
   )
   @ApiErrorResponse(HttpStatus.FORBIDDEN, ERROR_MESSAGES.AUTH.FORBIDDEN)
   @ApiErrorResponse(HttpStatus.NOT_FOUND, ERROR_MESSAGES.PRODUCT.NOT_FOUND)
-  async remove(@Param('id') id: string): Promise<void> {
+  async remove(
+    @Param({ schema: idParamSchema }) { id }: IdParam,
+  ): Promise<void> {
     await this.productService.remove(id);
   }
 }

@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { ProductVariantService } from './product-variant.service.js';
 import { ProductVariant } from '../entities/product-variant.entity.js';
-import { PRODUCT_VARIANT_REPOSITORY } from '../repositories/product-variant-repository.interface.js';
+import { ProductVariantRepository } from '../repositories/product-variant.repository.js';
 import { ProductUnit } from '../enums/product-variant.enum.js';
 
 import type { Mock } from 'vitest';
@@ -48,7 +48,7 @@ describe('ProductVariantService', () => {
       providers: [
         ProductVariantService,
         {
-          provide: PRODUCT_VARIANT_REPOSITORY,
+          provide: ProductVariantRepository,
           useValue: productVariantRepository,
         },
       ],

@@ -27,6 +27,10 @@ export const ERROR_MESSAGES = {
   PRODUCT: {
     NOT_FOUND: 'Product not found',
     NAME_EXISTS: 'Product name already exists',
+    INVALID_IMAGE_IDS: 'One or more images do not belong to this product',
+    TOO_MANY_IMAGES: (max: number) =>
+      `A product can have at most ${max} images`,
+    MULTIPLE_PRIMARY_IMAGES: 'A product can have only one primary image',
   },
   EXCEPTION: {
     BAD_REQUEST: 'Bad request',

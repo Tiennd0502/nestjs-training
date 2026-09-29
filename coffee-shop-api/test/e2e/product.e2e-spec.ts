@@ -616,6 +616,33 @@ describe('ProductController (e2e)', () => {
         .expect(404);
     });
 
+    it('POST /products responds 400 with field-level errors for an invalid body', async () => {
+      const admin = await createTestUser(UserRole.ADMIN);
+      mockSessionFor(admin.clerkId);
+
+      const response = await request(app.getHttpServer())
+        .post(`${API_BASE_PATH}/products`)
+        .send({
+          categoryId: 'not-a-uuid',
+          name: 'x',
+          variants: [{ sku: 'A', weight: 0, unit: 'KG', price: 1 }],
+        })
+        .expect(400);
+
+      const body = response.body as {
+        statusCode: number;
+        errors: Array<{ errCode: string; field: string }>;
+      };
+      expect(body.statusCode).toBe(400);
+      expect(body.errors.map(({ errCode, field }) => [errCode, field])).toEqual(
+        [
+          ['isUuid', 'categoryId'],
+          ['minLength', 'name'],
+          ['isPositive', 'variants.0.weight'],
+        ],
+      );
+    });
+
     it('PATCH /products/:id responds 200 and updates the product', async () => {
       const admin = await createTestUser(UserRole.ADMIN);
       const category = await createTestCategory();
