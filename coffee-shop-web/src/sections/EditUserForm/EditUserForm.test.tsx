@@ -93,21 +93,26 @@ describe('EditUserForm', () => {
     expect(screen.queryByTestId('modal-edit-user')).not.toBeInTheDocument()
   })
 
-  it('prefills first name, last name, and role from the target user', () => {
+  it('prefills first name, last name, role, and status from the target user', () => {
     render(<EditUserForm {...defaultProps} />)
 
     expect(screen.getByLabelText(/first name/i)).toHaveValue('Pat')
     expect(screen.getByLabelText(/last name/i)).toHaveValue('Lee')
     expect(screen.getByLabelText('Role')).toHaveValue(USER_ROLES.USER)
+    expect(screen.getByLabelText('Status')).toHaveValue(USER_STATUS.ACTIVE)
   })
 
-  it('submits the updated name and role for the target user id', async () => {
+  it('submits the updated name, role, and status for the target user id', async () => {
     const user = userEvent.setup()
     render(<EditUserForm {...defaultProps} />)
 
     await user.clear(screen.getByLabelText(/first name/i))
     await user.type(screen.getByLabelText(/first name/i), 'Patricia')
     await user.selectOptions(screen.getByLabelText('Role'), USER_ROLES.ADMIN)
+    await user.selectOptions(
+      screen.getByLabelText('Status'),
+      USER_STATUS.INACTIVE,
+    )
     await user.click(screen.getByRole('button', { name: /save changes/i }))
 
     expect(mutateMock).toHaveBeenCalledWith(
@@ -117,6 +122,7 @@ describe('EditUserForm', () => {
           firstName: 'Patricia',
           lastName: 'Lee',
           role: USER_ROLES.ADMIN,
+          status: USER_STATUS.INACTIVE,
         },
       },
       expect.objectContaining({
@@ -157,6 +163,7 @@ describe('EditUserForm', () => {
           firstName: 'Pat',
           lastName: 'Lee',
           role: USER_ROLES.USER,
+          status: USER_STATUS.ACTIVE,
           avatarUrl: 'https://example.com/new-avatar.png',
         },
       },
@@ -204,6 +211,7 @@ describe('EditUserForm', () => {
     expect(screen.getByLabelText(/first name/i)).toBeDisabled()
     expect(screen.getByLabelText(/last name/i)).toBeDisabled()
     expect(screen.getByLabelText('Role')).toBeDisabled()
+    expect(screen.getByLabelText('Status')).toBeDisabled()
   })
 
   it('shows the upload error and keeps the previous avatar on failure', async () => {

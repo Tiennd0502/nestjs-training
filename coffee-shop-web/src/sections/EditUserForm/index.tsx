@@ -14,11 +14,11 @@ import { Label } from '@/components/ui/label'
 import { Select } from '@/components/Select'
 
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@/constants/messages'
-import { ROLES_OPTIONS } from '@/constants/user'
+import { ROLES_OPTIONS, STATUS_OPTIONS } from '@/constants/user'
 import { useUpdateUserInfo } from '@/hooks/useUser'
 import { updateUserFormSchema, type UpdateUserFormValues } from '@/schemas/user'
 import { uploadImageToImgBB } from '@/services/image'
-import { USER_ROLES, type User } from '@/types/user'
+import { USER_ROLES, USER_STATUS, type User } from '@/types/user'
 
 interface EditUserFormProps {
   open: boolean
@@ -42,7 +42,12 @@ export function EditUserForm({ open, onOpenChange, user }: EditUserFormProps) {
     formState: { errors },
   } = useForm<UpdateUserFormValues>({
     resolver: zodResolver(updateUserFormSchema),
-    defaultValues: { firstName: '', lastName: '', role: USER_ROLES.USER },
+    defaultValues: {
+      firstName: '',
+      lastName: '',
+      role: USER_ROLES.USER,
+      status: USER_STATUS.ACTIVE,
+    },
   })
 
   useEffect(() => {
@@ -51,6 +56,7 @@ export function EditUserForm({ open, onOpenChange, user }: EditUserFormProps) {
       firstName: user?.firstName ?? '',
       lastName: user?.lastName ?? '',
       role: user?.role ?? USER_ROLES.USER,
+      status: user?.status ?? USER_STATUS.ACTIVE,
     })
     setAvatarPreview(user?.avatarUrl ?? '')
     setPendingAvatarUrl(null)
@@ -98,6 +104,7 @@ export function EditUserForm({ open, onOpenChange, user }: EditUserFormProps) {
           firstName: values.firstName,
           lastName: values.lastName,
           role: values.role,
+          status: values.status,
           ...(pendingAvatarUrl ? { avatarUrl: pendingAvatarUrl } : {}),
         },
       },
@@ -216,6 +223,26 @@ export function EditUserForm({ open, onOpenChange, user }: EditUserFormProps) {
             {errors.role && (
               <p role="alert" className="mt-1 text-sm text-destructive">
                 {errors.role.message}
+              </p>
+            )}
+          </div>
+          <div>
+            <Controller
+              control={control}
+              name="status"
+              render={({ field }) => (
+                <Select
+                  label="Status"
+                  disabled={isPending}
+                  selected={field.value}
+                  onValueChange={(value) => field.onChange(value)}
+                  options={[...STATUS_OPTIONS]}
+                />
+              )}
+            />
+            {errors.status && (
+              <p role="alert" className="mt-1 text-sm text-destructive">
+                {errors.status.message}
               </p>
             )}
           </div>

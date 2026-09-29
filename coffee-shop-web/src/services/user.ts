@@ -212,6 +212,7 @@ export async function fetchUsers(
 
 export interface UpdateUserPayload {
   role?: USER_ROLES
+  status?: USER_STATUS
   firstName?: string
   lastName?: string
   avatarUrl?: string

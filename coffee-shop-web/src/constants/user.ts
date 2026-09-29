@@ -2,7 +2,7 @@ import { Mail, UserCheck, UserPlus, Users } from 'lucide-react'
 
 import type { StatCardItem } from '@/components/StatsCards'
 import type { TableColumn } from '@/components/Table'
-import { USER_ROLES } from '@/types/user'
+import { USER_ROLES, USER_STATUS } from '@/types/user'
 
 export const ROLES = {
   USER: 'USER',
@@ -17,6 +17,14 @@ export const ROLES_OPTIONS: readonly {
 }[] = [
   { value: USER_ROLES.USER, label: 'User' },
   { value: USER_ROLES.ADMIN, label: 'Admin' },
+]
+
+export const STATUS_OPTIONS: readonly {
+  value: USER_STATUS
+  label: string
+}[] = [
+  { value: USER_STATUS.ACTIVE, label: 'Active' },
+  { value: USER_STATUS.INACTIVE, label: 'Inactive' },
 ]
 
 export const ROLE_FILTER_OPTIONS = [

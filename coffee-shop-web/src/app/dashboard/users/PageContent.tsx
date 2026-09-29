@@ -288,7 +288,10 @@ export const PageContent = () => {
                 onValueChange={handleRoleChange}
                 options={ROLE_FILTER_OPTIONS.map((option) => ({
                   value: option,
-                  label: option,
+                  label: option
+                    .toLowerCase()
+                    .replace(/_/g, ' ')
+                    .replace(/\b\w/g, (char) => char.toUpperCase()),
                 }))}
                 placeholder="All Roles"
               />
