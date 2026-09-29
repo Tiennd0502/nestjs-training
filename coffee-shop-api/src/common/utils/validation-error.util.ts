@@ -1,32 +1,5 @@
-import { ValidationError } from 'class-validator';
 import type { StandardSchemaV1 } from '@standard-schema/spec';
 import { ErrorDetailDto } from '../dto/error.dto.js';
-
-export const toErrorDetails = (
-  validationErrors: ValidationError[],
-  parentField = '',
-): ErrorDetailDto[] => {
-  return validationErrors.flatMap((validationError) => {
-    const field = parentField
-      ? `${parentField}.${validationError.property}`
-      : validationError.property;
-
-    const constraintDetails = Object.entries(
-      validationError.constraints ?? {},
-    ).map(([errCode, message]) => ({
-      errCode,
-      field,
-      message,
-      description: message,
-    }));
-
-    const childDetails = validationError.children?.length
-      ? toErrorDetails(validationError.children, field)
-      : [];
-
-    return [...constraintDetails, ...childDetails];
-  });
-};
 
 /**
  * Maps Standard Schema (e.g. Zod) issues to ErrorDetailDto, the shape a
@@ -52,7 +25,7 @@ export const toErrorDetailsFromStandardSchemaIssues = (
   });
 };
 
-const isIndex = (segment?: string): boolean => /^\d+$/.test(segment ?? '');
+const isIndex = (segment: string): boolean => /^\d+$/.test(segment);
 
 const capitalize = (value: string) =>
   value.charAt(0).toUpperCase() + value.slice(1);

@@ -19,10 +19,7 @@ import { CategoryModule } from './modules/category/category.module.js';
 import { ProductModule } from './modules/product/product.module.js';
 import { TransformResponseInterceptor } from './common/interceptors/transform-response.interceptor.js';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter.js';
-import {
-  createValidationPipe,
-  createStandardSchemaValidationPipe,
-} from './configs/validation-pipe.config.js';
+import { createStandardSchemaValidationPipe } from './configs/validation-pipe.config.js';
 import { ClerkAuthMiddleware } from './common/middlewares/clerk-auth.middleware.js';
 import { UserResolutionMiddleware } from './common/middlewares/user-resolution.middleware.js';
 import { AuthProviderModule } from './common/providers/auth-provider.module.js';
@@ -61,10 +58,6 @@ import { AuthProviderModule } from './common/providers/auth-provider.module.js';
     {
       provide: APP_FILTER,
       useClass: GlobalExceptionFilter,
-    },
-    {
-      provide: APP_PIPE,
-      useFactory: createValidationPipe,
     },
     {
       provide: APP_PIPE,
