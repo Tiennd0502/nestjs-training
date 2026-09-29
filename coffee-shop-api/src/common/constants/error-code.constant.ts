@@ -15,6 +15,17 @@ export const ERROR_CODES = {
     CLERK_ID_EXISTS: 'userClerkIdExists',
     NOT_FOUND: 'userNotFound',
   },
+  PRODUCT: {
+    NAME_EXISTS: 'productNameExists',
+    NOT_FOUND: 'productNotFound',
+  },
+  PRODUCT_VARIANT: {
+    SKU_EXISTS: 'productVariantSkuExists',
+    NOT_FOUND: 'productVariantNotFound',
+  },
+  PRODUCT_IMAGE: {
+    NOT_FOUND: 'productImageNotFound',
+  },
   PAGINATION: {
     PAGE_OUT_OF_RANGE: 'pageOutOfRange',
   },

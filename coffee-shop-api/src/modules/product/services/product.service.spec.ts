@@ -1,9 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import {
-  BadRequestException,
-  ConflictException,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException } from '@nestjs/common';
 import { ProductService } from './product.service.js';
 import { Product } from '../entities/product.entity.js';
 import { ProductImage } from '../../product-image/entities/product-image.entity.js';
@@ -13,6 +9,15 @@ import { ProductImageService } from '../../product-image/services/product-image.
 import { ProductVariantService } from '../../product-variant/services/product-variant.service.js';
 import { ProductUnit } from '../../product-variant/enums/product-variant.enum.js';
 import { ProductStatus } from '../enums/product.enum.js';
+import {
+  DuplicateResourceException,
+  ItemNotFoundException,
+} from '../../../common/exceptions/base.exception.js';
+import { ERROR_CODES } from '../../../common/constants/error-code.constant.js';
+import {
+  ERROR_MESSAGES,
+  ERROR_DESCRIPTIONS,
+} from '../../../common/constants/message.constant.js';
 
 import type { Mock } from 'vitest';
 describe('ProductService', () => {
@@ -23,6 +28,7 @@ describe('ProductService', () => {
     findAll: Mock;
     create: Mock;
     save: Mock;
+    softDelete: Mock;
   };
   let categoryService: { findOne: Mock };
   let productImageService: { create: Mock };
@@ -55,6 +61,7 @@ describe('ProductService', () => {
       findAll: vi.fn(),
       create: vi.fn(),
       save: vi.fn(),
+      softDelete: vi.fn(),
     };
     categoryService = { findOne: vi.fn() };
     productImageService = { create: vi.fn() };
@@ -152,23 +159,36 @@ describe('ProductService', () => {
       expect(result).toBe(created);
     });
 
-    it('throws ConflictException on a duplicate name, without persisting or calling image/variant services', async () => {
+    it('throws DuplicateResourceException on a duplicate name, without persisting or calling image/variant services', async () => {
       productRepository.findByName.mockResolvedValue(buildProduct());
+      expect.assertions(5);
 
-      await expect(service.create(createData)).rejects.toBeInstanceOf(
-        ConflictException,
-      );
+      try {
+        await service.create(createData);
+      } catch (error) {
+        expect(error).toBeInstanceOf(DuplicateResourceException);
+        expect(
+          (error as DuplicateResourceException).getErrors()[0].errCode,
+        ).toBe(ERROR_CODES.PRODUCT.NAME_EXISTS);
+      }
       expect(productRepository.create).not.toHaveBeenCalled();
       expect(productImageService.create).not.toHaveBeenCalled();
       expect(productVariantService.create).not.toHaveBeenCalled();
     });
 
-    it('propagates a NotFoundException from CategoryService.findOne for an invalid category, without persisting', async () => {
+    it('propagates an ItemNotFoundException from CategoryService.findOne for an invalid category, without persisting', async () => {
       productRepository.findByName.mockResolvedValue(null);
-      categoryService.findOne.mockRejectedValue(new NotFoundException());
+      categoryService.findOne.mockRejectedValue(
+        new ItemNotFoundException({
+          errCode: ERROR_CODES.CATEGORY.NOT_FOUND,
+          field: 'id',
+          message: ERROR_MESSAGES.CATEGORY.NOT_FOUND,
+          description: ERROR_DESCRIPTIONS.CATEGORY.NOT_FOUND,
+        }),
+      );
 
       await expect(service.create(createData)).rejects.toBeInstanceOf(
-        NotFoundException,
+        ItemNotFoundException,
       );
       expect(productRepository.create).not.toHaveBeenCalled();
     });
@@ -240,12 +260,18 @@ describe('ProductService', () => {
       expect(result).toBe(product);
     });
 
-    it('throws NotFoundException when the repository has no match', async () => {
+    it('throws ItemNotFoundException when the repository has no match', async () => {
       productRepository.findById.mockResolvedValue(null);
+      expect.assertions(2);
 
-      await expect(service.findOne('missing-id')).rejects.toBeInstanceOf(
-        NotFoundException,
-      );
+      try {
+        await service.findOne('missing-id');
+      } catch (error) {
+        expect(error).toBeInstanceOf(ItemNotFoundException);
+        expect((error as ItemNotFoundException).getErrors()[0].errCode).toBe(
+          ERROR_CODES.PRODUCT.NOT_FOUND,
+        );
+      }
     });
   });
 
@@ -261,16 +287,22 @@ describe('ProductService', () => {
       expect(productRepository.save).toHaveBeenCalledWith(product);
     });
 
-    it('throws ConflictException when the new name collides with another product', async () => {
+    it('throws DuplicateResourceException when the new name collides with another product', async () => {
       const product = buildProduct();
       productRepository.findById.mockResolvedValue(product);
       productRepository.findByName.mockResolvedValue(
         buildProduct({ id: 'other-product-id', name: 'Other' }),
       );
+      expect.assertions(3);
 
-      await expect(
-        service.update('product-id-1', { name: 'Other' }),
-      ).rejects.toBeInstanceOf(ConflictException);
+      try {
+        await service.update('product-id-1', { name: 'Other' });
+      } catch (error) {
+        expect(error).toBeInstanceOf(DuplicateResourceException);
+        expect(
+          (error as DuplicateResourceException).getErrors()[0].errCode,
+        ).toBe(ERROR_CODES.PRODUCT.NAME_EXISTS);
+      }
       expect(productRepository.save).not.toHaveBeenCalled();
     });
 
@@ -287,22 +319,24 @@ describe('ProductService', () => {
       expect(productRepository.save).toHaveBeenCalledWith(product);
     });
 
-    it('re-validates the category via CategoryService.findOne when categoryId changes', async () => {
+    it('re-validates the category via CategoryService.findOne when categoryId changes, and assigns the loaded category', async () => {
       const product = buildProduct();
+      const loadedCategory = { id: 'category-id-2' };
       productRepository.findById.mockResolvedValue(product);
-      categoryService.findOne.mockResolvedValue({ id: 'category-id-2' });
+      categoryService.findOne.mockResolvedValue(loadedCategory);
 
       await service.update('product-id-1', { categoryId: 'category-id-2' });
 
       expect(categoryService.findOne).toHaveBeenCalledWith('category-id-2');
+      expect(product.category).toBe(loadedCategory);
     });
 
-    it('throws NotFoundException for a missing id', async () => {
+    it('throws ItemNotFoundException for a missing id', async () => {
       productRepository.findById.mockResolvedValue(null);
 
       await expect(
         service.update('missing-id', { description: 'x' }),
-      ).rejects.toBeInstanceOf(NotFoundException);
+      ).rejects.toBeInstanceOf(ItemNotFoundException);
       expect(productRepository.save).not.toHaveBeenCalled();
     });
 
@@ -510,26 +544,25 @@ describe('ProductService', () => {
   });
 
   describe('remove', () => {
-    it('sets deletedAt, archives the status, saves the product, and does not call image/variant services', async () => {
+    it('archives the status and soft-deletes the product, without calling image/variant services', async () => {
       const product = buildProduct();
       productRepository.findById.mockResolvedValue(product);
 
       await service.remove('product-id-1');
 
-      expect(product.deletedAt).toBeInstanceOf(Date);
       expect(product.status).toBe(ProductStatus.ARCHIVED);
-      expect(productRepository.save).toHaveBeenCalledWith(product);
+      expect(productRepository.softDelete).toHaveBeenCalledWith(product);
       expect(productImageService.create).not.toHaveBeenCalled();
       expect(productVariantService.create).not.toHaveBeenCalled();
     });
 
-    it('throws NotFoundException for a missing id', async () => {
+    it('throws ItemNotFoundException for a missing id', async () => {
       productRepository.findById.mockResolvedValue(null);
 
       await expect(service.remove('missing-id')).rejects.toBeInstanceOf(
-        NotFoundException,
+        ItemNotFoundException,
       );
-      expect(productRepository.save).not.toHaveBeenCalled();
+      expect(productRepository.softDelete).not.toHaveBeenCalled();
     });
   });
 });

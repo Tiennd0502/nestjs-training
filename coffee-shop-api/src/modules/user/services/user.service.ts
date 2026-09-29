@@ -21,6 +21,7 @@ import {
 } from '../../../common/exceptions/base.exception.js';
 import { AuthProvider } from '../../../common/providers/auth.provider.js';
 import { UserRole, UserStatus } from '../../../common/enums/user.enum.js';
+import { assignDefinedFields } from '../../../common/utils/object.util.js';
 
 @Injectable()
 export class UserService {
@@ -130,14 +131,11 @@ export class UserService {
   }
 
   private async applyUpdates(user: User, dto: UpdateUserInput): Promise<User> {
-    const updates = Object.fromEntries(
-      Object.entries(dto).filter(([, value]) => value !== undefined),
-    );
-    if (Object.keys(updates).length === 0) {
+    if (Object.values(dto).every((value) => value === undefined)) {
       return user;
     }
 
-    Object.assign(user, updates);
+    assignDefinedFields(user, dto);
     await this.userRepository.save(user);
 
     return user;
@@ -145,8 +143,7 @@ export class UserService {
 
   async remove(id: string): Promise<void> {
     const user = await this.findOne(id);
-    user.deletedAt = new Date();
     user.status = UserStatus.INACTIVE;
-    await this.userRepository.save(user);
+    await this.userRepository.softDelete(user);
   }
 }

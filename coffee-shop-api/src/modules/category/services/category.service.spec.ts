@@ -16,6 +16,7 @@ describe('CategoryService', () => {
     findAll: Mock;
     create: Mock;
     save: Mock;
+    softDelete: Mock;
   };
 
   const buildCategory = (overrides: Partial<Category> = {}): Category => ({
@@ -35,6 +36,7 @@ describe('CategoryService', () => {
       findAll: vi.fn(),
       create: vi.fn(),
       save: vi.fn(),
+      softDelete: vi.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -189,14 +191,13 @@ describe('CategoryService', () => {
   });
 
   describe('remove', () => {
-    it('sets deletedAt and saves the category', async () => {
+    it('soft-deletes the loaded category', async () => {
       const category = buildCategory();
       categoryRepository.findById.mockResolvedValue(category);
 
       await service.remove('category-id-1');
 
-      expect(category.deletedAt).toBeInstanceOf(Date);
-      expect(categoryRepository.save).toHaveBeenCalledWith(category);
+      expect(categoryRepository.softDelete).toHaveBeenCalledWith(category);
     });
 
     it('throws ItemNotFoundException for a missing id', async () => {
@@ -205,7 +206,7 @@ describe('CategoryService', () => {
       await expect(service.remove('missing-id')).rejects.toBeInstanceOf(
         ItemNotFoundException,
       );
-      expect(categoryRepository.save).not.toHaveBeenCalled();
+      expect(categoryRepository.softDelete).not.toHaveBeenCalled();
     });
   });
 });
