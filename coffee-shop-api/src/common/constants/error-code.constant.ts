@@ -14,6 +14,8 @@ export const ERROR_CODES = {
     EMAIL_EXISTS: 'userEmailExists',
     CLERK_ID_EXISTS: 'userClerkIdExists',
     NOT_FOUND: 'userNotFound',
+  },
+  PAGINATION: {
     PAGE_OUT_OF_RANGE: 'pageOutOfRange',
   },
 } as const;

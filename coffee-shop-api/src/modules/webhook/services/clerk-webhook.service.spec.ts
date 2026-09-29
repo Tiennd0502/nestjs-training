@@ -188,6 +188,8 @@ describe('ClerkWebhookService', () => {
           primary_phone_number_id: null,
           image_url: 'https://example.com/avatar2.png',
           public_metadata: { role: 'ADMIN' },
+          banned: false,
+          locked: false,
         },
       } as never;
 
@@ -203,7 +205,42 @@ describe('ClerkWebhookService', () => {
           phoneNumber: undefined,
           avatarUrl: 'https://example.com/avatar2.png',
           role: 'ADMIN',
+          status: 'ACTIVE',
         });
+      });
+
+      it('maps a banned Clerk user to INACTIVE', async () => {
+        const existing = buildUser();
+        userService.findByClerkId.mockResolvedValue(existing);
+        const { data } = updatedEvent as unknown as { data: object };
+        const bannedEvent = {
+          type: 'user.updated',
+          data: { ...data, banned: true },
+        };
+
+        await service.handleEvent(bannedEvent);
+
+        expect(userService.update).toHaveBeenCalledWith(
+          existing.id,
+          expect.objectContaining({ status: 'INACTIVE' }),
+        );
+      });
+
+      it('maps a locked Clerk user to INACTIVE', async () => {
+        const existing = buildUser();
+        userService.findByClerkId.mockResolvedValue(existing);
+        const { data } = updatedEvent as unknown as { data: object };
+        const lockedEvent = {
+          type: 'user.updated',
+          data: { ...data, locked: true },
+        };
+
+        await service.handleEvent(lockedEvent);
+
+        expect(userService.update).toHaveBeenCalledWith(
+          existing.id,
+          expect.objectContaining({ status: 'INACTIVE' }),
+        );
       });
 
       it('does not throw and does not update when there is no local match', async () => {

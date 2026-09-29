@@ -1,6 +1,6 @@
 import type { IncomingHttpHeaders } from 'http';
 import type { Request } from 'express';
-import { UserRole } from '../enums/user.enum.js';
+import { UserRole, UserStatus } from '../enums/user.enum.js';
 
 export class AuthWebhookEvent {
   type!: string;
@@ -13,5 +13,9 @@ export abstract class AuthProvider {
     headers: IncomingHttpHeaders,
   ): AuthWebhookEvent;
   abstract syncUserRole(providerId: string, role: UserRole): Promise<void>;
+  abstract syncUserStatus(
+    providerId: string,
+    status: UserStatus,
+  ): Promise<void>;
   abstract getSessionUserId(req: Request): string | null;
 }

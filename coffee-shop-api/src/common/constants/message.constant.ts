@@ -3,6 +3,8 @@ export const ERROR_MESSAGES = {
     EMAIL_EXISTS: 'Email already exists',
     CLERK_ID_EXISTS: 'Clerk id already exists',
     NOT_FOUND: 'User not found',
+  },
+  PAGINATION: {
     PAGE_OUT_OF_RANGE: 'Requested page exceeds the available range',
   },
   WEBHOOK: {
@@ -57,5 +59,9 @@ export const ERROR_DESCRIPTIONS = {
       'The user might have been deleted, or the id is incorrect.',
     NOT_FOUND_BY_CLERK_ID:
       'The user might have been deleted, or the clerk id is incorrect.',
+  },
+  PAGINATION: {
+    PAGE_OUT_OF_RANGE: (pageCount: number) =>
+      `The requested page exceeds the available range of ${pageCount} page(s).`,
   },
 } as const;

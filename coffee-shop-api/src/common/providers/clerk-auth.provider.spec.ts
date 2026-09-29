@@ -4,12 +4,16 @@ import { createClerkClient, getAuth } from '@clerk/express';
 import { Webhook } from 'svix';
 import type { Mock } from 'vitest';
 import { ClerkAuthProvider } from './clerk-auth.provider.js';
-import { UserRole } from '../enums/user.enum.js';
+import { UserRole, UserStatus } from '../enums/user.enum.js';
 
-const { verify, updateUserMetadata } = vi.hoisted(() => ({
-  verify: vi.fn(),
-  updateUserMetadata: vi.fn(),
-}));
+const { verify, updateUserMetadata, banUser, unbanUser, unlockUser } =
+  vi.hoisted(() => ({
+    verify: vi.fn(),
+    updateUserMetadata: vi.fn(),
+    banUser: vi.fn(),
+    unbanUser: vi.fn(),
+    unlockUser: vi.fn(),
+  }));
 
 vi.mock('svix', () => ({
   Webhook: vi.fn().mockImplementation(function Webhook() {
@@ -20,7 +24,7 @@ vi.mock('svix', () => ({
 vi.mock('@clerk/express', () => ({
   getAuth: vi.fn(),
   createClerkClient: vi.fn().mockImplementation(() => ({
-    users: { updateUserMetadata },
+    users: { updateUserMetadata, banUser, unbanUser, unlockUser },
   })),
 }));
 
@@ -97,6 +101,36 @@ describe('ClerkAuthProvider', () => {
 
       await expect(
         provider.syncUserRole('clerk-1', UserRole.USER),
+      ).rejects.toThrow('clerk api down');
+    });
+  });
+
+  describe('syncUserStatus', () => {
+    it('bans the provider user when the status is INACTIVE', async () => {
+      banUser.mockResolvedValue(undefined);
+
+      await provider.syncUserStatus('clerk-1', UserStatus.INACTIVE);
+
+      expect(banUser).toHaveBeenCalledWith('clerk-1');
+      expect(unbanUser).not.toHaveBeenCalled();
+    });
+
+    it('unbans and unlocks the provider user when the status is ACTIVE', async () => {
+      unbanUser.mockResolvedValue(undefined);
+      unlockUser.mockResolvedValue(undefined);
+
+      await provider.syncUserStatus('clerk-1', UserStatus.ACTIVE);
+
+      expect(unbanUser).toHaveBeenCalledWith('clerk-1');
+      expect(unlockUser).toHaveBeenCalledWith('clerk-1');
+      expect(banUser).not.toHaveBeenCalled();
+    });
+
+    it('propagates an error from the underlying client unchanged', async () => {
+      banUser.mockRejectedValue(new Error('clerk api down'));
+
+      await expect(
+        provider.syncUserStatus('clerk-1', UserStatus.INACTIVE),
       ).rejects.toThrow('clerk api down');
     });
   });

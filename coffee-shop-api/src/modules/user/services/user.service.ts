@@ -1,12 +1,12 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { User } from '../entities/user.entity.js';
-import { CreateUserDto } from '../dto/create-user.dto.js';
-import { UpdateUserDto } from '../dto/update-user.dto.js';
-import {
-  USER_REPOSITORY,
-  type FindOptions,
-  type UserRepository,
-} from '../repositories/user-repository.interface.js';
+import type {
+  CreateUserInput,
+  UpdateUserInput,
+  UserFilters,
+} from '../dto/user.schema.js';
+import { UserRepository } from '../repositories/user.repository.js';
+import type { FindOptions } from '../../../common/interfaces/repository-options.interface.js';
 import {
   ERROR_MESSAGES,
   ERROR_DESCRIPTIONS,
@@ -19,17 +19,20 @@ import {
   ItemNotFoundException,
   InvalidRequestException,
 } from '../../../common/exceptions/base.exception.js';
-import { UserStatus } from '../../../common/enums/user.enum.js';
+import { AuthProvider } from '../../../common/providers/auth.provider.js';
+import { UserRole, UserStatus } from '../../../common/enums/user.enum.js';
 
 @Injectable()
 export class UserService {
   constructor(
-    @Inject(USER_REPOSITORY)
     private readonly userRepository: UserRepository,
+    private readonly authProvider: AuthProvider,
   ) {}
 
-  async create(dto: CreateUserDto): Promise<User> {
-    const existingByEmail = await this.userRepository.findByEmail(dto.email);
+  async create(dto: CreateUserInput): Promise<User> {
+    const existingByEmail = await this.userRepository.findByEmail(dto.email, {
+      includeDeleted: true,
+    });
     if (existingByEmail) {
       throw new DuplicateResourceException({
         errCode: ERROR_CODES.USER.EMAIL_EXISTS,
@@ -41,6 +44,7 @@ export class UserService {
 
     const existingByClerkId = await this.userRepository.findByClerkId(
       dto.clerkId,
+      { includeDeleted: true },
     );
     if (existingByClerkId) {
       throw new DuplicateResourceException({
@@ -56,17 +60,18 @@ export class UserService {
 
   async findAll(
     query: QueryParams,
+    filters: UserFilters = {},
     options?: FindOptions,
   ): Promise<PaginatedResult<User>> {
-    const result = await this.userRepository.findAll(query, options);
+    const result = await this.userRepository.findAll(query, filters, options);
     const { totalCount, pageCount } = result.meta;
 
     if (totalCount > 0 && query.page > pageCount) {
       throw new InvalidRequestException({
-        errCode: ERROR_CODES.USER.PAGE_OUT_OF_RANGE,
+        errCode: ERROR_CODES.PAGINATION.PAGE_OUT_OF_RANGE,
         field: 'page',
-        message: ERROR_MESSAGES.USER.PAGE_OUT_OF_RANGE,
-        description: `The requested page exceeds the available range of ${pageCount} page(s).`,
+        message: ERROR_MESSAGES.PAGINATION.PAGE_OUT_OF_RANGE,
+        description: ERROR_DESCRIPTIONS.PAGINATION.PAGE_OUT_OF_RANGE(pageCount),
       });
     }
 
@@ -101,11 +106,37 @@ export class UserService {
     return user;
   }
 
-  async update(id: string, dto: UpdateUserDto): Promise<User> {
+  // Local write only — used by the auth-provider webhook to mirror provider state into the DB.
+  async update(id: string, dto: UpdateUserInput): Promise<User> {
     const user = await this.findOne(id);
+    return this.applyUpdates(user, dto);
+  }
+
+  // `role` and `status` are owned by the auth provider: push them there and let the
+  // `user.updated` webhook write them back to the DB. Everything else is written locally.
+  // The returned user therefore still holds the previous role/status until the webhook lands.
+  async updateByAdmin(id: string, dto: UpdateUserInput): Promise<User> {
+    const { role, status, ...profile } = dto;
+    const user = await this.findOne(id);
+
+    if (role !== undefined && role !== (user.role as UserRole)) {
+      await this.authProvider.syncUserRole(user.clerkId, role);
+    }
+    if (status !== undefined && status !== (user.status as UserStatus)) {
+      await this.authProvider.syncUserStatus(user.clerkId, status);
+    }
+
+    return this.applyUpdates(user, profile);
+  }
+
+  private async applyUpdates(user: User, dto: UpdateUserInput): Promise<User> {
     const updates = Object.fromEntries(
       Object.entries(dto).filter(([, value]) => value !== undefined),
     );
+    if (Object.keys(updates).length === 0) {
+      return user;
+    }
+
     Object.assign(user, updates);
     await this.userRepository.save(user);
 

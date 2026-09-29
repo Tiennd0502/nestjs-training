@@ -10,7 +10,7 @@ import {
   AuthProvider,
   type AuthWebhookEvent,
 } from '../../../common/providers/auth.provider.js';
-import { UserRole } from '../../../common/enums/user.enum.js';
+import { UserRole, UserStatus } from '../../../common/enums/user.enum.js';
 
 const ClerkWebhookEventType = {
   USER_CREATED: 'user.created',
@@ -131,6 +131,8 @@ export class ClerkWebhookService {
       )?.phone_number,
       avatarUrl: data.image_url,
       role: publicMetadata.role,
+      status:
+        data.banned || data.locked ? UserStatus.INACTIVE : UserStatus.ACTIVE,
     });
   }
 

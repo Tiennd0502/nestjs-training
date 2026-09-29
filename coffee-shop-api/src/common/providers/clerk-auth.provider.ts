@@ -6,7 +6,7 @@ import type { Request } from 'express';
 import { Webhook, type WebhookRequiredHeaders } from 'svix';
 import { AuthProvider, AuthWebhookEvent } from './auth.provider.js';
 import { ERROR_MESSAGES } from '../constants/message.constant.js';
-import { UserRole } from '../enums/user.enum.js';
+import { UserRole, UserStatus } from '../enums/user.enum.js';
 
 function requiredHeader(
   headers: IncomingHttpHeaders,
@@ -55,6 +55,18 @@ export class ClerkAuthProvider implements AuthProvider {
     await this.clerkClient.users.updateUserMetadata(providerId, {
       publicMetadata: { role },
     });
+  }
+
+  async syncUserStatus(providerId: string, status: UserStatus): Promise<void> {
+    if (status === UserStatus.INACTIVE) {
+      await this.clerkClient.users.banUser(providerId);
+      return;
+    }
+
+    // A user may be blocked in Clerk by either ban or lock, and the webhook maps both to
+    // INACTIVE, so re-activating has to clear both.
+    await this.clerkClient.users.unbanUser(providerId);
+    await this.clerkClient.users.unlockUser(providerId);
   }
 
   getSessionUserId(req: Request): string | null {
