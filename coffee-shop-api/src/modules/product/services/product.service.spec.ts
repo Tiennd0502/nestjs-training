@@ -312,9 +312,13 @@ describe('ProductService', () => {
       productRepository.findByName.mockResolvedValue(product);
 
       const result = await service.update('product-id-1', {
-        name: 'Espresso Blend',
+        name: 'Espresso Blend Reserve',
       });
 
+      expect(productRepository.findByName).toHaveBeenCalledWith(
+        'Espresso Blend Reserve',
+        { includeDeleted: true },
+      );
       expect(result).toBe(product);
       expect(productRepository.save).toHaveBeenCalledWith(product);
     });
@@ -396,6 +400,18 @@ describe('ProductService', () => {
           sortOrder: 3,
         });
         expect(images[1].url).toBe(`https://example.com/${idB}.png`);
+      });
+
+      it('patches the sortOrder field when supplied', async () => {
+        const { images } = productWithImages([
+          buildImage(idA, { sortOrder: 0 }),
+        ]);
+
+        await service.update('product-id-1', {
+          updateImages: [{ id: idA, sortOrder: 5 }],
+        });
+
+        expect(images[0].sortOrder).toBe(5);
       });
 
       it('adds new images to the product with defaults', async () => {

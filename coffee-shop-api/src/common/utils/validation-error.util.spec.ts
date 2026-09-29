@@ -1,9 +1,5 @@
-import { ValidationError } from 'class-validator';
 import type { StandardSchemaV1 } from '@standard-schema/spec';
-import {
-  toErrorDetails,
-  toErrorDetailsFromStandardSchemaIssues,
-} from './validation-error.util.js';
+import { toErrorDetailsFromStandardSchemaIssues } from './validation-error.util.js';
 import { createCategorySchema } from '../../modules/category/dto/category.schema.js';
 import {
   createProductSchema,
@@ -14,96 +10,7 @@ import { RoastLevel } from '../../modules/product/enums/product.enum.js';
 import { ProductUnit } from '../../modules/product-variant/enums/product-variant.enum.js';
 import { paginationQuerySchema } from '../dto/pagination.schema.js';
 import { idParamSchema } from '../dto/id-param.schema.js';
-
-describe('toErrorDetails', () => {
-  it('maps each constraint of a flat validation error into its own ErrorDetail', () => {
-    const errors: ValidationError[] = [
-      Object.assign(new ValidationError(), {
-        property: 'name',
-        constraints: {
-          isString: 'name must be a string',
-          isNotEmpty: 'name should not be empty',
-        },
-      }),
-    ];
-
-    const result = toErrorDetails(errors);
-
-    expect(result).toEqual([
-      {
-        errCode: 'isString',
-        field: 'name',
-        message: 'name must be a string',
-        description: 'name must be a string',
-      },
-      {
-        errCode: 'isNotEmpty',
-        field: 'name',
-        message: 'name should not be empty',
-        description: 'name should not be empty',
-      },
-    ]);
-  });
-
-  it('maps multiple top-level errors, each keeping its own field', () => {
-    const errors: ValidationError[] = [
-      Object.assign(new ValidationError(), {
-        property: 'name',
-        constraints: { isString: 'name must be a string' },
-      }),
-      Object.assign(new ValidationError(), {
-        property: 'email',
-        constraints: { isEmail: 'email must be an email' },
-      }),
-    ];
-
-    const result = toErrorDetails(errors);
-
-    expect(result).toEqual([
-      {
-        errCode: 'isString',
-        field: 'name',
-        message: 'name must be a string',
-        description: 'name must be a string',
-      },
-      {
-        errCode: 'isEmail',
-        field: 'email',
-        message: 'email must be an email',
-        description: 'email must be an email',
-      },
-    ]);
-  });
-
-  it('flattens nested children errors with a dotted field path', () => {
-    const errors: ValidationError[] = [
-      Object.assign(new ValidationError(), {
-        property: 'address',
-        children: [
-          Object.assign(new ValidationError(), {
-            property: 'city',
-            constraints: { isString: 'city must be a string' },
-          }),
-        ],
-      }),
-    ];
-
-    const result = toErrorDetails(errors);
-
-    expect(result).toEqual([
-      {
-        errCode: 'isString',
-        field: 'address.city',
-        message: 'city must be a string',
-        description: 'city must be a string',
-      },
-    ]);
-  });
-
-  it('returns an empty array for no validation errors', () => {
-    expect(toErrorDetails([])).toEqual([]);
-  });
-});
+import { createUserSchema } from '../../modules/user/dto/user.schema.js';
 
 describe('toErrorDetailsFromStandardSchemaIssues (Standard Schema pilot: createCategorySchema)', () => {
   const validate = async (input: unknown) =>
@@ -317,6 +224,15 @@ describe('toErrorDetailsFromStandardSchemaIssues (migrated schemas)', () => {
           message: `Unit must be one of the following values: ${Object.values(ProductUnit).join(', ')}`,
         },
       ],
+      [
+        'a name over the max length',
+        { ...validProduct, name: 'a'.repeat(101) },
+        {
+          errCode: 'maxLength',
+          field: 'name',
+          message: 'Name must be shorter than or equal to 100 characters',
+        },
+      ],
     ])('maps %s', async (_name, input, expected) => {
       expect(await errorsFor(createProductSchema, input)).toEqual([expected]);
     });
@@ -463,5 +379,75 @@ describe('toErrorDetailsFromStandardSchemaIssues (migrated schemas)', () => {
         { errCode: 'isUuid', field: 'id', message: 'Id must be a UUID' },
       ]);
     });
+  });
+
+  describe('createUserSchema', () => {
+    it('falls back to the raw Zod code for a format with no dedicated mapping', async () => {
+      expect(
+        await errorsFor(createUserSchema, {
+          clerkId: 'clerk-1',
+          email: 'not-an-email',
+          firstName: 'Baseline',
+          lastName: 'User',
+        }),
+      ).toEqual([
+        {
+          errCode: 'invalid_format',
+          field: 'email',
+          message: 'Invalid email address',
+        },
+      ]);
+    });
+  });
+});
+
+// None of this project's Zod schemas produce these shapes — Zod always sets `code`
+// and a plain string/number `path`. These cover the parts of the mapper that exist
+// only to satisfy the wider Standard Schema spec (object-shaped path segments, no
+// `path`, no `code`), using issue literals instead of a real schema failure.
+describe('toErrorDetailsFromStandardSchemaIssues (spec-compliance edge cases)', () => {
+  it('reads the key off an object-shaped path segment', () => {
+    const issues: StandardSchemaV1.Issue[] = [
+      { code: 'custom', path: [{ key: 'name' }], message: 'Bad name' } as never,
+    ];
+
+    expect(toErrorDetailsFromStandardSchemaIssues(issues)).toEqual([
+      {
+        errCode: 'custom',
+        field: 'name',
+        message: 'Bad name',
+        description: 'Bad name',
+      },
+    ]);
+  });
+
+  it('defaults the field to an empty string when the issue has no path', () => {
+    const issues: StandardSchemaV1.Issue[] = [
+      { message: 'Root-level failure' },
+    ];
+
+    expect(toErrorDetailsFromStandardSchemaIssues(issues)).toEqual([
+      {
+        errCode: 'invalid',
+        field: '',
+        message: 'Root-level failure',
+        description: 'Root-level failure',
+      },
+    ]);
+  });
+
+  it('falls back to the joined path when every segment is an array index', () => {
+    const issues: StandardSchemaV1.Issue[] = [
+      { code: 'custom', path: [0], message: 'Bad root item' } as never,
+    ];
+
+    expect(toErrorDetailsFromStandardSchemaIssues(issues)).toEqual([
+      {
+        errCode: 'custom',
+        field: '0',
+        message: 'Bad root item',
+        description: 'Bad root item',
+      },
+    ]);
   });
 });

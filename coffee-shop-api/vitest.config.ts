@@ -1,5 +1,5 @@
 import swc from 'unplugin-swc';
-import { defineConfig } from 'vitest/config';
+import { coverageConfigDefaults, defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
@@ -10,7 +10,19 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reportsDirectory: './coverage',
-      include: ['./src/**/*.(t|j)s'],
+      include: [
+        './src/**/controllers/**/*.ts',
+        './src/**/services/**/*.ts',
+        './src/common/**/**/*.ts',
+      ],
+      exclude: [
+        ...coverageConfigDefaults.exclude,
+        'src/app.module.ts',
+        'src/main.ts',
+        'src/migrations/**',
+        'src/configs/**',
+        'src/common/repositories/**',
+      ],
     },
   },
   plugins: [swc.vite()],
