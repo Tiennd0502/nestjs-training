@@ -13,6 +13,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from '@/components/ui/sidebar'
 import { DASHBOARD_DISABLED_HINT, DASHBOARD_MENU } from '@/constants/nav'
 import { ROUTES } from '@/constants/routes'
@@ -22,6 +23,13 @@ import { Button } from '../ui/button'
 
 const Sidebar = () => {
   const pathname = usePathname()
+  const { isMobile, setOpenMobile } = useSidebar()
+
+  const handleMenuItemClick = () => {
+    if (isMobile) {
+      setOpenMobile(false)
+    }
+  }
 
   return (
     <>
@@ -73,6 +81,7 @@ const Sidebar = () => {
                               className="h-12 w-full rounded-full px-4"
                               href={item.href}
                               aria-current={isActive ? 'page' : undefined}
+                              onClick={handleMenuItemClick}
                             />
                           )
                         }
