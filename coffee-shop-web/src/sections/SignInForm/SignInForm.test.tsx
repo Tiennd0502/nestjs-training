@@ -158,6 +158,9 @@ jest.mock('@clerk/elements/common', () => ({
       {children}
     </Link>
   ),
+  GlobalError: ({ className }: { className?: string }) => (
+    <div data-testid="clerk-global-error" className={className} />
+  ),
 }))
 
 describe('SignInForm', () => {

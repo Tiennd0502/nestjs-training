@@ -103,6 +103,8 @@ const SignInForm = () => {
                             </p>
                           </div>
 
+                          <Clerk.GlobalError className="block rounded-xs border border-error/30 bg-error-container px-4 py-3 text-sm text-on-error-container" />
+
                           <div className="space-y-6">
                             <ClerkField
                               required
