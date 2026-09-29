@@ -120,6 +120,21 @@ describe('CategoryController (e2e)', () => {
         .get(`${API_BASE_PATH}/categories/00000000-0000-0000-0000-000000000000`)
         .expect(404);
     });
+
+    it('GET /categories/:id responds 400 for a malformed id', async () => {
+      const response = await request(app.getHttpServer())
+        .get(`${API_BASE_PATH}/categories/not-a-uuid`)
+        .expect(400);
+
+      const body = response.body as {
+        statusCode: number;
+        errors: Array<{ errCode: string }>;
+      };
+      expect(body.statusCode).toBe(400);
+      expect(body.errors).toEqual([
+        expect.objectContaining({ errCode: 'invalidRequest' }),
+      ]);
+    });
   });
 
   describe('mutating routes without a Clerk session', () => {
@@ -233,6 +248,19 @@ describe('CategoryController (e2e)', () => {
         .get(`${API_BASE_PATH}/categories/${category.id}`)
         .expect(404);
     });
+
+    it.each(['patch', 'delete'] as const)(
+      '%s /categories/:id responds 400 for a malformed id',
+      async (method) => {
+        const admin = await createTestUser(UserRole.ADMIN);
+        mockSessionFor(admin.clerkId);
+
+        await request(app.getHttpServer())
+          [method](`${API_BASE_PATH}/categories/not-a-uuid`)
+          .send({ name: 'Whatever' })
+          .expect(400);
+      },
+    );
 
     it('GET /categories includes soft-deleted rows for an ADMIN caller', async () => {
       const admin = await createTestUser(UserRole.ADMIN);

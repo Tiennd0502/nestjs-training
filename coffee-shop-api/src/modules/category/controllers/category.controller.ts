@@ -21,16 +21,19 @@ import { CategoryService } from '../services/category.service.js';
 import {
   createCategorySchema,
   type CreateCategoryInput,
-} from '../dto/create-category.schema.js';
-import {
   updateCategorySchema,
   type UpdateCategoryInput,
-} from '../dto/update-category.schema.js';
+} from '../dto/category.schema.js';
 import { ResponseCategoryDto } from '../dto/response-category.dto.js';
+import { PaginatedResult } from '../../../common/dto/pagination.dto.js';
 import {
-  PaginationQueryDto,
-  PaginatedResult,
-} from '../../../common/dto/pagination.dto.js';
+  idParamSchema,
+  type IdParam,
+} from '../../../common/dto/id-param.schema.js';
+import {
+  paginationQuerySchema,
+  type PaginationQueryInput,
+} from '../../../common/dto/pagination.schema.js';
 import { AuthGuard } from '../../../common/guards/auth.guard.js';
 import { RolesGuard } from '../../../common/guards/roles.guard.js';
 import { Roles } from '../../../common/decorators/roles.decorator.js';
@@ -61,7 +64,7 @@ export class CategoryController {
     ERROR_MESSAGES.EXCEPTION.VALIDATION_FAILED,
   )
   async findAll(
-    @Query() query: PaginationQueryDto,
+    @Query({ schema: paginationQuerySchema }) query: PaginationQueryInput,
     @AuthUser() user?: User,
   ): Promise<PaginatedResult<ResponseCategoryDto>> {
     const result = await this.categoryService.findAll(query, {
@@ -81,7 +84,7 @@ export class CategoryController {
   @ApiDataResponse(HttpStatus.OK, ResponseCategoryDto)
   @ApiErrorResponse(HttpStatus.NOT_FOUND, ERROR_MESSAGES.CATEGORY.NOT_FOUND)
   async findOne(
-    @Param('id') id: string,
+    @Param({ schema: idParamSchema }) { id }: IdParam,
     @AuthUser() user?: User,
   ): Promise<ResponseCategoryDto> {
     const category = await this.categoryService.findOne(id, {
@@ -132,7 +135,7 @@ export class CategoryController {
   @ApiErrorResponse(HttpStatus.NOT_FOUND, ERROR_MESSAGES.CATEGORY.NOT_FOUND)
   @ApiErrorResponse(HttpStatus.CONFLICT, ERROR_MESSAGES.CATEGORY.NAME_EXISTS)
   async update(
-    @Param('id') id: string,
+    @Param({ schema: idParamSchema }) { id }: IdParam,
     @Body({ schema: updateCategorySchema }) dto: UpdateCategoryInput,
   ): Promise<ResponseCategoryDto> {
     const category = await this.categoryService.update(id, dto);
@@ -152,7 +155,9 @@ export class CategoryController {
   )
   @ApiErrorResponse(HttpStatus.FORBIDDEN, ERROR_MESSAGES.AUTH.FORBIDDEN)
   @ApiErrorResponse(HttpStatus.NOT_FOUND, ERROR_MESSAGES.CATEGORY.NOT_FOUND)
-  async remove(@Param('id') id: string): Promise<void> {
+  async remove(
+    @Param({ schema: idParamSchema }) { id }: IdParam,
+  ): Promise<void> {
     await this.categoryService.remove(id);
   }
 }

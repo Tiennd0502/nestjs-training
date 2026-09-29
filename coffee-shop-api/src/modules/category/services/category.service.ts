@@ -1,12 +1,11 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Category } from '../entities/category.entity.js';
-import type { CreateCategoryInput } from '../dto/create-category.schema.js';
-import type { UpdateCategoryInput } from '../dto/update-category.schema.js';
-import {
-  CATEGORY_REPOSITORY,
-  type CategoryRepository,
-  type FindOptions,
-} from '../repositories/category-repository.interface.js';
+import type {
+  CreateCategoryInput,
+  UpdateCategoryInput,
+} from '../dto/category.schema.js';
+import { CategoryRepository } from '../repositories/category.repository.js';
+import type { FindOptions } from '../../../common/interfaces/repository-options.interface.js';
 import {
   ERROR_MESSAGES,
   ERROR_DESCRIPTIONS,
@@ -22,10 +21,7 @@ import {
 
 @Injectable()
 export class CategoryService {
-  constructor(
-    @Inject(CATEGORY_REPOSITORY)
-    private readonly categoryRepository: CategoryRepository,
-  ) {}
+  constructor(private readonly categoryRepository: CategoryRepository) {}
 
   async create(dto: CreateCategoryInput): Promise<Category> {
     const existing = await this.categoryRepository.findByName(dto.name, {
