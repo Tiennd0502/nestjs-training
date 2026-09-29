@@ -1,23 +1,28 @@
 # Coffee Shop API
 
-A NestJS backend for a coffee shop ordering system — Clerk-authenticated users, role-based
+A NestJS backend for a coffee shop catalog — Clerk-authenticated users, role-based
 access (Admin/User), and catalog management (categories, products, variants, images) backed by
 PostgreSQL via MikroORM.
 
+**Live:** [Website](https://nestjs-training-weld.vercel.app/) ·
+[API Swagger](https://nestjs-training-develop.onrender.com/api/docs)
+
 ## Tech Stack
 
-| Layer               | Choice                          |
-| -------------------- | -------------------------------- |
-| Runtime               | [Node.js](https://nodejs.org) v24 |
-| Language              | [TypeScript](https://www.typescriptlang.org) v5 |
-| Framework             | [NestJS](https://nestjs.com) v11 |
-| Authentication        | [Clerk](https://clerk.com) v2   |
-| Database              | [PostgreSQL](https://www.postgresql.org) v18 |
-| ORM                    | [MikroORM](https://mikro-orm.io) v6 |
-| Unit testing           | [Jest](https://jestjs.io) v30   |
-| E2E testing            | [Supertest](https://github.com/ladjs/supertest) v7 |
-| API documentation      | [Swagger / OpenAPI](https://swagger.io)|
-| Containerization       | [Docker](https://www.docker.com) + [Docker Compose](https://docs.docker.com/compose/) |
+| Layer             | Choice                                                                                               |
+| ----------------- | ---------------------------------------------------------------------------------------------------- |
+| Runtime           | [Node.js](https://nodejs.org) v24 (ESM)                                                              |
+| Language          | [TypeScript](https://www.typescriptlang.org) v6                                                      |
+| Framework         | [NestJS](https://nestjs.com) v12                                                                     |
+| Authentication    | [Clerk](https://clerk.com) (`@clerk/express` v2) + [Svix](https://www.svix.com) webhook verification |
+| Database          | [PostgreSQL](https://www.postgresql.org) v18                                                         |
+| ORM               | [MikroORM](https://mikro-orm.io) v7                                                                  |
+| Validation        | [Zod](https://zod.dev) v4 (request schemas) + class-validator (env)                                  |
+| Unit testing      | [Vitest](https://vitest.dev) v5                                                                      |
+| E2E testing       | [Vitest](https://vitest.dev) v5 + [Supertest](https://github.com/ladjs/supertest) v7                 |
+| API documentation | [Swagger / OpenAPI](https://swagger.io)                                                              |
+| Observability     | [`@nestjs/observe`](https://www.npmjs.com/package/@nestjs/observe) (non-production only)             |
+| Containerization  | [Docker](https://www.docker.com) + [Docker Compose](https://docs.docker.com/compose/)                |
 
 ## Features
 
@@ -28,17 +33,23 @@ PostgreSQL via MikroORM.
 - **User sync** — Clerk webhooks (`user.created` / `user.updated` / `user.deleted`,
   signature-verified, idempotent) keep PostgreSQL in sync with Clerk.
 - **Authorization** — role-based access control with two roles: **Admin** (manager, full CRUD on
-  users/categories/products) and **User** (barista, read-only).
+  users/categories/products) and **User** (barista, read-only: own profile via `/users/me`;
+  catalog reads are public). Admin `role`/`status` changes are pushed to Clerk first and written
+  back to PostgreSQL by the `user.updated` webhook.
 
 ### Catalog Management
 
-- **User management** — CRUD with search by name/email, status filter, and pagination.
-- **Category management** — CRUD, search by name.
-- **Product management** — CRUD with multiple images per product (client uploads to ImgBB, backend
-  only stores/validates the resulting URL) and one or more variants per product; filter by
-  category, status, roast level (one or more), and price range (matches if any variant falls in
-  range), search by name/slug, sort by name or price (each product's minimum variant price),
-  pagination; soft-delete to preserve references from historical orders.
+- **User management** — CRUD with search by email/first name/last name, role filter, and
+  pagination; the list excludes the requesting admin.
+- **Category management** — CRUD, unique name with auto-generated slug, search by name/slug.
+- **Product management** — CRUD with up to 6 images per product, at most 1 primary (client
+  uploads to ImgBB, backend only stores/validates the resulting URL), managed on update via
+  `removeImageIds` / `updateImages` / `addImages`; one or more variants per product (SKU,
+  weight + unit, price, optional discount, `quantity`); filter by category, status, roast level
+  (one or more), and price range (matches if any variant falls in range), search by name/slug,
+  sort by name or price (each product's minimum variant price), pagination.
+- **Soft delete** — every entity has `deletedAt`; deleted rows are hidden by default and visible
+  to active admins. Deleting a product sets it to `ARCHIVED`; deleting a user sets it to `INACTIVE`.
 
 ### Cross-cutting
 
@@ -46,8 +57,10 @@ PostgreSQL via MikroORM.
 - CORS allow-list
 - Helmet security headers
 - Rate limiting
-- Consistent HTTP error responses
-- Swagger-documented API
+- Consistent HTTP responses (`{ data }` / `{ data, meta }`) and errors
+  (`{ statusCode, message, errors[] }`)
+- Zod request validation with field-level error details (e.g. `variants.0.weight`)
+- Swagger-documented API (disabled when `NODE_ENV=production`)
 
 ## Project Structure
 
@@ -58,33 +71,35 @@ src/
     enums/                  shared enums (UserRole, UserStatus, ...)
     constants/              non-secret default values (DEFAULT_PORT, ...) and ERROR_MESSAGES
     guards/                 HTTP guards (AuthGuard, RolesGuard)
-    decorators/             param/route decorators (AuthUser, Roles)
+    decorators/             AdminOnly, AuthUser, Roles, Swagger response decorators
     middlewares/            ClerkAuthMiddleware, UserResolutionMiddleware
-    providers/              ClerkAuthProvider
+    providers/              AuthProvider (abstract) + ClerkAuthProvider
     interceptors/           TransformResponseInterceptor (wraps controller results in { data })
-    dto/                    shared request DTOs (PaginationQueryDto)
-    interfaces/             shared TS interfaces (pagination result shapes)
-    utils/                  small pure helpers (e.g. slug derivation)
-  configs/                  env validation, mikro-orm.config.ts, cors/rate-limit config
+    filters/                GlobalExceptionFilter (uniform error body)
+    exceptions/             DomainException subclasses (validation, not found, duplicate, ...)
+    repositories/           BaseRepository (the only MikroORM-aware layer: find, paginate, soft delete)
+    dto/                    shared schemas/DTOs (pagination, id param, error shape)
+    interfaces/             shared TS interfaces (repository options)
+    utils/                  small pure helpers (slug, pagination, validation-error mapping)
+  configs/                  env validation, mikro-orm, cors, rate-limit, swagger, validation-pipe,
+                            observe config
   modules/<feature>/        feature modules (user, category, product, product-image,
                             product-variant, webhook all implemented)
-    controllers/            HTTP layer
-    services/               business logic, depends on the repository port (not MikroORM directly)
-    repositories/           repository interface (port) + MikroORM adapter (the only MikroORM import)
+    controllers/            HTTP layer (product-image/product-variant are managed via product)
+    services/               business logic, depends on the feature repository
+    repositories/           extends BaseRepository with feature queries
     entities/               MikroORM entity for this feature
-    dto/                    class-validator request/response shapes
+    dto/                    Zod request schemas (*.schema.ts) + response DTOs
     <feature>.module.ts     wires entity, repository, service, controller
   migrations/               MikroORM migrations (mikro-orm migration:create/up/down)
-  app.module.ts             composition root
-  main.ts                   bootstrap: Helmet, CORS, global ValidationPipe, listen
+  app.module.ts             composition root: global guard, interceptor, filter, pipes, middlewares
+  main.ts                   bootstrap: Helmet, CORS, /api prefix, URI versioning, Swagger, listen
 test/
-  app.e2e-spec.ts           e2e smoke test for AppController
-  user.e2e-spec.ts          e2e coverage for /users
-  category.e2e-spec.ts      e2e coverage for /categories
-  product.e2e-spec.ts       e2e coverage for /products
-  webhook.e2e-spec.ts       e2e coverage for /webhooks/clerk
+  e2e/                      e2e specs: category, product, user, webhook, global exception filter
+  utils/                    test app bootstrap + API path helpers
+  setup-env.ts              loads .env.test before any app module is imported
+  reset-test-db.ts          truncates the test database before each e2e run
 ```
-
 
 ## ENTITY RELATIONSHIP DIAGRAM(ERD)
 
@@ -168,20 +183,20 @@ erDiagram
 
 ## API ENDPOINTS
 
-> Base path: `/api/v1` - API docs `/api/api-docs`.
+> Base path: `/api/v1` - API docs `/api/docs` (non-production only).
 >
 > **Auth:** 🔓 Public · 🔒 Authenticated (Clerk session token) · 👑 Admin
 
 ### Users
 
-| Method   | Path         | Auth | Description                    |
-| :------- | :----------- | :--- | :----------------------------- |
-| `GET`    | `/me`        | 🔒   | Get authenticated user profile |
-| `GET`    | `/users`     | 👑   | List all users                 |
-| `GET`    | `/users/:id` | 👑   | Get user by ID                 |
-| `POST`   | `/users`     | 👑   | Create user                    |
-| `PATCH`  | `/users/:id` | 👑   | Update user                    |
-| `DELETE` | `/users/:id` | 👑   | Soft-delete user               |
+| Method   | Path         | Auth | Description                                  |
+| :------- | :----------- | :--- | :------------------------------------------- |
+| `GET`    | `/users/me`  | 🔒   | Get authenticated user profile               |
+| `GET`    | `/users`     | 👑   | List users (search, role filter, pagination) |
+| `GET`    | `/users/:id` | 👑   | Get user by ID                               |
+| `POST`   | `/users`     | 👑   | Create user                                  |
+| `PATCH`  | `/users/:id` | 👑   | Update user                                  |
+| `DELETE` | `/users/:id` | 👑   | Soft-delete user                             |
 
 ### Categories
 
@@ -195,14 +210,21 @@ erDiagram
 
 ### Products
 
-| Method   | Path            | Auth | Description                                                    |
-| :------- | :-------------- | :--- | :------------------------------------------------------------- |
+| Method   | Path            | Auth | Description                                                                                              |
+| :------- | :-------------- | :--- | :------------------------------------------------------------------------------------------------------- |
 | `GET`    | `/products`     | 🔓   | List products (filter by category/status/roastLevel/price range, sort by name/price, search, pagination) |
-| `GET`    | `/products/:id` | 🔓   | Get product by ID                                              |
-| `POST`   | `/products`     | 👑   | Create product                                                 |
-| `PATCH`  | `/products/:id` | 👑   | Update product                                                 |
-| `DELETE` | `/products/:id` | 👑   | Soft-delete product                                            |
+| `GET`    | `/products/:id` | 🔓   | Get product by ID                                                                                        |
+| `POST`   | `/products`     | 👑   | Create product (optionally with images and variants)                                                     |
+| `PATCH`  | `/products/:id` | 👑   | Update product (add/update/remove images)                                                                |
+| `DELETE` | `/products/:id` | 👑   | Archive + soft-delete product                                                                            |
 
+### Webhooks
+
+Not under `/api/v1` and excluded from Swagger.
+
+| Method | Path              | Auth           | Description                                                      |
+| :----- | :---------------- | :------------- | :--------------------------------------------------------------- |
+| `POST` | `/webhooks/clerk` | Svix signature | Sync `user.created` / `user.updated` / `user.deleted` from Clerk |
 
 ## Getting Started
 
@@ -223,7 +245,8 @@ pnpm install
 
 cp .env.example .env   # then fill in real values
 
-docker compose up -d postgres   # start PostgreSQL only, app runs on the host
+# start PostgreSQL only (dev override exposes its port), app runs on the host
+docker compose --env-file .env -f docker-compose.yml -f docker-compose.dev.yml up -d postgres
 
 pnpm run migration:up
 
@@ -236,21 +259,23 @@ pnpm run start:dev
 itself inside Docker) and fill in real values. All variables below are validated at startup
 (`src/configs/env.validation.ts`) — the app refuses to boot if any required one is missing.
 
-| Variable                | Description                                      |
-| ------------------------ | ------------------------------------------------- |
-| `NODE_ENV`                | `development` \| `test` \| `production`          |
-| `PORT`                     | HTTP port the API listens on                     |
-| `DB_HOST`                  | PostgreSQL host                                  |
-| `DB_PORT`                  | PostgreSQL port                                  |
-| `DB_NAME`                  | PostgreSQL database name                         |
-| `DB_USER`                  | PostgreSQL user                                  |
-| `DB_PASSWORD`              | PostgreSQL password                              |
-| `CORS_ORIGIN`              | Allow-listed origin(s) for CORS                  |
-| `THROTTLE_TTL`             | Rate-limit window, in milliseconds               |
-| `THROTTLE_LIMIT`           | Max requests per IP per `THROTTLE_TTL` window    |
-| `CLERK_SECRET_KEY`         | Clerk backend secret key                         |
-| `CLERK_PUBLISHABLE_KEY`    | Clerk publishable key                            |
-| `CLERK_WEBHOOK_SECRET`     | Clerk webhook signing secret                 |
+| Variable                | Description                                   |
+| ----------------------- | --------------------------------------------- |
+| `NODE_ENV`              | `development` \| `test` \| `production`       |
+| `PORT`                  | HTTP port the API listens on                  |
+| `DB_HOST`               | PostgreSQL host                               |
+| `DB_PORT`               | PostgreSQL port                               |
+| `DB_NAME`               | PostgreSQL database name                      |
+| `DB_USER`               | PostgreSQL user                               |
+| `DB_PASSWORD`           | PostgreSQL password                           |
+| `CORS_ORIGIN`           | Allow-listed origin(s) for CORS               |
+| `THROTTLE_TTL`          | Rate-limit window, in milliseconds            |
+| `THROTTLE_LIMIT`        | Max requests per IP per `THROTTLE_TTL` window |
+| `CLERK_SECRET_KEY`      | Clerk backend secret key                      |
+| `CLERK_PUBLISHABLE_KEY` | Clerk publishable key                         |
+| `CLERK_WEBHOOK_SECRET`  | Clerk webhook signing secret                  |
+| `APP_KEY`               | Nest Observe app key                          |
+| `APP_SECRET`            | Nest Observe app secret                       |
 
 ### Running Locally
 
@@ -277,20 +302,22 @@ pnpm run docker:prod:down
 ## Database & Migrations
 
 MikroORM config is centralized in `src/configs/mikro-orm.config.ts` and entity paths are
-auto-discovered via glob (`src/**/*.entity.ts`) — no manual entity registration needed. Schema
-changes are managed exclusively through migrations; automatic schema synchronization is never used
-in production.
+auto-discovered via glob (`src/**/*.entity.ts`, `dist/**/*.entity.js` when compiled) — no manual
+entity registration needed. Schema changes are managed exclusively through migrations; automatic
+schema synchronization is never used in production.
 
 ```bash
 pnpm run migration:create   # generate a new migration from entity changes
 pnpm run migration:up       # apply pending migrations
 pnpm run migration:down     # revert the last migration
+pnpm run seeder:create      # scaffold a seeder in src/seeders
+pnpm run seeder:run         # run seeders
 ```
 
 ## Testing
 
 ```bash
-pnpm run test          # unit tests
+pnpm run test          # unit tests (Vitest, *.spec.ts next to the source)
 pnpm run test:watch
 pnpm run test:cov
 pnpm run test:e2e      # e2e tests (requires a reachable PostgreSQL — e.g. `pnpm run docker:dev`)
@@ -298,7 +325,9 @@ pnpm run test:e2e      # e2e tests (requires a reachable PostgreSQL — e.g. `pn
 
 `test:e2e` boots the full app, so it needs its own database, separate from the one `start:dev`
 uses — otherwise e2e runs would create/soft-delete real-looking rows in your dev database.
-`test/setup-env.js` (wired in via `test/jest-e2e.json`'s `setupFiles`) loads `.env.test` before
+Its `pretest:e2e` hook (`test/reset-test-db.ts`) truncates every table in that database except
+the migrations table before each run.
+`test/setup-env.ts` (wired in via `vitest.config.e2e.ts`'s `setupFiles`) loads `.env.test` before
 any application module is imported, so by the time `src/configs/mikro-orm.config.ts`'s own
 `dotenv/config` runs, the DB/Clerk variables are already set and it's a no-op for those keys
 (`dotenv` never overrides an already-set variable) — `src/` itself stays unaware that a "test env"
