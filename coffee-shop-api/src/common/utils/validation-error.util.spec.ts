@@ -5,6 +5,13 @@ import {
   toErrorDetailsFromStandardSchemaIssues,
 } from './validation-error.util.js';
 import { createCategorySchema } from '../../modules/category/dto/category.schema.js';
+import {
+  createProductSchema,
+  updateProductSchema,
+  productQuerySchema,
+} from '../../modules/product/dto/product.schema.js';
+import { RoastLevel } from '../../modules/product/enums/product.enum.js';
+import { ProductUnit } from '../../modules/product-variant/enums/product-variant.enum.js';
 import { paginationQuerySchema } from '../dto/pagination.schema.js';
 import { idParamSchema } from '../dto/id-param.schema.js';
 
@@ -156,6 +163,14 @@ describe('toErrorDetailsFromStandardSchemaIssues (Standard Schema pilot: createC
 
 describe('toErrorDetailsFromStandardSchemaIssues (migrated schemas)', () => {
   const uuid = '11111111-1111-4111-8111-111111111111';
+  const unit = Object.values(ProductUnit)[0];
+  const validVariant = { sku: 'S1', weight: 1, unit, price: 2 };
+  const validProduct = {
+    categoryId: uuid,
+    name: 'Espresso',
+    variants: [validVariant],
+  };
+  const roastLevels = Object.values(RoastLevel).join(', ');
 
   const run = (schema: StandardSchemaV1, input: unknown) =>
     Promise.resolve(schema['~standard'].validate(input));
@@ -166,6 +181,240 @@ describe('toErrorDetailsFromStandardSchemaIssues (migrated schemas)', () => {
       ({ errCode, field, message }) => ({ errCode, field, message }),
     );
   };
+
+  describe('createProductSchema', () => {
+    it('accepts a valid product and hands variants over with string decimals', async () => {
+      const result = await run(createProductSchema, {
+        ...validProduct,
+        variants: [{ ...validVariant, weight: 1.5, discountValue: '2' }],
+      });
+
+      expect(result.issues).toBeUndefined();
+      expect(
+        (result as { value: { variants: unknown[] } }).value.variants,
+      ).toEqual([
+        { ...validVariant, weight: '1.5', price: '2', discountValue: '2' },
+      ]);
+    });
+
+    it('accepts null for the nullable text columns', async () => {
+      const result = await run(createProductSchema, {
+        ...validProduct,
+        description: null,
+        roastLevel: null,
+        tastingNotes: null,
+        origin: null,
+        processingMethod: null,
+      });
+
+      expect(result.issues).toBeUndefined();
+    });
+
+    it.each([
+      [
+        'a malformed categoryId',
+        { ...validProduct, categoryId: 'x' },
+        {
+          errCode: 'isUuid',
+          field: 'categoryId',
+          message: 'CategoryId must be a UUID',
+        },
+      ],
+      [
+        'a UUID-shaped categoryId with an invalid version',
+        { ...validProduct, categoryId: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' },
+        {
+          errCode: 'isUuid',
+          field: 'categoryId',
+          message: 'CategoryId must be a UUID',
+        },
+      ],
+      [
+        'an unknown roastLevel',
+        { ...validProduct, roastLevel: 'BURNT' },
+        {
+          errCode: 'isEnum',
+          field: 'roastLevel',
+          message: `RoastLevel must be one of the following values: ${roastLevels}`,
+        },
+      ],
+      [
+        'a non-boolean flag',
+        { ...validProduct, isOrganic: 'yes' },
+        {
+          errCode: 'isBoolean',
+          field: 'isOrganic',
+          message: 'IsOrganic must be a boolean value',
+        },
+      ],
+      [
+        'images that are not an array',
+        { ...validProduct, images: 'x' },
+        {
+          errCode: 'isArray',
+          field: 'images',
+          message: 'Images must be an array',
+        },
+      ],
+      [
+        'more than six images',
+        {
+          ...validProduct,
+          images: Array(7).fill({ url: 'https://example.com/a.png' }),
+        },
+        {
+          errCode: 'arrayMaxSize',
+          field: 'images',
+          message: 'Images must contain no more than 6 elements',
+        },
+      ],
+      [
+        'an image with a bad url',
+        { ...validProduct, images: [{ url: 'nope' }] },
+        {
+          errCode: 'isUrl',
+          field: 'images.0.url',
+          message: 'Url must be a URL address',
+        },
+      ],
+      [
+        'a negative image sortOrder',
+        {
+          ...validProduct,
+          images: [{ url: 'https://example.com/a.png', sortOrder: -1 }],
+        },
+        {
+          errCode: 'min',
+          field: 'images.0.sortOrder',
+          message: 'SortOrder must not be less than 0',
+        },
+      ],
+      [
+        'a zero variant weight',
+        { ...validProduct, variants: [{ ...validVariant, weight: 0 }] },
+        {
+          errCode: 'isPositive',
+          field: 'variants.0.weight',
+          message: 'Weight must be a positive number',
+        },
+      ],
+      [
+        'a non-numeric variant price',
+        { ...validProduct, variants: [{ ...validVariant, price: 'abc' }] },
+        {
+          errCode: 'isNumber',
+          field: 'variants.0.price',
+          message:
+            'Price must be a number conforming to the specified constraints',
+        },
+      ],
+      [
+        'an unknown variant unit',
+        { ...validProduct, variants: [{ ...validVariant, unit: 'XX' }] },
+        {
+          errCode: 'isEnum',
+          field: 'variants.0.unit',
+          message: `Unit must be one of the following values: ${Object.values(ProductUnit).join(', ')}`,
+        },
+      ],
+    ])('maps %s', async (_name, input, expected) => {
+      expect(await errorsFor(createProductSchema, input)).toEqual([expected]);
+    });
+  });
+
+  describe('updateProductSchema', () => {
+    it('accepts an empty body and null to clear a nullable column', async () => {
+      expect((await run(updateProductSchema, {})).issues).toBeUndefined();
+      expect(
+        (await run(updateProductSchema, { description: null })).issues,
+      ).toBeUndefined();
+    });
+
+    it('accepts the image change lists', async () => {
+      const result = await run(updateProductSchema, {
+        removeImageIds: [uuid],
+        updateImages: [{ id: uuid, isPrimary: true }],
+        addImages: [{ url: 'https://example.com/a.png' }],
+      });
+
+      expect(result.issues).toBeUndefined();
+    });
+
+    it.each([
+      [
+        'a removed image id that is not a UUID',
+        { removeImageIds: ['x'] },
+        {
+          errCode: 'isUuid',
+          field: 'removeImageIds.0',
+          message: 'RemoveImageIds must be a UUID',
+        },
+      ],
+      [
+        'an image patch without an id',
+        { updateImages: [{ isPrimary: true }] },
+        {
+          errCode: 'isNotEmpty',
+          field: 'updateImages.0.id',
+          message: 'Id should not be empty',
+        },
+      ],
+      [
+        'an added image with a bad url',
+        { addImages: [{ url: 'nope' }] },
+        {
+          errCode: 'isUrl',
+          field: 'addImages.0.url',
+          message: 'Url must be a URL address',
+        },
+      ],
+    ])('maps %s', async (_name, input, expected) => {
+      expect(await errorsFor(updateProductSchema, input)).toEqual([expected]);
+    });
+
+    it('drops images and variants, which are only accepted on create', async () => {
+      const result = await run(updateProductSchema, {
+        name: 'Renamed',
+        images: [{ url: 'nope' }],
+      });
+
+      expect((result as { value: object }).value).toEqual({ name: 'Renamed' });
+    });
+  });
+
+  describe('productQuerySchema', () => {
+    it('splits a comma-separated roastLevel into an array', async () => {
+      const result = await run(productQuerySchema, {
+        roastLevel: 'LIGHT,DARK',
+      });
+
+      expect(
+        (result as { value: { roastLevel: string[] } }).value.roastLevel,
+      ).toEqual(['LIGHT', 'DARK']);
+    });
+
+    it('reports an unknown roastLevel value on the roastLevel field', async () => {
+      expect(
+        await errorsFor(productQuerySchema, { roastLevel: 'BURNT' }),
+      ).toEqual([
+        {
+          errCode: 'isEnum',
+          field: 'roastLevel.0',
+          message: `RoastLevel must be one of the following values: ${roastLevels}`,
+        },
+      ]);
+    });
+
+    it('maps a negative minPrice to min', async () => {
+      expect(await errorsFor(productQuerySchema, { minPrice: '-1' })).toEqual([
+        {
+          errCode: 'min',
+          field: 'minPrice',
+          message: 'MinPrice must not be less than 0',
+        },
+      ]);
+    });
+  });
 
   describe('paginationQuerySchema', () => {
     it.each([

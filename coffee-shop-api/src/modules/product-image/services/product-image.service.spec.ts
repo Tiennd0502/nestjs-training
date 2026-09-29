@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
 import { ProductImageService } from './product-image.service.js';
 import { ProductImage } from '../entities/product-image.entity.js';
-import { PRODUCT_IMAGE_REPOSITORY } from '../repositories/product-image-repository.interface.js';
+import { ProductImageRepository } from '../repositories/product-image.repository.js';
 
 import type { Mock } from 'vitest';
 describe('ProductImageService', () => {
@@ -37,7 +37,7 @@ describe('ProductImageService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ProductImageService,
-        { provide: PRODUCT_IMAGE_REPOSITORY, useValue: productImageRepository },
+        { provide: ProductImageRepository, useValue: productImageRepository },
       ],
     }).compile();
 

@@ -58,6 +58,7 @@ export class ResponseProductDto {
     dto.deletedAt = product.deletedAt;
     dto.images = product.images
       .getItems()
+      .filter((image) => !image.deletedAt)
       .map((image) => ResponseProductImageDto.fromEntity(image));
     dto.variants = product.variants
       .getItems()

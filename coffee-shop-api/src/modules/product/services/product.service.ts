@@ -1,60 +1,38 @@
 import {
+  BadRequestException,
   ConflictException,
-  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { Product } from '../entities/product.entity.js';
 import { ProductStatus } from '../enums/product.enum.js';
 import {
-  CreateProductData,
-  PRODUCT_REPOSITORY,
-  type FindOptions,
+  type CreateProductInput,
+  type UpdateProductInput,
   type ProductFilters,
-  type ProductRepository,
-} from '../repositories/product-repository.interface.js';
+} from '../dto/product.schema.js';
+import { ProductRepository } from '../repositories/product.repository.js';
+import type { FindOptions } from '../../../common/interfaces/repository-options.interface.js';
 import { ERROR_MESSAGES } from '../../../common/constants/message.constant.js';
+import { VALIDATION_RULES } from '../../../common/constants/validation.constant.js';
 import { PaginatedResult } from '../../../common/dto/pagination.dto.js';
 import { QueryParams } from '../../../common/dto/query-params.dto.js';
 import { slugFrom } from '../../../common/utils/slug.util.js';
 import { CategoryService } from '../../category/services/category.service.js';
+import { ProductImage } from '../../product-image/entities/product-image.entity.js';
 import { ProductImageService } from '../../product-image/services/product-image.service.js';
-import { CreateProductImageData } from '../../product-image/repositories/product-image-repository.interface.js';
 import { ProductVariantService } from '../../product-variant/services/product-variant.service.js';
-import { CreateProductVariantData } from '../../product-variant/repositories/product-variant-repository.interface.js';
-
-export interface CreateProductWithCatalogData extends Omit<
-  CreateProductData,
-  'slug'
-> {
-  images?: Omit<CreateProductImageData, 'productId'>[];
-  variants?: Omit<CreateProductVariantData, 'productId' | 'name'>[];
-}
-
-export interface UpdateProductData {
-  categoryId?: string;
-  name?: string;
-  description?: string | null;
-  roastLevel?: CreateProductData['roastLevel'];
-  isOrganic?: boolean;
-  isFairTrade?: boolean;
-  status?: CreateProductData['status'];
-  tastingNotes?: string | null;
-  origin?: string | null;
-  processingMethod?: string | null;
-}
 
 @Injectable()
 export class ProductService {
   constructor(
-    @Inject(PRODUCT_REPOSITORY)
     private readonly productRepository: ProductRepository,
     private readonly categoryService: CategoryService,
     private readonly productImageService: ProductImageService,
     private readonly productVariantService: ProductVariantService,
   ) {}
 
-  async create(data: CreateProductWithCatalogData): Promise<Product> {
+  async create(data: CreateProductInput): Promise<Product> {
     const { images = [], variants = [], ...productData } = data;
 
     const existing = await this.productRepository.findByName(productData.name, {
@@ -107,7 +85,7 @@ export class ProductService {
     return product;
   }
 
-  async update(id: string, data: UpdateProductData): Promise<Product> {
+  async update(id: string, data: UpdateProductInput): Promise<Product> {
     const product = await this.findOne(id);
 
     if (data.name !== undefined && data.name !== product.name) {
@@ -119,12 +97,19 @@ export class ProductService {
       }
     }
 
-    const { categoryId, ...rest } = data;
+    const { categoryId, removeImageIds, updateImages, addImages, ...rest } =
+      data;
 
     if (categoryId !== undefined && categoryId !== product.category.id) {
       await this.categoryService.findOne(categoryId);
       product.category = categoryId as unknown as Product['category'];
     }
+
+    this.applyImageChanges(product, {
+      removeImageIds,
+      updateImages,
+      addImages,
+    });
 
     Object.assign(
       product,
@@ -146,5 +131,88 @@ export class ProductService {
     product.deletedAt = new Date();
     product.status = ProductStatus.ARCHIVED;
     await this.productRepository.save(product);
+  }
+
+  /**
+   * Applies remove, update, then add on the product's images. The resulting
+   * set is checked first (ids belong to the product, at most MAX_COUNT images,
+   * at most one primary) and only then are the images changed, so a rejected
+   * request leaves the product untouched. The changes are persisted together
+   * with the product by the caller's single save.
+   */
+  private applyImageChanges(
+    product: Product,
+    {
+      removeImageIds = [],
+      updateImages = [],
+      addImages = [],
+    }: Pick<
+      UpdateProductInput,
+      'removeImageIds' | 'updateImages' | 'addImages'
+    >,
+  ): void {
+    if (!removeImageIds.length && !updateImages.length && !addImages.length) {
+      return;
+    }
+
+    const current = product.images
+      .getItems()
+      .filter((image) => !image.deletedAt);
+    const removing = new Set(removeImageIds);
+    this.assertImagesBelong(removeImageIds, current);
+
+    const remaining = current.filter((image) => !removing.has(image.id));
+    this.assertImagesBelong(
+      updateImages.map((patch) => patch.id),
+      remaining,
+    );
+
+    const patchById = new Map(updateImages.map((patch) => [patch.id, patch]));
+
+    const maxCount = VALIDATION_RULES.IMAGE.MAX_COUNT;
+    if (remaining.length + addImages.length > maxCount) {
+      throw new BadRequestException(
+        ERROR_MESSAGES.PRODUCT.TOO_MANY_IMAGES(maxCount),
+      );
+    }
+
+    const primaryCount =
+      remaining.filter(
+        (image) => patchById.get(image.id)?.isPrimary ?? image.isPrimary,
+      ).length + addImages.filter((image) => image.isPrimary).length;
+    if (primaryCount > 1) {
+      throw new BadRequestException(
+        ERROR_MESSAGES.PRODUCT.MULTIPLE_PRIMARY_IMAGES,
+      );
+    }
+
+    const removedAt = new Date();
+    for (const image of current) {
+      if (removing.has(image.id)) image.deletedAt = removedAt;
+    }
+
+    for (const image of remaining) {
+      const patch = patchById.get(image.id);
+      if (!patch) continue;
+      if (patch.url !== undefined) image.url = patch.url;
+      if (patch.isPrimary !== undefined) image.isPrimary = patch.isPrimary;
+      if (patch.sortOrder !== undefined) image.sortOrder = patch.sortOrder;
+    }
+
+    for (const data of addImages) {
+      const image = new ProductImage();
+      image.product = product;
+      image.url = data.url;
+      image.isPrimary = data.isPrimary ?? false;
+      image.sortOrder = data.sortOrder ?? 0;
+      product.images.add(image);
+    }
+  }
+
+  private assertImagesBelong(ids: string[], images: ProductImage[]): void {
+    const known = new Set(images.map((image) => image.id));
+    if (ids.some((id) => !known.has(id))) {
+      throw new BadRequestException(ERROR_MESSAGES.PRODUCT.INVALID_IMAGE_IDS);
+    }
   }
 }

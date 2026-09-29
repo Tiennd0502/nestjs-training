@@ -1,0 +1,33 @@
+import { Injectable } from '@nestjs/common';
+import { ProductVariant } from '../entities/product-variant.entity.js';
+import type { CreateProductVariantInput } from '../dto/product-variant.schema.js';
+import { BaseRepository } from '../../../common/repositories/base.repository.js';
+
+@Injectable()
+export class ProductVariantRepository extends BaseRepository<ProductVariant> {
+  protected readonly entity = ProductVariant;
+
+  findBySku(sku: string): Promise<ProductVariant | null> {
+    return this.findOneBy({ sku });
+  }
+
+  findAllByProduct(productId: string): Promise<ProductVariant[]> {
+    return this.findMany({ where: { product: productId } });
+  }
+
+  create(
+    data: CreateProductVariantInput & { productId: string; name: string },
+  ): Promise<ProductVariant> {
+    return this.createAndSave({
+      product: data.productId,
+      sku: data.sku,
+      weight: data.weight,
+      unit: data.unit,
+      name: data.name,
+      price: data.price,
+      discountType: data.discountType ?? null,
+      discountValue: data.discountValue ?? null,
+      quantity: data.quantity,
+    });
+  }
+}

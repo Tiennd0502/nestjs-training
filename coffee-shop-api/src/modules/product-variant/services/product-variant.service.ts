@@ -1,29 +1,13 @@
 import {
   ConflictException,
-  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { ProductVariant } from '../entities/product-variant.entity.js';
-import {
-  CreateProductVariantData,
-  PRODUCT_VARIANT_REPOSITORY,
-  type ProductVariantRepository,
-} from '../repositories/product-variant-repository.interface.js';
+import type { CreateProductVariantInput } from '../dto/product-variant.schema.js';
+import { ProductVariantRepository } from '../repositories/product-variant.repository.js';
 import { ERROR_MESSAGES } from '../../../common/constants/message.constant.js';
-import { DiscountType, ProductUnit } from '../enums/product-variant.enum.js';
-
-export type CreateProductVariantInput = Omit<CreateProductVariantData, 'name'>;
-
-export interface UpdateProductVariantData {
-  sku?: string;
-  weight?: string;
-  unit?: ProductUnit;
-  price?: string;
-  discountType?: DiscountType | null;
-  discountValue?: string | null;
-  quantity?: number;
-}
+import type { ProductUnit } from '../enums/product-variant.enum.js';
 
 const variantNameFrom = (weight: string, unit: ProductUnit): string =>
   `${weight}${unit}`;
@@ -31,11 +15,12 @@ const variantNameFrom = (weight: string, unit: ProductUnit): string =>
 @Injectable()
 export class ProductVariantService {
   constructor(
-    @Inject(PRODUCT_VARIANT_REPOSITORY)
     private readonly productVariantRepository: ProductVariantRepository,
   ) {}
 
-  async create(data: CreateProductVariantInput): Promise<ProductVariant> {
+  async create(
+    data: CreateProductVariantInput & { productId: string },
+  ): Promise<ProductVariant> {
     const existing = await this.productVariantRepository.findBySku(data.sku);
     if (existing) {
       throw new ConflictException(ERROR_MESSAGES.PRODUCT_VARIANT.SKU_EXISTS);
@@ -62,7 +47,7 @@ export class ProductVariantService {
 
   async update(
     id: string,
-    data: UpdateProductVariantData,
+    data: Partial<CreateProductVariantInput>,
   ): Promise<ProductVariant> {
     const variant = await this.findOne(id);
 

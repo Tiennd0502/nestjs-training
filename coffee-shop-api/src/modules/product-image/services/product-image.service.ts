@@ -1,20 +1,18 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { ProductImage } from '../entities/product-image.entity.js';
-import {
-  CreateProductImageData,
-  PRODUCT_IMAGE_REPOSITORY,
-  type ProductImageRepository,
-} from '../repositories/product-image-repository.interface.js';
+import type { CreateProductImageInput } from '../dto/product-image.schema.js';
+import { ProductImageRepository } from '../repositories/product-image.repository.js';
 import { ERROR_MESSAGES } from '../../../common/constants/message.constant.js';
 
 @Injectable()
 export class ProductImageService {
   constructor(
-    @Inject(PRODUCT_IMAGE_REPOSITORY)
     private readonly productImageRepository: ProductImageRepository,
   ) {}
 
-  create(data: CreateProductImageData): Promise<ProductImage> {
+  create(
+    data: CreateProductImageInput & { productId: string },
+  ): Promise<ProductImage> {
     return this.productImageRepository.create(data);
   }
 
