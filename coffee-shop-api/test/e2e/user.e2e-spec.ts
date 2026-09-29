@@ -149,6 +149,7 @@ describe('UserController auth (e2e)', () => {
       expect(response.body).toEqual({
         data: {
           id: user.id,
+          clerkId: user.clerkId,
           email: user.email,
           firstName: user.firstName,
           lastName: user.lastName,
@@ -185,6 +186,34 @@ describe('UserController auth (e2e)', () => {
       const body = response.body as { data: Array<{ id: string }> };
       const ids = body.data.map((u) => u.id);
       expect(ids).not.toContain(admin.id);
+    });
+
+    it('GET /users?role= filters the results by role', async () => {
+      const admin = await createTestUser({ role: UserRole.ADMIN });
+      const otherAdmin = await createTestUser({ role: UserRole.ADMIN });
+      const regularUser = await createTestUser({ role: UserRole.USER });
+      mockSessionFor(admin.clerkId);
+
+      const response = await request(app.getHttpServer())
+        .get(`${API_BASE_PATH}/users?role=ADMIN&limit=100`)
+        .expect(200);
+
+      const body = response.body as {
+        data: Array<{ id: string; role: string }>;
+      };
+      const ids = body.data.map((u) => u.id);
+      expect(ids).toContain(otherAdmin.id);
+      expect(ids).not.toContain(regularUser.id);
+      expect(body.data.every((u) => u.role === 'ADMIN')).toBe(true);
+    });
+
+    it('GET /users?role= responds 400 for an unknown role', async () => {
+      const admin = await createTestUser({ role: UserRole.ADMIN });
+      mockSessionFor(admin.clerkId);
+
+      await request(app.getHttpServer())
+        .get(`${API_BASE_PATH}/users?role=SUPERUSER`)
+        .expect(400);
     });
 
     it('GET /users includes a soft-deleted user', async () => {

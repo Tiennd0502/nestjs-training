@@ -13,7 +13,7 @@ describe('UserController', () => {
     create: Mock;
     findAll: Mock;
     findOne: Mock;
-    update: Mock;
+    updateByAdmin: Mock;
     remove: Mock;
   };
 
@@ -37,7 +37,7 @@ describe('UserController', () => {
       create: vi.fn(),
       findAll: vi.fn(),
       findOne: vi.fn(),
-      update: vi.fn(),
+      updateByAdmin: vi.fn(),
       remove: vi.fn(),
     };
 
@@ -75,11 +75,15 @@ describe('UserController', () => {
       const meta = { limit: 10, currentPage: 1, pageCount: 1, totalCount: 1 };
       userService.findAll.mockResolvedValue({ data: [user], meta });
 
-      const result = await controller.findAll({ page: 1, limit: 10 }, user);
+      const result = await controller.findAll(
+        { page: 1, limit: 10, role: UserRole.ADMIN },
+        user,
+      );
 
       expect(userService.findAll).toHaveBeenCalledWith(
-        { page: 1, limit: 10 },
-        { includeDeleted: true, excludeUserId: user.id },
+        { page: 1, limit: 10, search: undefined },
+        { role: UserRole.ADMIN },
+        { includeDeleted: true, excludeId: user.id },
       );
       expect(result).toEqual({
         data: [ResponseUserDto.fromEntity(user)],
@@ -109,7 +113,7 @@ describe('UserController', () => {
     it('delegates to UserService.findOne', async () => {
       userService.findOne.mockResolvedValue(user);
 
-      const result = await controller.findOne('user-id-1');
+      const result = await controller.findOne({ id: 'user-id-1' });
 
       expect(userService.findOne).toHaveBeenCalledWith('user-id-1', {
         includeDeleted: true,
@@ -120,29 +124,29 @@ describe('UserController', () => {
     it('propagates NotFoundException', async () => {
       userService.findOne.mockRejectedValue(new NotFoundException());
 
-      await expect(controller.findOne('missing-id')).rejects.toBeInstanceOf(
-        NotFoundException,
-      );
+      await expect(
+        controller.findOne({ id: 'missing-id' }),
+      ).rejects.toBeInstanceOf(NotFoundException);
     });
   });
 
   describe('update', () => {
-    it('delegates to UserService.update', async () => {
+    it('delegates to UserService.updateByAdmin', async () => {
       const dto = { firstName: 'Janet' };
       const updatedUser = { ...user, firstName: 'Janet' };
-      userService.update.mockResolvedValue(updatedUser);
+      userService.updateByAdmin.mockResolvedValue(updatedUser);
 
-      const result = await controller.update('user-id-1', dto);
+      const result = await controller.update({ id: 'user-id-1' }, dto);
 
-      expect(userService.update).toHaveBeenCalledWith('user-id-1', dto);
+      expect(userService.updateByAdmin).toHaveBeenCalledWith('user-id-1', dto);
       expect(result).toEqual(ResponseUserDto.fromEntity(updatedUser));
     });
 
     it('propagates NotFoundException', async () => {
-      userService.update.mockRejectedValue(new NotFoundException());
+      userService.updateByAdmin.mockRejectedValue(new NotFoundException());
 
       await expect(
-        controller.update('missing-id', { firstName: 'Janet' }),
+        controller.update({ id: 'missing-id' }, { firstName: 'Janet' }),
       ).rejects.toBeInstanceOf(NotFoundException);
     });
   });
@@ -151,7 +155,7 @@ describe('UserController', () => {
     it('delegates to UserService.remove', async () => {
       userService.remove.mockResolvedValue(undefined);
 
-      await controller.remove('user-id-1');
+      await controller.remove({ id: 'user-id-1' });
 
       expect(userService.remove).toHaveBeenCalledWith('user-id-1');
     });
@@ -159,9 +163,9 @@ describe('UserController', () => {
     it('propagates NotFoundException', async () => {
       userService.remove.mockRejectedValue(new NotFoundException());
 
-      await expect(controller.remove('missing-id')).rejects.toBeInstanceOf(
-        NotFoundException,
-      );
+      await expect(
+        controller.remove({ id: 'missing-id' }),
+      ).rejects.toBeInstanceOf(NotFoundException);
     });
   });
 });

@@ -2,7 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UserService } from './user.service.js';
 import { User } from '../entities/user.entity.js';
 import { UserRole, UserStatus } from '../../../common/enums/user.enum.js';
-import { USER_REPOSITORY } from '../repositories/user-repository.interface.js';
+import { AuthProvider } from '../../../common/providers/auth.provider.js';
+import { UserRepository } from '../repositories/user.repository.js';
 import type { Mock } from 'vitest';
 import {
   DuplicateResourceException,
@@ -12,6 +13,7 @@ import {
 
 describe('UserService', () => {
   let service: UserService;
+  let authProvider: { syncUserRole: Mock; syncUserStatus: Mock };
   let userRepository: {
     findById: Mock;
     findByEmail: Mock;
@@ -38,6 +40,7 @@ describe('UserService', () => {
   });
 
   beforeEach(async () => {
+    authProvider = { syncUserRole: vi.fn(), syncUserStatus: vi.fn() };
     userRepository = {
       findById: vi.fn(),
       findByEmail: vi.fn(),
@@ -50,7 +53,8 @@ describe('UserService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         UserService,
-        { provide: USER_REPOSITORY, useValue: userRepository },
+        { provide: UserRepository, useValue: userRepository },
+        { provide: AuthProvider, useValue: authProvider },
       ],
     }).compile();
 
@@ -79,6 +83,27 @@ describe('UserService', () => {
 
       expect(userRepository.create).toHaveBeenCalledWith(dto);
       expect(result).toBe(created);
+    });
+
+    it('checks duplicates including soft-deleted rows, since the unique constraints span them', async () => {
+      userRepository.findByEmail.mockResolvedValue(null);
+      userRepository.findByClerkId.mockResolvedValue(null);
+      userRepository.create.mockResolvedValue(buildUser());
+
+      await service.create({
+        clerkId: 'clerk-1',
+        email: 'jane@example.com',
+        firstName: 'Jane',
+        lastName: 'Doe',
+      });
+
+      expect(userRepository.findByEmail).toHaveBeenCalledWith(
+        'jane@example.com',
+        { includeDeleted: true },
+      );
+      expect(userRepository.findByClerkId).toHaveBeenCalledWith('clerk-1', {
+        includeDeleted: true,
+      });
     });
 
     it('throws DuplicateResourceException on duplicate email', async () => {
@@ -129,11 +154,13 @@ describe('UserService', () => {
 
       const result = await service.findAll(
         { page: 1, limit: 10 },
+        { role: UserRole.ADMIN },
         { includeDeleted: true },
       );
 
       expect(userRepository.findAll).toHaveBeenCalledWith(
         { page: 1, limit: 10 },
+        { role: UserRole.ADMIN },
         { includeDeleted: true },
       );
       expect(result).toBe(paginatedUsers);
@@ -239,6 +266,91 @@ describe('UserService', () => {
         service.update('missing-id', { firstName: 'Janet' }),
       ).rejects.toBeInstanceOf(ItemNotFoundException);
       expect(userRepository.save).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('updateByAdmin', () => {
+    it('pushes a status change to the auth provider and does not write it to the DB', async () => {
+      const user = buildUser();
+      userRepository.findById.mockResolvedValue(user);
+
+      const result = await service.updateByAdmin('user-id-1', {
+        status: UserStatus.INACTIVE,
+      });
+
+      expect(authProvider.syncUserStatus).toHaveBeenCalledWith(
+        'clerk-1',
+        UserStatus.INACTIVE,
+      );
+      expect(user.status).toBe(UserStatus.ACTIVE);
+      expect(userRepository.save).not.toHaveBeenCalled();
+      expect(result).toBe(user);
+    });
+
+    it('pushes a role change to the auth provider and does not write it to the DB', async () => {
+      const user = buildUser();
+      userRepository.findById.mockResolvedValue(user);
+
+      await service.updateByAdmin('user-id-1', { role: UserRole.ADMIN });
+
+      expect(authProvider.syncUserRole).toHaveBeenCalledWith(
+        'clerk-1',
+        UserRole.ADMIN,
+      );
+      expect(user.role).toBe(UserRole.USER);
+      expect(userRepository.save).not.toHaveBeenCalled();
+    });
+
+    it('skips the auth provider when role and status are unchanged', async () => {
+      const user = buildUser();
+      userRepository.findById.mockResolvedValue(user);
+
+      await service.updateByAdmin('user-id-1', {
+        role: UserRole.USER,
+        status: UserStatus.ACTIVE,
+      });
+
+      expect(authProvider.syncUserRole).not.toHaveBeenCalled();
+      expect(authProvider.syncUserStatus).not.toHaveBeenCalled();
+    });
+
+    it('writes profile fields locally alongside a provider-synced status', async () => {
+      const user = buildUser();
+      userRepository.findById.mockResolvedValue(user);
+
+      await service.updateByAdmin('user-id-1', {
+        firstName: 'Janet',
+        status: UserStatus.INACTIVE,
+      });
+
+      expect(authProvider.syncUserStatus).toHaveBeenCalled();
+      expect(user.firstName).toBe('Janet');
+      expect(user.status).toBe(UserStatus.ACTIVE);
+      expect(userRepository.save).toHaveBeenCalledWith(user);
+    });
+
+    it('does not write to the DB when the auth provider call fails', async () => {
+      const user = buildUser();
+      userRepository.findById.mockResolvedValue(user);
+      authProvider.syncUserStatus.mockRejectedValue(new Error('clerk down'));
+
+      await expect(
+        service.updateByAdmin('user-id-1', {
+          firstName: 'Janet',
+          status: UserStatus.INACTIVE,
+        }),
+      ).rejects.toThrow('clerk down');
+      expect(user.firstName).toBe('Jane');
+      expect(userRepository.save).not.toHaveBeenCalled();
+    });
+
+    it('throws ItemNotFoundException for a missing id', async () => {
+      userRepository.findById.mockResolvedValue(null);
+
+      await expect(
+        service.updateByAdmin('missing-id', { status: UserStatus.INACTIVE }),
+      ).rejects.toBeInstanceOf(ItemNotFoundException);
+      expect(authProvider.syncUserStatus).not.toHaveBeenCalled();
     });
   });
 

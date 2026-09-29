@@ -4,6 +4,7 @@ import { User } from '../entities/user.entity.js';
 
 export class ResponseUserDto {
   id!: string;
+  clerkId!: string;
   email!: string;
   firstName!: string;
   lastName!: string;
@@ -23,6 +24,7 @@ export class ResponseUserDto {
   static fromEntity(user: User): ResponseUserDto {
     const dto = new ResponseUserDto();
     dto.id = user.id;
+    dto.clerkId = user.clerkId;
     dto.email = user.email;
     dto.firstName = user.firstName;
     dto.lastName = user.lastName;

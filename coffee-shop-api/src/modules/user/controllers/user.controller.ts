@@ -18,13 +18,20 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { UserService } from '../services/user.service.js';
-import { CreateUserDto } from '../dto/create-user.dto.js';
-import { UpdateUserDto } from '../dto/update-user.dto.js';
-import { ResponseUserDto } from '../dto/response-user.dto.js';
 import {
-  PaginationQueryDto,
-  PaginatedResult,
-} from '../../../common/dto/pagination.dto.js';
+  userQuerySchema,
+  type UserQueryInput,
+  createUserSchema,
+  type CreateUserInput,
+  updateUserSchema,
+  type UpdateUserInput,
+} from '../dto/user.schema.js';
+import { ResponseUserDto } from '../dto/response-user.dto.js';
+import { PaginatedResult } from '../../../common/dto/pagination.dto.js';
+import {
+  idParamSchema,
+  type IdParam,
+} from '../../../common/dto/id-param.schema.js';
 import { AuthGuard } from '../../../common/guards/auth.guard.js';
 import { RolesGuard } from '../../../common/guards/roles.guard.js';
 import { Roles } from '../../../common/decorators/roles.decorator.js';
@@ -63,7 +70,9 @@ export class UserController {
     HttpStatus.CONFLICT,
     `${ERROR_MESSAGES.USER.EMAIL_EXISTS} / ${ERROR_MESSAGES.USER.CLERK_ID_EXISTS}`,
   )
-  async create(@Body() dto: CreateUserDto): Promise<ResponseUserDto> {
+  async create(
+    @Body({ schema: createUserSchema }) dto: CreateUserInput,
+  ): Promise<ResponseUserDto> {
     const user = await this.userService.create(dto);
     return ResponseUserDto.fromEntity(user);
   }
@@ -75,7 +84,7 @@ export class UserController {
   @ApiPaginatedResponse(ResponseUserDto)
   @ApiErrorResponse(
     HttpStatus.BAD_REQUEST,
-    ERROR_MESSAGES.USER.PAGE_OUT_OF_RANGE,
+    ERROR_MESSAGES.PAGINATION.PAGE_OUT_OF_RANGE,
   )
   @ApiErrorResponse(
     HttpStatus.UNAUTHORIZED,
@@ -83,13 +92,15 @@ export class UserController {
   )
   @ApiErrorResponse(HttpStatus.FORBIDDEN, ERROR_MESSAGES.AUTH.FORBIDDEN)
   async findAll(
-    @Query() query: PaginationQueryDto,
+    @Query({ schema: userQuerySchema }) query: UserQueryInput,
     @AuthUser() user: User,
   ): Promise<PaginatedResult<ResponseUserDto>> {
-    const result = await this.userService.findAll(query, {
-      includeDeleted: true,
-      excludeUserId: user.id,
-    });
+    const { page, limit, search, ...filters } = query;
+    const result = await this.userService.findAll(
+      { page, limit, search },
+      filters,
+      { includeDeleted: true, excludeId: user.id },
+    );
     return {
       data: result.data.map((user) => ResponseUserDto.fromEntity(user)),
       meta: result.meta,
@@ -121,7 +132,9 @@ export class UserController {
   )
   @ApiErrorResponse(HttpStatus.FORBIDDEN, ERROR_MESSAGES.AUTH.FORBIDDEN)
   @ApiErrorResponse(HttpStatus.NOT_FOUND, ERROR_MESSAGES.USER.NOT_FOUND)
-  async findOne(@Param('id') id: string): Promise<ResponseUserDto> {
+  async findOne(
+    @Param({ schema: idParamSchema }) { id }: IdParam,
+  ): Promise<ResponseUserDto> {
     const user = await this.userService.findOne(id, { includeDeleted: true });
     return ResponseUserDto.fromEntity(user);
   }
@@ -142,10 +155,10 @@ export class UserController {
   @ApiErrorResponse(HttpStatus.FORBIDDEN, ERROR_MESSAGES.AUTH.FORBIDDEN)
   @ApiErrorResponse(HttpStatus.NOT_FOUND, ERROR_MESSAGES.USER.NOT_FOUND)
   async update(
-    @Param('id') id: string,
-    @Body() dto: UpdateUserDto,
+    @Param({ schema: idParamSchema }) { id }: IdParam,
+    @Body({ schema: updateUserSchema }) dto: UpdateUserInput,
   ): Promise<ResponseUserDto> {
-    const user = await this.userService.update(id, dto);
+    const user = await this.userService.updateByAdmin(id, dto);
     return ResponseUserDto.fromEntity(user);
   }
 
@@ -161,7 +174,7 @@ export class UserController {
   )
   @ApiErrorResponse(HttpStatus.FORBIDDEN, ERROR_MESSAGES.AUTH.FORBIDDEN)
   @ApiErrorResponse(HttpStatus.NOT_FOUND, ERROR_MESSAGES.USER.NOT_FOUND)
-  remove(@Param('id') id: string): Promise<void> {
+  remove(@Param({ schema: idParamSchema }) { id }: IdParam): Promise<void> {
     return this.userService.remove(id);
   }
 }
