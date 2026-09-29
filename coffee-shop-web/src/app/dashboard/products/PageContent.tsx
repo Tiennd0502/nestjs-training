@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { Download, Plus, Printer } from 'lucide-react'
 import { toast } from 'sonner'
@@ -37,7 +37,13 @@ const ALL_CATEGORIES_VALUE = 'all-categories'
 export const PageContent = () => {
   const { state, update: updateUrl } = useUrlState(productUrlSchema)
   const { page, search, limit, categoryId, status } = state
-  const searchDebounceTimerRef = useRef<number | null>(null)
+  const searchInputRef = useRef<HTMLInputElement>(null)
+  const [searchInput, setSearchInput] = useState(search)
+  const updateUrlRef = useRef(updateUrl)
+  const urlSearchRef = useRef(search)
+  const lastUrlSearchSynced = useRef<string | null>(null)
+  updateUrlRef.current = updateUrl
+  urlSearchRef.current = search
   const [pendingDelete, setPendingDelete] = useState<Product | null>(null)
   const [deleteErrorMessage, setDeleteErrorMessage] = useState<string | null>(
     null,
@@ -87,17 +93,27 @@ export const PageContent = () => {
   const totalCount = meta?.totalCount ?? products.length
   const showingCount = products.length
 
-  const handleQueryChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const nextSearch = event.target.value
-
-    if (searchDebounceTimerRef.current !== null) {
-      window.clearTimeout(searchDebounceTimerRef.current)
+  useEffect(() => {
+    if (lastUrlSearchSynced.current === null) {
+      lastUrlSearchSynced.current = search
+      return
     }
+    if (search === lastUrlSearchSynced.current) return
+    lastUrlSearchSynced.current = search
+    if (searchInputRef.current === document.activeElement) return
+    setSearchInput(search)
+  }, [search])
 
-    searchDebounceTimerRef.current = window.setTimeout(() => {
-      if (nextSearch === search) return
-      updateUrl({ search: nextSearch, page: 1 })
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      if (searchInput === urlSearchRef.current) return
+      updateUrlRef.current({ search: searchInput, page: 1 })
     }, SEARCH_URL_DEBOUNCE_MS)
+    return () => window.clearTimeout(id)
+  }, [searchInput])
+
+  const handleQueryChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchInput(event.target.value)
   }
 
   const handleCategoryChange = (value: unknown) => {
@@ -199,7 +215,8 @@ export const PageContent = () => {
       <section className="overflow-hidden rounded-3xl border border-outline-variant/40 bg-card">
         <div className="flex min-w-0 flex-col gap-3 border-b border-outline-variant/30 p-4 md:flex-row md:flex-wrap md:items-center md:gap-3 lg:justify-between">
           <SearchInput
-            value={search}
+            ref={searchInputRef}
+            value={searchInput}
             onChange={handleQueryChange}
             placeholder="Filter by product name..."
             aria-label="Filter products by name"
