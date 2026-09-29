@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CategoryService } from './category.service.js';
 import { Category } from '../entities/category.entity.js';
-import { CATEGORY_REPOSITORY } from '../repositories/category-repository.interface.js';
+import { CategoryRepository } from '../repositories/category.repository.js';
 import type { Mock } from 'vitest';
 import {
   DuplicateResourceException,
@@ -40,7 +40,7 @@ describe('CategoryService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         CategoryService,
-        { provide: CATEGORY_REPOSITORY, useValue: categoryRepository },
+        { provide: CategoryRepository, useValue: categoryRepository },
       ],
     }).compile();
 

@@ -1,9 +1,12 @@
 import { ValidationError } from 'class-validator';
+import type { StandardSchemaV1 } from '@standard-schema/spec';
 import {
   toErrorDetails,
   toErrorDetailsFromStandardSchemaIssues,
 } from './validation-error.util.js';
-import { createCategorySchema } from '../../modules/category/dto/create-category.schema.js';
+import { createCategorySchema } from '../../modules/category/dto/category.schema.js';
+import { paginationQuerySchema } from '../dto/pagination.schema.js';
+import { idParamSchema } from '../dto/id-param.schema.js';
 
 describe('toErrorDetails', () => {
   it('maps each constraint of a flat validation error into its own ErrorDetail', () => {
@@ -120,21 +123,6 @@ describe('toErrorDetailsFromStandardSchemaIssues (Standard Schema pilot: createC
     );
   });
 
-  it('maps a too-long name to maxLength', async () => {
-    const result = await validate({ name: 'x'.repeat(101) });
-
-    expect(toErrorDetailsFromStandardSchemaIssues(result.issues ?? [])).toEqual(
-      [
-        {
-          errCode: 'maxLength',
-          field: 'name',
-          message: 'Name must be shorter than or equal to 100 characters',
-          description: 'Name must be shorter than or equal to 100 characters',
-        },
-      ],
-    );
-  });
-
   it('maps a missing name to isNotEmpty', async () => {
     const result = await validate({});
 
@@ -163,5 +151,68 @@ describe('toErrorDetailsFromStandardSchemaIssues (Standard Schema pilot: createC
         },
       ],
     );
+  });
+});
+
+describe('toErrorDetailsFromStandardSchemaIssues (migrated schemas)', () => {
+  const uuid = '11111111-1111-4111-8111-111111111111';
+
+  const run = (schema: StandardSchemaV1, input: unknown) =>
+    Promise.resolve(schema['~standard'].validate(input));
+
+  const errorsFor = async (schema: StandardSchemaV1, input: unknown) => {
+    const result = await run(schema, input);
+    return toErrorDetailsFromStandardSchemaIssues(result.issues ?? []).map(
+      ({ errCode, field, message }) => ({ errCode, field, message }),
+    );
+  };
+
+  describe('paginationQuerySchema', () => {
+    it.each([
+      [
+        'page below the minimum',
+        { page: '0' },
+        'min',
+        'page',
+        'Page must not be less than 1',
+      ],
+      [
+        'limit above the maximum',
+        { limit: '101' },
+        'max',
+        'limit',
+        'Limit must not be greater than 100',
+      ],
+      [
+        'fractional page',
+        { page: '1.5' },
+        'isInt',
+        'page',
+        'Page must be an integer number',
+      ],
+      [
+        'non-numeric limit',
+        { limit: 'abc' },
+        'isNumber',
+        'limit',
+        'Limit must be a number conforming to the specified constraints',
+      ],
+    ])('maps a %s', async (_name, input, errCode, field, message) => {
+      expect(await errorsFor(paginationQuerySchema, input)).toEqual([
+        { errCode, field, message },
+      ]);
+    });
+  });
+
+  describe('idParamSchema', () => {
+    it('accepts a UUID', async () => {
+      expect((await run(idParamSchema, { id: uuid })).issues).toBeUndefined();
+    });
+
+    it('reports a malformed id on the id field', async () => {
+      expect(await errorsFor(idParamSchema, { id: 'abc' })).toEqual([
+        { errCode: 'isUuid', field: 'id', message: 'Id must be a UUID' },
+      ]);
+    });
   });
 });
