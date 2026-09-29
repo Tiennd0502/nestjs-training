@@ -13,6 +13,7 @@ import {
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
+  ApiExcludeEndpoint,
   ApiNoContentResponse,
   ApiOperation,
   ApiTags,
@@ -51,6 +52,7 @@ export class UserController {
 
   @Post()
   @AdminOnly()
+  @ApiExcludeEndpoint()
   @ApiOperation({ summary: 'Create a user (admin only)' })
   @ApiDataResponse(HttpStatus.CREATED, ResponseUserDto)
   @ApiErrorResponse(
