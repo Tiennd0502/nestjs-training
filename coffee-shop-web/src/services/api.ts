@@ -78,10 +78,10 @@ export class ApiClient {
       const errorResponse = this.parseErrorResponse(body)
       if (errorResponse) {
         const first = errorResponse.errors?.[0]
-        const description = first?.description?.trim()
         const message = first?.message?.trim()
+        const description = first?.description?.trim()
         return {
-          message: description ?? message ?? errorResponse.message ?? fallback,
+          message: message ?? description ?? errorResponse.message ?? fallback,
           errorResponse,
         }
       }
