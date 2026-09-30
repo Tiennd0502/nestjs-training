@@ -81,12 +81,18 @@ export const Select = ({
           )}
           disabled={disabled}
         >
-          <SelectValue placeholder={placeholder}>{selectedLabel}</SelectValue>
+          <SelectValue className="min-w-0" placeholder={placeholder}>
+            <span className="truncate" title={selectedLabel}>
+              {selectedLabel ?? placeholder}
+            </span>
+          </SelectValue>
         </SelectTrigger>
         <SelectContent>
           {options.map((item) => (
             <SelectItem key={String(item.value)} value={String(item.value)}>
-              {item.label}
+              <span className="truncate" title={item.label}>
+                {item.label}
+              </span>
             </SelectItem>
           ))}
         </SelectContent>

@@ -88,7 +88,7 @@ const DropdownMenuItem = ({
     data-inset={inset}
     data-variant={variant}
     className={cn(
-      'relative flex cursor-default select-none items-center gap-1.5 rounded-sm px-1.5 py-1 text-sm text-on-surface outline-hidden transition-colors',
+      'relative flex cursor-pointer select-none items-center gap-1.5 rounded-sm px-1.5 py-1 text-sm text-on-surface outline-hidden transition-colors',
       'data-highlighted:bg-muted data-highlighted:text-on-surface',
       'data-disabled:pointer-events-none data-disabled:opacity-50',
       'data-inset:pl-7',
@@ -116,7 +116,7 @@ const DropdownMenuSubTrigger = ({
     data-slot="dropdown-menu-sub-trigger"
     data-inset={inset}
     className={cn(
-      'flex cursor-default select-none items-center gap-1.5 rounded-sm px-1.5 py-1 text-sm text-on-surface outline-hidden transition-colors',
+      'flex cursor-pointer select-none items-center gap-1.5 rounded-sm px-1.5 py-1 text-sm text-on-surface outline-hidden transition-colors',
       'data-highlighted:bg-muted data-highlighted:text-on-surface',
       'data-popup-open:bg-muted data-popup-open:text-on-surface data-open:bg-muted data-open:text-on-surface',
       'data-inset:pl-7',
@@ -167,7 +167,7 @@ const DropdownMenuCheckboxItem = ({
     data-slot="dropdown-menu-checkbox-item"
     data-inset={inset}
     className={cn(
-      'relative flex cursor-default select-none items-center gap-1.5 rounded-sm py-1 pr-8 pl-1.5 text-sm text-on-surface outline-hidden transition-colors',
+      'relative flex cursor-pointer select-none items-center gap-1.5 rounded-sm py-1 pr-8 pl-1.5 text-sm text-on-surface outline-hidden transition-colors',
       'data-highlighted:bg-muted data-highlighted:text-on-surface',
       'data-disabled:pointer-events-none data-disabled:opacity-50',
       'data-inset:pl-7',
@@ -205,7 +205,7 @@ const DropdownMenuRadioItem = ({
     data-slot="dropdown-menu-radio-item"
     data-inset={inset}
     className={cn(
-      'relative flex cursor-default select-none items-center gap-1.5 rounded-sm py-1 pr-8 pl-1.5 text-sm text-on-surface outline-hidden transition-colors',
+      'relative flex cursor-pointer select-none items-center gap-1.5 rounded-sm py-1 pr-8 pl-1.5 text-sm text-on-surface outline-hidden transition-colors',
       'data-highlighted:bg-muted data-highlighted:text-on-surface',
       'data-disabled:pointer-events-none data-disabled:opacity-50',
       'data-inset:pl-7',

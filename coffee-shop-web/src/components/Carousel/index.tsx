@@ -107,7 +107,7 @@ const Carousel = <T,>({
                 aria-label={`Show slide ${index + 1} of ${items.length}`}
                 onClick={() => scrollTo(index)}
                 className={cn(
-                  'relative size-20 shrink-0 overflow-hidden rounded-sm border-2 transition-colors md:size-24',
+                  'relative size-20 shrink-0 cursor-pointer overflow-hidden rounded-sm border-2 transition-colors md:size-24',
                   selected
                     ? 'border-primary ring-2 ring-primary/25'
                     : 'border-transparent opacity-90 hover:opacity-100',

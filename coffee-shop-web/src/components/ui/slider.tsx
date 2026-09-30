@@ -44,7 +44,7 @@ export const Slider = ({
       thumbAlignment="edge"
       {...props}
     >
-      <SliderPrimitive.Control className="relative flex w-full touch-none select-none items-center data-disabled:opacity-50 data-vertical:h-full data-vertical:min-h-40 data-vertical:w-auto data-vertical:flex-col">
+      <SliderPrimitive.Control className="relative flex w-full cursor-pointer touch-none select-none items-center data-disabled:cursor-not-allowed data-disabled:opacity-50 data-vertical:h-full data-vertical:min-h-40 data-vertical:w-auto data-vertical:flex-col">
         <SliderPrimitive.Track
           data-slot="slider-track"
           className="relative grow overflow-hidden rounded-full bg-border select-none data-horizontal:h-2 data-horizontal:w-full data-vertical:h-full data-vertical:w-2"
@@ -59,7 +59,7 @@ export const Slider = ({
             data-slot="slider-thumb"
             key={index}
             className={cn(
-              'relative box-border block size-4 shrink-0 rounded-full border-2 border-background',
+              'relative box-border block size-4 shrink-0 cursor-pointer rounded-full border-2 border-background',
               'bg-ring shadow-none dark:bg-muted-background',
               'outline-none transition-[border-color,box-shadow] select-none',
               'after:absolute after:-inset-2 after:content-[""]',

@@ -31,7 +31,7 @@ export const Checkbox = ({
         id={generatedId}
         data-slot="checkbox"
         className={cn(
-          'peer inline-flex size-5 shrink-0 items-center justify-center rounded-full border-2 border-transparent outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 data-unchecked:border-outline-variant data-unchecked:bg-card data-checked:border-primary data-checked:bg-primary data-disabled:cursor-not-allowed data-disabled:opacity-50 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 dark:data-unchecked:border-border',
+          'peer inline-flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-full border-2 border-transparent outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 data-unchecked:border-outline-variant data-unchecked:bg-card data-checked:border-primary data-checked:bg-primary data-disabled:cursor-not-allowed data-disabled:opacity-50 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 dark:data-unchecked:border-border',
           className,
         )}
         {...rootProps}
