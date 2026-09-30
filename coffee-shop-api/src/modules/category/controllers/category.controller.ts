@@ -36,9 +36,25 @@ import {
   ApiErrorResponse,
 } from '../../../common/decorators/api-response.decorator.js';
 import { User } from '../../user/entities/user.entity.js';
-import { ERROR_MESSAGES } from '../../../common/constants/message.constant.js';
+import {
+  ERROR_MESSAGES,
+  ERROR_DESCRIPTIONS,
+} from '../../../common/constants/message.constant.js';
+import { ERROR_CODES } from '../../../common/constants/error-code.constant.js';
 import { mapPaginatedResult } from '../../../common/utils/pagination.util.js';
 import { isActiveAdmin } from '../../../common/utils/user.util.js';
+
+const CATEGORY_NOT_FOUND_ERROR = {
+  errCode: ERROR_CODES.CATEGORY.NOT_FOUND,
+  field: 'id',
+  description: ERROR_DESCRIPTIONS.CATEGORY.NOT_FOUND,
+};
+
+const CATEGORY_NAME_EXISTS_ERROR = {
+  errCode: ERROR_CODES.CATEGORY.NAME_EXISTS,
+  field: 'name',
+  description: ERROR_DESCRIPTIONS.CATEGORY.NAME_EXISTS,
+};
 
 @ApiTags('categories')
 @Controller('categories')
@@ -68,7 +84,11 @@ export class CategoryController {
   @Get(':id')
   @ApiOperation({ summary: 'Get a category by id' })
   @ApiDataResponse(HttpStatus.OK, ResponseCategoryDto)
-  @ApiErrorResponse(HttpStatus.NOT_FOUND, ERROR_MESSAGES.CATEGORY.NOT_FOUND)
+  @ApiErrorResponse(
+    HttpStatus.NOT_FOUND,
+    ERROR_MESSAGES.CATEGORY.NOT_FOUND,
+    CATEGORY_NOT_FOUND_ERROR,
+  )
   async findOne(
     @Param({ schema: idParamSchema }) { id }: IdParam,
     @AuthUser() user?: User,
@@ -88,7 +108,11 @@ export class CategoryController {
     HttpStatus.BAD_REQUEST,
     ERROR_MESSAGES.EXCEPTION.VALIDATION_FAILED,
   )
-  @ApiErrorResponse(HttpStatus.CONFLICT, ERROR_MESSAGES.CATEGORY.NAME_EXISTS)
+  @ApiErrorResponse(
+    HttpStatus.CONFLICT,
+    ERROR_MESSAGES.CATEGORY.NAME_EXISTS,
+    CATEGORY_NAME_EXISTS_ERROR,
+  )
   async create(
     @Body({ schema: createCategorySchema }) dto: CreateCategoryInput,
   ): Promise<ResponseCategoryDto> {
@@ -104,8 +128,16 @@ export class CategoryController {
     HttpStatus.BAD_REQUEST,
     ERROR_MESSAGES.EXCEPTION.VALIDATION_FAILED,
   )
-  @ApiErrorResponse(HttpStatus.NOT_FOUND, ERROR_MESSAGES.CATEGORY.NOT_FOUND)
-  @ApiErrorResponse(HttpStatus.CONFLICT, ERROR_MESSAGES.CATEGORY.NAME_EXISTS)
+  @ApiErrorResponse(
+    HttpStatus.NOT_FOUND,
+    ERROR_MESSAGES.CATEGORY.NOT_FOUND,
+    CATEGORY_NOT_FOUND_ERROR,
+  )
+  @ApiErrorResponse(
+    HttpStatus.CONFLICT,
+    ERROR_MESSAGES.CATEGORY.NAME_EXISTS,
+    CATEGORY_NAME_EXISTS_ERROR,
+  )
   async update(
     @Param({ schema: idParamSchema }) { id }: IdParam,
     @Body({ schema: updateCategorySchema }) dto: UpdateCategoryInput,
@@ -119,7 +151,11 @@ export class CategoryController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete a category (admin only)' })
   @ApiNoContentResponse({ description: 'Category deleted' })
-  @ApiErrorResponse(HttpStatus.NOT_FOUND, ERROR_MESSAGES.CATEGORY.NOT_FOUND)
+  @ApiErrorResponse(
+    HttpStatus.NOT_FOUND,
+    ERROR_MESSAGES.CATEGORY.NOT_FOUND,
+    CATEGORY_NOT_FOUND_ERROR,
+  )
   async remove(
     @Param({ schema: idParamSchema }) { id }: IdParam,
   ): Promise<void> {
