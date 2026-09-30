@@ -268,7 +268,7 @@ describe('Dashboard products page', () => {
     renderProductsPage()
 
     expect(
-      screen.getByRole('heading', { name: 'Products' }),
+      screen.getByRole('heading', { name: 'Manage Products' }),
     ).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /add product/i })).toHaveAttribute(
       'href',

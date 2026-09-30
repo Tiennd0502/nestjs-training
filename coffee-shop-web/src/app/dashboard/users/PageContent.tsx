@@ -251,7 +251,7 @@ export const PageContent = () => {
               Manage Users
             </h1>
             <p className="text-lg text-muted-foreground">
-              Oversee your brewing staff and editorial curators.
+              Oversee your users and their roles.
             </p>
           </div>
         </div>

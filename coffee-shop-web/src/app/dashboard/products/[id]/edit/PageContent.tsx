@@ -650,7 +650,7 @@ const EditProductForm = ({ product, productId }: EditProductFormProps) => {
               <div className="flex items-center gap-3">
                 <button
                   type="button"
-                  className={`inline-flex h-12 items-center gap-2 rounded-full border px-5 text-xs font-semibold uppercase tracking-wider disabled:pointer-events-none disabled:opacity-50 ${
+                  className={`inline-flex h-12 cursor-pointer items-center gap-2 rounded-full border px-5 text-xs font-semibold uppercase tracking-wider disabled:pointer-events-none disabled:opacity-50 ${
                     watch('isOrganic')
                       ? 'border-primary bg-primary/10 text-primary'
                       : 'border-outline-variant/70 text-on-surface-variant'
@@ -667,7 +667,7 @@ const EditProductForm = ({ product, productId }: EditProductFormProps) => {
                 </button>
                 <button
                   type="button"
-                  className={`inline-flex h-12 items-center gap-2 rounded-full border px-5 text-xs font-semibold uppercase tracking-wider disabled:pointer-events-none disabled:opacity-50 ${
+                  className={`inline-flex h-12 cursor-pointer items-center gap-2 rounded-full border px-5 text-xs font-semibold uppercase tracking-wider disabled:pointer-events-none disabled:opacity-50 ${
                     watch('isFairTrade')
                       ? 'border-primary bg-primary/10 text-primary'
                       : 'border-outline-variant/70 text-on-surface-variant'
@@ -701,7 +701,7 @@ const EditProductForm = ({ product, productId }: EditProductFormProps) => {
                       <button
                         type="button"
                         aria-label={`Remove ${note}`}
-                        className="ml-1 rounded-full p-0.5 text-primary-foreground/90 hover:bg-primary-foreground/20 disabled:pointer-events-none disabled:opacity-50"
+                        className="ml-1 cursor-pointer rounded-full p-0.5 text-primary-foreground/90 hover:bg-primary-foreground/20 disabled:pointer-events-none disabled:opacity-50"
                         disabled={isSubmitting}
                         onClick={() =>
                           setTastingNotes((prev) =>

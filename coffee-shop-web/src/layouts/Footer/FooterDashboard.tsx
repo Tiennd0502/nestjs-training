@@ -5,7 +5,7 @@ import { ROUTES } from '@/constants/routes'
 
 const FooterDashboard = () => {
   return (
-    <div className="py-10 px-10 flex gap-6">
+    <div className="flex gap-6 px-6 py-10">
       <div className="flex ml-0 mr-auto min-w-0 flex-1 max-w-25 items-center">
         <Link
           href={ROUTES.HOME}

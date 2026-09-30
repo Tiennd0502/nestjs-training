@@ -25,7 +25,9 @@ export default function DashboardLayout({
         </ContainerSidebar>
         <SidebarInset className="relative h-full min-h-svh min-w-0 w-full bg-muted">
           <HeaderDashboard />
-          <div className="min-w-0 flex-1 p-6">{children}</div>
+          <div className="min-w-0 flex-1 p-6">
+            <div className="mx-auto w-full max-w-screen-2xl">{children}</div>
+          </div>
           <FooterDashboard />
         </SidebarInset>
       </SidebarProvider>

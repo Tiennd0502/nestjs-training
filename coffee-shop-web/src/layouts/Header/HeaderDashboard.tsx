@@ -20,7 +20,7 @@ const HeaderDashboard = ({ className }: HeaderDashboardProps) => {
   return (
     <header
       className={cn(
-        'sticky top-0 z-40 my-auto flex min-w-0 w-full max-h-fit flex-1 items-center justify-center gap-3 rounded-none border-b bg-background px-5 py-6 shadow-xl shadow-on-surface/5',
+        'sticky top-0 z-40 my-auto flex min-w-0 w-full max-h-fit flex-1 items-center justify-center gap-3 rounded-none border-b bg-background px-6 py-6 shadow-xl shadow-on-surface/5',
         className,
       )}
     >

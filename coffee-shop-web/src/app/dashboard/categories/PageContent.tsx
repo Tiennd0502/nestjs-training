@@ -148,7 +148,7 @@ export const PageContent = () => {
               Manage Categories
             </h1>
             <p className="text-lg text-muted-foreground">
-              Organize product taxonomy, slugs, and editorial groupings.
+              Organize product taxonomy, and editorial groupings.
             </p>
           </div>
         </div>

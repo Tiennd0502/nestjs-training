@@ -191,10 +191,10 @@ export const PageContent = () => {
           />
           <div className="space-y-2">
             <h1 className="text-5xl leading-tight font-bold tracking-tight text-foreground">
-              Products
+              Manage Products
             </h1>
             <p className="text-lg text-muted-foreground">
-              Oversee your catalog and inventory
+              Oversee your products and inventory
             </p>
           </div>
         </div>
@@ -213,16 +213,16 @@ export const PageContent = () => {
       </header>
 
       <section className="overflow-hidden rounded-3xl border border-outline-variant/40 bg-card">
-        <div className="flex min-w-0 flex-col gap-3 border-b border-outline-variant/30 p-4 md:flex-row md:flex-wrap md:items-center md:gap-3 lg:justify-between">
+        <div className="flex min-w-0 flex-col gap-3 border-b border-outline-variant/30 p-4 md:flex-row md:flex-wrap md:items-center md:gap-3">
           <SearchInput
             ref={searchInputRef}
             value={searchInput}
             onChange={handleQueryChange}
             placeholder="Filter by product name..."
             aria-label="Filter products by name"
-            containerClassName="h-12 bg-surface-container-high w-full md:w-auto md:min-w-0 md:max-w-md md:flex-1"
+            containerClassName="h-12 bg-surface-container-high w-full md:min-w-0 md:basis-full xl:basis-0 xl:flex-1"
           />
-          <div className="flex w-full min-w-0 gap-4 md:w-72 md:max-w-80 md:shrink-0">
+          <div className="flex w-full min-w-0 gap-4 md:w-auto md:flex-1 xl:w-60 xl:flex-none">
             <Select
               classNameTrigger="h-12 rounded-full"
               placeholder="All categories"
@@ -232,7 +232,7 @@ export const PageContent = () => {
               onValueChange={handleCategoryChange}
             />
           </div>
-          <div className="flex w-full min-w-0 gap-4 md:w-52 md:max-w-56 md:shrink-0">
+          <div className="flex w-full min-w-0 gap-4 md:w-auto md:flex-1 xl:w-52 xl:flex-none">
             <Select
               classNameTrigger="h-12 rounded-full"
               placeholder="All statuses"
@@ -241,7 +241,7 @@ export const PageContent = () => {
               onValueChange={handleProductStatusChange}
             />
           </div>
-          <div className="flex shrink-0 items-center justify-end gap-3">
+          <div className="flex shrink-0 items-center justify-end gap-3 md:ml-auto">
             <Button
               disabled
               variant="outline"
