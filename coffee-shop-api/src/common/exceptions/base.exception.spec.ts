@@ -7,6 +7,11 @@ import {
   DuplicateResourceException,
 } from './base.exception.js';
 import { ErrorDetailDto } from '../dto/error.dto.js';
+import {
+  ERROR_MESSAGES,
+  ERROR_DESCRIPTIONS,
+} from '../constants/message.constant.js';
+import { ERROR_CODES } from '../constants/error-code.constant.js';
 
 class TestDomainException extends DomainException {
   constructor(status: number, message: string, errors: ErrorDetailDto[]) {
@@ -65,7 +70,7 @@ describe('ValidationException', () => {
   it('resolves to 400 with a fixed top-level message and the given structured errors', () => {
     const errors = [
       {
-        errCode: 'isString',
+        errCode: ERROR_CODES.VALIDATION.IS_STRING,
         field: 'name',
         message: 'name must be a string',
         description: 'name must be a string',
@@ -75,7 +80,7 @@ describe('ValidationException', () => {
     const exception = new ValidationException(errors);
 
     expect(exception.getStatus()).toBe(HttpStatus.BAD_REQUEST);
-    expect(exception.message).toBe('Validation failed');
+    expect(exception.message).toBe(ERROR_MESSAGES.EXCEPTION.VALIDATION_FAILED);
     expect(exception.getErrors()).toEqual(errors);
   });
 });
@@ -83,7 +88,7 @@ describe('ValidationException', () => {
 describe('InvalidRequestException', () => {
   it('resolves to 400 with a generic top-level message and the given structured error', () => {
     const error = {
-      errCode: 'invalidRequest',
+      errCode: ERROR_CODES.INVALID_REQUEST,
       field: 'username',
       message: 'User name cannot be blank',
       description: 'Please enter your name',
@@ -92,7 +97,7 @@ describe('InvalidRequestException', () => {
     const exception = new InvalidRequestException(error);
 
     expect(exception.getStatus()).toBe(HttpStatus.BAD_REQUEST);
-    expect(exception.message).toBe('Bad request');
+    expect(exception.message).toBe(ERROR_MESSAGES.EXCEPTION.BAD_REQUEST);
     expect(exception.getErrors()).toEqual([error]);
   });
 });
@@ -100,7 +105,7 @@ describe('InvalidRequestException', () => {
 describe('ItemNotFoundException', () => {
   it('resolves to 404 with a generic top-level message and the given structured error', () => {
     const error = {
-      errCode: 'itemNotFound',
+      errCode: ERROR_CODES.ITEM_NOT_FOUND,
       field: 'id',
       message: 'Resource not found with the provided ID',
       description:
@@ -110,7 +115,7 @@ describe('ItemNotFoundException', () => {
     const exception = new ItemNotFoundException(error);
 
     expect(exception.getStatus()).toBe(HttpStatus.NOT_FOUND);
-    expect(exception.message).toBe('Item not found');
+    expect(exception.message).toBe(ERROR_MESSAGES.EXCEPTION.ITEM_NOT_FOUND);
     expect(exception.getErrors()).toEqual([error]);
   });
 });
@@ -118,17 +123,16 @@ describe('ItemNotFoundException', () => {
 describe('DuplicateResourceException', () => {
   it('resolves to 409 with a generic top-level message and the given structured error', () => {
     const error = {
-      errCode: 'categoryNameExists',
+      errCode: ERROR_CODES.CATEGORY.NAME_EXISTS,
       field: 'name',
-      message: 'Category name already exists',
-      description:
-        'A category with this name already exists. Please choose a different name.',
+      message: ERROR_MESSAGES.CATEGORY.NAME_EXISTS,
+      description: ERROR_DESCRIPTIONS.CATEGORY.NAME_EXISTS,
     };
 
     const exception = new DuplicateResourceException(error);
 
     expect(exception.getStatus()).toBe(HttpStatus.CONFLICT);
-    expect(exception.message).toBe('Conflict');
+    expect(exception.message).toBe(ERROR_MESSAGES.EXCEPTION.CONFLICT);
     expect(exception.getErrors()).toEqual([error]);
   });
 });

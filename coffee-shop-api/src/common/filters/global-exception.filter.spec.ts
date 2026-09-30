@@ -7,6 +7,8 @@ import {
 import { GlobalExceptionFilter } from './global-exception.filter.js';
 import { ErrorDetailDto } from '../dto/error.dto.js';
 import { DomainException } from '../exceptions/base.exception.js';
+import { ERROR_MESSAGES } from '../constants/message.constant.js';
+import { ERROR_CODES } from '../constants/error-code.constant.js';
 
 import type { Mock, MockInstance } from 'vitest';
 class TestDomainException extends DomainException {
@@ -80,10 +82,10 @@ describe('GlobalExceptionFilter', () => {
     expect(statusMock).toHaveBeenCalledWith(HttpStatus.NOT_FOUND);
     expect(jsonMock).toHaveBeenCalledWith({
       statusCode: HttpStatus.NOT_FOUND,
-      message: 'Item not found',
+      message: ERROR_MESSAGES.EXCEPTION.ITEM_NOT_FOUND,
       errors: [
         {
-          errCode: 'itemNotFound',
+          errCode: ERROR_CODES.ITEM_NOT_FOUND,
           field: '',
           message: 'User not found',
           description: 'User not found',
@@ -101,7 +103,7 @@ describe('GlobalExceptionFilter', () => {
 
     expect(jsonMock).toHaveBeenCalledWith({
       statusCode: HttpStatus.NOT_FOUND,
-      message: 'Item not found',
+      message: ERROR_MESSAGES.EXCEPTION.ITEM_NOT_FOUND,
       errors: [
         {
           errCode: 'CUSTOM_USER_NOT_FOUND',
@@ -121,13 +123,13 @@ describe('GlobalExceptionFilter', () => {
     expect(statusMock).toHaveBeenCalledWith(HttpStatus.INTERNAL_SERVER_ERROR);
     expect(jsonMock).toHaveBeenCalledWith({
       statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-      message: 'System error',
+      message: ERROR_MESSAGES.EXCEPTION.SYSTEM_ERROR,
       errors: [
         {
-          errCode: 'internalServerError',
+          errCode: ERROR_CODES.INTERNAL_SERVER_ERROR,
           field: '',
-          message: 'An unexpected error occurred. Please try again later.',
-          description: 'An unexpected error occurred. Please try again later.',
+          message: ERROR_MESSAGES.EXCEPTION.INTERNAL_ERROR,
+          description: ERROR_MESSAGES.EXCEPTION.INTERNAL_ERROR,
         },
       ],
     });

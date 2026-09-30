@@ -7,6 +7,11 @@ import {
   DuplicateResourceException,
   ItemNotFoundException,
 } from '../../../common/exceptions/base.exception.js';
+import {
+  ERROR_MESSAGES,
+  ERROR_DESCRIPTIONS,
+} from '../../../common/constants/message.constant.js';
+import { ERROR_CODES } from '../../../common/constants/error-code.constant.js';
 
 describe('ClerkWebhookService', () => {
   let service: ClerkWebhookService;
@@ -143,10 +148,10 @@ describe('ClerkWebhookService', () => {
       it('swallows a DuplicateResourceException from a redelivered webhook', async () => {
         userService.create.mockRejectedValue(
           new DuplicateResourceException({
-            errCode: 'userEmailExists',
+            errCode: ERROR_CODES.USER.EMAIL_EXISTS,
             field: 'email',
-            message: 'Email already exists',
-            description: 'An account with this email already exists.',
+            message: ERROR_MESSAGES.USER.EMAIL_EXISTS,
+            description: ERROR_DESCRIPTIONS.USER.EMAIL_EXISTS,
           }),
         );
 
@@ -246,10 +251,10 @@ describe('ClerkWebhookService', () => {
       it('does not throw and does not update when there is no local match', async () => {
         userService.findByClerkId.mockRejectedValue(
           new ItemNotFoundException({
-            errCode: 'userNotFound',
+            errCode: ERROR_CODES.USER.NOT_FOUND,
             field: 'clerkId',
-            message: 'User not found',
-            description: 'The user might have been deleted.',
+            message: ERROR_MESSAGES.USER.NOT_FOUND,
+            description: ERROR_DESCRIPTIONS.USER.NOT_FOUND_BY_CLERK_ID,
           }),
         );
 
@@ -278,10 +283,10 @@ describe('ClerkWebhookService', () => {
       it('does not throw and does not delete when there is no local match', async () => {
         userService.findByClerkId.mockRejectedValue(
           new ItemNotFoundException({
-            errCode: 'userNotFound',
+            errCode: ERROR_CODES.USER.NOT_FOUND,
             field: 'clerkId',
-            message: 'User not found',
-            description: 'The user might have been deleted.',
+            message: ERROR_MESSAGES.USER.NOT_FOUND,
+            description: ERROR_DESCRIPTIONS.USER.NOT_FOUND_BY_CLERK_ID,
           }),
         );
 

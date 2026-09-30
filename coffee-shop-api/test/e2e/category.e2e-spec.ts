@@ -211,7 +211,7 @@ describe('CategoryController (e2e)', () => {
 
       const response = await request(app.getHttpServer())
         .post(`${API_BASE_PATH}/categories`)
-        .send({ name: 'a'.repeat(101) })
+        .send({ name: 'a'.repeat(256) })
         .expect(400);
 
       const body = response.body as {

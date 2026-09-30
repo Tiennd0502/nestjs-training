@@ -3,7 +3,8 @@ import { BadRequestException } from '@nestjs/common';
 import { ProductController } from './product.controller.js';
 import { ProductService } from '../services/product.service.js';
 import { Product } from '../entities/product.entity.js';
-import { ProductStatus } from '../enums/product.enum.js';
+import { ProductStatus, RoastLevel } from '../enums/product.enum.js';
+import type { CreateProductInput } from '../dto/product.schema.js';
 import { ResponseProductDto } from '../dto/response-product.dto.js';
 import { User } from '../../user/entities/user.entity.js';
 import { UserRole, UserStatus } from '../../../common/enums/user.enum.js';
@@ -146,26 +147,33 @@ describe('ProductController', () => {
     });
   });
 
+  const createDto: CreateProductInput = {
+    categoryId: 'category-id-1',
+    name: 'Espresso Blend',
+    roastLevel: RoastLevel.MEDIUM,
+    description: 'A balanced, well-rounded coffee.',
+    origin: 'Ethiopia',
+    processingMethod: 'Washed',
+    images: [],
+    variants: [],
+  };
+
   describe('create', () => {
     it('delegates to ProductService.create and returns its result', async () => {
-      const dto = { categoryId: 'category-id-1', name: 'Espresso Blend' };
       productService.create.mockResolvedValue(product);
 
-      const result = await controller.create(dto);
+      const result = await controller.create(createDto);
 
-      expect(productService.create).toHaveBeenCalledWith(dto);
+      expect(productService.create).toHaveBeenCalledWith(createDto);
       expect(result).toEqual(ResponseProductDto.fromEntity(product));
     });
 
     it('propagates DuplicateResourceException', async () => {
       productService.create.mockRejectedValue(nameExists);
 
-      await expect(
-        controller.create({
-          categoryId: 'category-id-1',
-          name: 'Espresso Blend',
-        }),
-      ).rejects.toBeInstanceOf(DuplicateResourceException);
+      await expect(controller.create(createDto)).rejects.toBeInstanceOf(
+        DuplicateResourceException,
+      );
     });
   });
 

@@ -14,7 +14,10 @@ import { ProductVariantService } from './../../src/modules/product-variant/servi
 import { UserRole } from './../../src/common/enums/user.enum.js';
 import { API_BASE_PATH } from './../utils/api-path.util.js';
 import { initTestApp } from './../utils/init-test-app.util.js';
-import { ProductUnit } from './../../src/modules/product-variant/enums/product-variant.enum.js';
+import {
+  DiscountType,
+  ProductUnit,
+} from './../../src/modules/product-variant/enums/product-variant.enum.js';
 import type { User } from './../../src/modules/user/entities/user.entity.js';
 import type { Category } from './../../src/modules/category/entities/category.entity.js';
 import type { Product } from './../../src/modules/product/entities/product.entity.js';
@@ -80,6 +83,37 @@ describe('ProductController (e2e)', () => {
   const uniqueName = (base: string): string =>
     `${base} ${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
+  const validImages = (): Array<{ url: string; isPrimary?: boolean }> => [
+    { url: 'https://example.com/1.jpg', isPrimary: true },
+    { url: 'https://example.com/2.jpg' },
+  ];
+
+  const requiredProductFields = (): {
+    roastLevel: RoastLevel;
+    description: string;
+    origin: string;
+    processingMethod: string;
+  } => ({
+    roastLevel: RoastLevel.MEDIUM,
+    description: 'A balanced, well-rounded coffee.',
+    origin: 'Ethiopia',
+    processingMethod: 'Washed',
+  });
+
+  const validVariant = (
+    skuBase: string,
+  ): {
+    sku: string;
+    weight: number;
+    unit: ProductUnit;
+    price: number;
+  } => ({
+    sku: uniqueName(skuBase),
+    weight: 250,
+    unit: ProductUnit.G,
+    price: 12.5,
+  });
+
   const createTestUser = async (role: UserRole): Promise<User> =>
     RequestContext.create(orm.em, async () => {
       const clerkId = `clerk-e2e-${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -121,7 +155,13 @@ describe('ProductController (e2e)', () => {
       const category = await createTestCategory();
       const name = uniqueName('Ethiopia Yirgacheffe E2E');
       const product = await RequestContext.create(orm.em, () =>
-        productService.create({ categoryId: category.id, name }),
+        productService.create({
+          categoryId: category.id,
+          name,
+          ...requiredProductFields(),
+          images: [],
+          variants: [],
+        }),
       );
       createdProductIds.push(product.id);
 
@@ -184,10 +224,20 @@ describe('ProductController (e2e)', () => {
       nameCategory = await createTestCategory();
       priceCategory = await createTestCategory();
 
+      type ProductCreateInput = Parameters<typeof productService.create>[0];
+
       const create = (
-        data: Parameters<typeof productService.create>[0],
+        data: Partial<ProductCreateInput> &
+          Pick<ProductCreateInput, 'categoryId' | 'name'>,
       ): Promise<Product> =>
-        RequestContext.create(orm.em, () => productService.create(data));
+        RequestContext.create(orm.em, () =>
+          productService.create({
+            ...requiredProductFields(),
+            images: [],
+            variants: [],
+            ...data,
+          }),
+        );
 
       pLight = await create({
         categoryId: filterCategory.id,
@@ -393,6 +443,13 @@ describe('ProductController (e2e)', () => {
       expect([...ids].sort()).toEqual([pPrice20.id, pGlobalMin.id].sort());
     });
 
+    it('responds 400 when minPrice is greater than maxPrice', async () => {
+      await request(app.getHttpServer())
+        .get(`${API_BASE_PATH}/products`)
+        .query({ minPrice: 100, maxPrice: 10 })
+        .expect(400);
+    });
+
     it('combines categoryId and search', async () => {
       const response = await request(app.getHttpServer())
         .get(`${API_BASE_PATH}/products`)
@@ -558,7 +615,11 @@ describe('ProductController (e2e)', () => {
         .send({
           categoryId: category.id,
           name,
-          images: [{ url: 'https://example.com/coffee.jpg', isPrimary: true }],
+          ...requiredProductFields(),
+          images: [
+            { url: 'https://example.com/coffee.jpg', isPrimary: true },
+            { url: 'https://example.com/coffee-2.jpg' },
+          ],
           variants: [
             {
               sku,
@@ -584,12 +645,38 @@ describe('ProductController (e2e)', () => {
           productVariantService.findAllByProduct(body.data.id),
         ]),
       );
-      expect(images).toHaveLength(1);
+      expect(images).toHaveLength(2);
       expect(images[0]).toMatchObject({
         url: 'https://example.com/coffee.jpg',
       });
       expect(variants).toHaveLength(1);
       expect(variants[0]).toMatchObject({ sku, name: '250G' });
+    });
+
+    it('POST /products responds 201 for a description over 255 characters', async () => {
+      const admin = await createTestUser(UserRole.ADMIN);
+      const category = await createTestCategory();
+      mockSessionFor(admin.clerkId);
+      const name = uniqueName('Long Description E2E');
+      const description = 'a'.repeat(300);
+
+      const response = await request(app.getHttpServer())
+        .post(`${API_BASE_PATH}/products`)
+        .send({
+          categoryId: category.id,
+          name,
+          ...requiredProductFields(),
+          description,
+          images: validImages(),
+          variants: [validVariant('SKU-DESC')],
+        })
+        .expect(201);
+
+      const body = response.body as {
+        data: { id: string; description: string };
+      };
+      createdProductIds.push(body.data.id);
+      expect(body.data.description).toBe(description);
     });
 
     it('POST /products responds 409 for a duplicate name', async () => {
@@ -599,19 +686,237 @@ describe('ProductController (e2e)', () => {
       const name = uniqueName('Duplicate Product E2E');
 
       const product = await RequestContext.create(orm.em, () =>
-        productService.create({ categoryId: category.id, name }),
+        productService.create({
+          categoryId: category.id,
+          name,
+          ...requiredProductFields(),
+          images: [],
+          variants: [],
+        }),
       );
       createdProductIds.push(product.id);
 
       const response = await request(app.getHttpServer())
         .post(`${API_BASE_PATH}/products`)
-        .send({ categoryId: category.id, name })
+        .send({
+          categoryId: category.id,
+          name,
+          ...requiredProductFields(),
+          images: validImages(),
+          variants: [validVariant('SKU-DUP')],
+        })
         .expect(409);
 
       const body = response.body as {
         errors: Array<{ errCode: string }>;
       };
       expect(body.errors[0].errCode).toBe(ERROR_CODES.PRODUCT.NAME_EXISTS);
+    });
+
+    it('POST /products responds 400 for two primary images', async () => {
+      const admin = await createTestUser(UserRole.ADMIN);
+      const category = await createTestCategory();
+      mockSessionFor(admin.clerkId);
+
+      await request(app.getHttpServer())
+        .post(`${API_BASE_PATH}/products`)
+        .send({
+          categoryId: category.id,
+          name: uniqueName('Two Primary Images E2E'),
+          ...requiredProductFields(),
+          images: [
+            { url: 'https://example.com/a.jpg', isPrimary: true },
+            { url: 'https://example.com/b.jpg', isPrimary: true },
+          ],
+        })
+        .expect(400);
+    });
+
+    it('rolls back the whole product when a later variant fails, leaving nothing persisted', async () => {
+      const admin = await createTestUser(UserRole.ADMIN);
+      const category = await createTestCategory();
+      mockSessionFor(admin.clerkId);
+      const existingSku = uniqueName('SKU-EXISTING');
+      const existing = await RequestContext.create(orm.em, () =>
+        productService.create({
+          categoryId: category.id,
+          name: uniqueName('Existing Product E2E'),
+          ...requiredProductFields(),
+          images: [],
+          variants: [
+            {
+              sku: existingSku,
+              weight: '250',
+              unit: ProductUnit.G,
+              price: '10',
+            },
+          ],
+        }),
+      );
+      createdProductIds.push(existing.id);
+
+      const name = uniqueName('Rolled Back Product E2E');
+      await request(app.getHttpServer())
+        .post(`${API_BASE_PATH}/products`)
+        .send({
+          categoryId: category.id,
+          name,
+          ...requiredProductFields(),
+          images: validImages(),
+          variants: [
+            {
+              sku: uniqueName('SKU-NEW'),
+              weight: 100,
+              unit: ProductUnit.G,
+              price: 5,
+            },
+            // Duplicates the pre-existing SKU above — fails after the first
+            // variant (and the product row) were already written in this
+            // same request, which must roll back atomically.
+            { sku: existingSku, weight: 100, unit: ProductUnit.G, price: 5 },
+          ],
+        })
+        .expect(409);
+
+      const response = await request(app.getHttpServer())
+        .get(`${API_BASE_PATH}/products`)
+        .query({ search: name })
+        .expect(200);
+
+      const body = response.body as { meta: { totalCount: number } };
+      expect(body.meta.totalCount).toBe(0);
+    });
+
+    it('POST /products responds 400 when a variant price exceeds the column precision', async () => {
+      const admin = await createTestUser(UserRole.ADMIN);
+      const category = await createTestCategory();
+      mockSessionFor(admin.clerkId);
+
+      await request(app.getHttpServer())
+        .post(`${API_BASE_PATH}/products`)
+        .send({
+          categoryId: category.id,
+          name: uniqueName('Out Of Range Price E2E'),
+          ...requiredProductFields(),
+          images: validImages(),
+          variants: [
+            {
+              sku: uniqueName('SKU-OOR'),
+              weight: 1,
+              unit: ProductUnit.G,
+              price: 999999999,
+            },
+          ],
+        })
+        .expect(400);
+    });
+
+    it('POST /products responds 400 for a PERCENT discount of 100 or more', async () => {
+      const admin = await createTestUser(UserRole.ADMIN);
+      const category = await createTestCategory();
+      mockSessionFor(admin.clerkId);
+
+      await request(app.getHttpServer())
+        .post(`${API_BASE_PATH}/products`)
+        .send({
+          categoryId: category.id,
+          name: uniqueName('Percent Discount E2E'),
+          ...requiredProductFields(),
+          images: validImages(),
+          variants: [
+            {
+              sku: uniqueName('SKU-PCT'),
+              weight: 1,
+              unit: ProductUnit.G,
+              price: 10,
+              discountType: DiscountType.PERCENT,
+              discountValue: 100,
+            },
+          ],
+        })
+        .expect(400);
+    });
+
+    it('POST /products responds 201 for a FIXED discount above 100', async () => {
+      const admin = await createTestUser(UserRole.ADMIN);
+      const category = await createTestCategory();
+      mockSessionFor(admin.clerkId);
+
+      const response = await request(app.getHttpServer())
+        .post(`${API_BASE_PATH}/products`)
+        .send({
+          categoryId: category.id,
+          name: uniqueName('Fixed Discount E2E'),
+          ...requiredProductFields(),
+          images: validImages(),
+          variants: [
+            {
+              sku: uniqueName('SKU-FIX'),
+              weight: 1,
+              unit: ProductUnit.G,
+              price: 500,
+              discountType: DiscountType.FIXED,
+              discountValue: 500,
+            },
+          ],
+        })
+        .expect(201);
+
+      const body = response.body as { data: { id: string } };
+      createdProductIds.push(body.data.id);
+    });
+
+    it('POST /products responds 400 when an image sortOrder exceeds the max bound', async () => {
+      const admin = await createTestUser(UserRole.ADMIN);
+      const category = await createTestCategory();
+      mockSessionFor(admin.clerkId);
+
+      await request(app.getHttpServer())
+        .post(`${API_BASE_PATH}/products`)
+        .send({
+          categoryId: category.id,
+          name: uniqueName('Huge Sort Order E2E'),
+          ...requiredProductFields(),
+          images: [
+            {
+              url: 'https://example.com/a.jpg',
+              sortOrder: 1000000,
+              isPrimary: true,
+            },
+            { url: 'https://example.com/b.jpg' },
+          ],
+          variants: [validVariant('SKU-SORT')],
+        })
+        .expect(400);
+    });
+
+    it('POST /products responds 201 for an image url over 255 characters', async () => {
+      const admin = await createTestUser(UserRole.ADMIN);
+      const category = await createTestCategory();
+      mockSessionFor(admin.clerkId);
+      const longUrl = `https://example.com/${'a'.repeat(280)}.jpg`;
+
+      const response = await request(app.getHttpServer())
+        .post(`${API_BASE_PATH}/products`)
+        .send({
+          categoryId: category.id,
+          name: uniqueName('Long Image Url E2E'),
+          ...requiredProductFields(),
+          images: [
+            { url: longUrl, isPrimary: true },
+            { url: 'https://example.com/short.jpg' },
+          ],
+          variants: [validVariant('SKU-URL')],
+        })
+        .expect(201);
+
+      const body = response.body as { data: { id: string } };
+      createdProductIds.push(body.data.id);
+
+      const images = await RequestContext.create(orm.em, () =>
+        productImageService.findAllByProduct(body.data.id),
+      );
+      expect(images[0]).toMatchObject({ url: longUrl });
     });
 
     it('POST /products responds 404 for a nonexistent category', async () => {
@@ -623,6 +928,9 @@ describe('ProductController (e2e)', () => {
         .send({
           categoryId: '00000000-0000-0000-0000-000000000000',
           name: uniqueName('No Category Product E2E'),
+          ...requiredProductFields(),
+          images: validImages(),
+          variants: [validVariant('SKU-CAT')],
         })
         .expect(404);
     });
@@ -636,6 +944,8 @@ describe('ProductController (e2e)', () => {
         .send({
           categoryId: 'not-a-uuid',
           name: 'x',
+          ...requiredProductFields(),
+          images: validImages(),
           variants: [{ sku: 'A', weight: 0, unit: 'KG', price: 1 }],
         })
         .expect(400);
@@ -649,7 +959,7 @@ describe('ProductController (e2e)', () => {
         [
           ['isUuid', 'categoryId'],
           ['minLength', 'name'],
-          ['isPositive', 'variants.0.weight'],
+          ['min', 'variants.0.weight'],
         ],
       );
     });
@@ -662,6 +972,9 @@ describe('ProductController (e2e)', () => {
         productService.create({
           categoryId: category.id,
           name: uniqueName('Kenya AA E2E'),
+          ...requiredProductFields(),
+          images: [],
+          variants: [],
         }),
       );
       createdProductIds.push(product.id);
@@ -687,6 +1000,9 @@ describe('ProductController (e2e)', () => {
         productService.create({
           categoryId: category.id,
           name: uniqueName('Sumatra Mandheling E2E'),
+          ...requiredProductFields(),
+          images: [],
+          variants: [],
         }),
       );
       createdProductIds.push(product.id);
@@ -708,6 +1024,9 @@ describe('ProductController (e2e)', () => {
         productService.create({
           categoryId: category.id,
           name: uniqueName('Deleted Visible Product E2E'),
+          ...requiredProductFields(),
+          images: [],
+          variants: [],
         }),
       );
       createdProductIds.push(product.id);
@@ -734,6 +1053,9 @@ describe('ProductController (e2e)', () => {
         productService.create({
           categoryId: category.id,
           name: uniqueName('Deleted By Id Product E2E'),
+          ...requiredProductFields(),
+          images: [],
+          variants: [],
         }),
       );
       createdProductIds.push(product.id);
