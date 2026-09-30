@@ -1,7 +1,7 @@
 import { applyDecorators, Type } from '@nestjs/common';
 import { ApiExtraModels, ApiResponse, getSchemaPath } from '@nestjs/swagger';
 import { MetaDto } from '../dto/pagination.dto.js';
-import { ErrorResponseDto } from '../dto/error.dto.js';
+import { ErrorDetailDto, ErrorResponseDto } from '../dto/error.dto.js';
 import { ERROR_CODES } from '../constants/error-code.constant.js';
 import {
   DEFAULT_ERR_CODE_BY_STATUS,
@@ -45,6 +45,7 @@ export const ApiPaginatedResponse = <TModel extends Type<unknown>>(
 export const ApiErrorResponse = (
   status: number,
   description: string,
+  details?: Partial<Pick<ErrorDetailDto, 'errCode' | 'field' | 'description'>>,
 ): MethodDecorator =>
   applyDecorators(
     ApiResponse({
@@ -57,10 +58,12 @@ export const ApiErrorResponse = (
         errors: [
           {
             errCode:
-              DEFAULT_ERR_CODE_BY_STATUS[status] ?? ERROR_CODES.UNKNOWN_ERROR,
-            field: '',
+              details?.errCode ??
+              DEFAULT_ERR_CODE_BY_STATUS[status] ??
+              ERROR_CODES.UNKNOWN_ERROR,
+            field: details?.field ?? '',
             message: description,
-            description,
+            description: details?.description ?? description,
           },
         ],
       },

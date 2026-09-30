@@ -1,11 +1,23 @@
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Category } from '../entities/category.entity.js';
 
 export class ResponseCategoryDto {
+  @ApiProperty()
   id!: string;
+
+  @ApiProperty()
   name!: string;
+
+  @ApiProperty()
   slug!: string;
+
+  @ApiProperty()
   createdAt!: Date;
+
+  @ApiProperty()
   updatedAt!: Date;
+
+  @ApiPropertyOptional({ nullable: true, type: Date, example: null })
   deletedAt!: Date | null;
 
   static fromEntity(category: Category): ResponseCategoryDto {

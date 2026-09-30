@@ -205,6 +205,21 @@ describe('CategoryController (e2e)', () => {
       expect(body.errors.every((error) => error.field === 'name')).toBe(true);
     });
 
+    it('POST /categories responds 400 for a name over the max length', async () => {
+      const admin = await createTestUser(UserRole.ADMIN);
+      mockSessionFor(admin.clerkId);
+
+      const response = await request(app.getHttpServer())
+        .post(`${API_BASE_PATH}/categories`)
+        .send({ name: 'a'.repeat(101) })
+        .expect(400);
+
+      const body = response.body as {
+        errors: Array<{ errCode: string; field: string }>;
+      };
+      expect(body.errors.every((error) => error.field === 'name')).toBe(true);
+    });
+
     it('POST /categories responds 409 for a duplicate name', async () => {
       const admin = await createTestUser(UserRole.ADMIN);
       mockSessionFor(admin.clerkId);
