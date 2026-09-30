@@ -154,12 +154,23 @@ describe('API response capture', () => {
       return category;
     });
 
+  type ProductCreateInput = Parameters<typeof productService.create>[0];
+
   const seedProduct = (
     key: string,
-    data: Parameters<typeof productService.create>[0],
+    data: Partial<ProductCreateInput> &
+      Pick<ProductCreateInput, 'categoryId' | 'name'>,
   ) =>
     RequestContext.create(orm.em, async () => {
-      const product = await productService.create(data);
+      const product = await productService.create({
+        roastLevel: RoastLevel.MEDIUM,
+        description: 'A balanced, well-rounded coffee.',
+        origin: 'Ethiopia',
+        processingMethod: 'Washed',
+        images: [],
+        variants: [],
+        ...data,
+      });
       label(product.id, `product:${key}`);
       return product;
     });
@@ -313,12 +324,16 @@ describe('API response capture', () => {
       categoryId: filter.id,
       name: 'Baseline Guatemala Antigua',
       roastLevel: RoastLevel.MEDIUM,
+      description: 'A balanced, well-rounded coffee.',
+      origin: 'Guatemala',
+      processingMethod: 'Washed',
       status: ProductStatus.ACTIVE,
       images: [
         {
           url: 'https://example.com/baseline/guatemala-1.jpg',
           isPrimary: true,
         },
+        { url: 'https://example.com/baseline/guatemala-2.jpg' },
       ],
       variants: [
         {
@@ -361,6 +376,22 @@ describe('API response capture', () => {
     await api.post('error 409: duplicate product name', '/products', {
       categoryId: espresso.id,
       name: 'Baseline Colombia Supremo',
+      roastLevel: RoastLevel.MEDIUM,
+      description: 'A balanced, well-rounded coffee.',
+      origin: 'Colombia',
+      processingMethod: 'Washed',
+      images: [
+        { url: 'https://example.com/baseline/colombia-1.jpg', isPrimary: true },
+        { url: 'https://example.com/baseline/colombia-2.jpg' },
+      ],
+      variants: [
+        {
+          sku: 'BASELINE-COL-DUP',
+          weight: 250,
+          unit: ProductUnit.G,
+          price: 10,
+        },
+      ],
     });
 
     let unknownCount = 0;

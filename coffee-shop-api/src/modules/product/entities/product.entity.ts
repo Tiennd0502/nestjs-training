@@ -25,11 +25,11 @@ export class Product extends BaseEntity {
   @Property({ type: 'string' })
   slug!: string;
 
-  @Property({ type: 'string', nullable: true })
-  description: string | null = null;
+  @Property({ type: 'text' })
+  description!: string;
 
-  @Enum({ items: () => RoastLevel, fieldName: 'roast_level', nullable: true })
-  roastLevel: RoastLevel | null = null;
+  @Enum({ items: () => RoastLevel, fieldName: 'roast_level' })
+  roastLevel!: RoastLevel;
 
   @Property({ type: 'boolean', fieldName: 'is_organic' })
   isOrganic: boolean & Opt = false;
@@ -40,14 +40,14 @@ export class Product extends BaseEntity {
   @Enum({ items: () => ProductStatus })
   status: ProductStatus & Opt = ProductStatus.DRAFT;
 
-  @Property({ type: 'string', fieldName: 'tasting_notes', nullable: true })
+  @Property({ type: 'text', fieldName: 'tasting_notes', nullable: true })
   tastingNotes: string | null = null;
 
-  @Property({ type: 'string', nullable: true })
-  origin: string | null = null;
+  @Property({ type: 'text' })
+  origin!: string;
 
-  @Property({ type: 'string', fieldName: 'processing_method', nullable: true })
-  processingMethod: string | null = null;
+  @Property({ type: 'text', fieldName: 'processing_method' })
+  processingMethod!: string;
 
   @OneToMany(() => ProductImage, (image) => image.product)
   images = new Collection<ProductImage>(this);

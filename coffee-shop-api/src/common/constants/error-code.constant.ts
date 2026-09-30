@@ -18,6 +18,8 @@ export const ERROR_CODES = {
   PRODUCT: {
     NAME_EXISTS: 'productNameExists',
     NOT_FOUND: 'productNotFound',
+    PRIMARY_IMAGE_REQUIRED: 'primaryImageRequired',
+    DUPLICATE_SORT_ORDERS: 'duplicateSortOrders',
   },
   PRODUCT_VARIANT: {
     SKU_EXISTS: 'productVariantSkuExists',
@@ -28,5 +30,24 @@ export const ERROR_CODES = {
   },
   PAGINATION: {
     PAGE_OUT_OF_RANGE: 'pageOutOfRange',
+  },
+  VALIDATION: {
+    NOT_EMPTY: 'isNotEmpty',
+    IS_INT: 'isInt',
+    IS_NUMBER: 'isNumber',
+    IS_BOOLEAN: 'isBoolean',
+    IS_ARRAY: 'isArray',
+    IS_STRING: 'isString',
+    IS_POSITIVE: 'isPositive',
+    MIN: 'min',
+    MIN_LENGTH: 'minLength',
+    MAX: 'max',
+    ARRAY_MIN_SIZE: 'arrayMinSize',
+    ARRAY_MAX_SIZE: 'arrayMaxSize',
+    MAX_LENGTH: 'maxLength',
+    IS_UUID: 'isUuid',
+    IS_URL: 'isUrl',
+    IS_ENUM: 'isEnum',
+    INVALID: 'invalid',
   },
 } as const;

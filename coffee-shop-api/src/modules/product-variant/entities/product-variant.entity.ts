@@ -20,7 +20,7 @@ export class ProductVariant extends BaseEntity {
   @Unique()
   sku!: string;
 
-  @Property({ type: 'decimal', precision: 10, scale: 3 })
+  @Property({ type: 'decimal', precision: 10, scale: 2 })
   weight!: string;
 
   @Enum({ items: () => ProductUnit })

@@ -11,6 +11,12 @@ import { ProductUnit } from '../../modules/product-variant/enums/product-variant
 import { paginationQuerySchema } from '../dto/pagination.schema.js';
 import { idParamSchema } from '../dto/id-param.schema.js';
 import { createUserSchema } from '../../modules/user/dto/user.schema.js';
+import { VALIDATION_RULES } from '../constants/validation.constant.js';
+import { ERROR_CODES } from '../constants/error-code.constant.js';
+import {
+  ERROR_MESSAGES,
+  VALIDATION_MESSAGES,
+} from '../constants/message.constant.js';
 
 describe('toErrorDetailsFromStandardSchemaIssues (Standard Schema pilot: createCategorySchema)', () => {
   const validate = async (input: unknown) =>
@@ -28,10 +34,10 @@ describe('toErrorDetailsFromStandardSchemaIssues (Standard Schema pilot: createC
     expect(toErrorDetailsFromStandardSchemaIssues(result.issues ?? [])).toEqual(
       [
         {
-          errCode: 'minLength',
+          errCode: ERROR_CODES.VALIDATION.MIN_LENGTH,
           field: 'name',
           message: 'Name must be longer than or equal to 2 characters',
-          description: 'Name must be longer than or equal to 2 characters',
+          description: 'Too small: expected string to have >=2 characters',
         },
       ],
     );
@@ -43,10 +49,10 @@ describe('toErrorDetailsFromStandardSchemaIssues (Standard Schema pilot: createC
     expect(toErrorDetailsFromStandardSchemaIssues(result.issues ?? [])).toEqual(
       [
         {
-          errCode: 'isNotEmpty',
+          errCode: ERROR_CODES.VALIDATION.NOT_EMPTY,
           field: 'name',
           message: 'Name should not be empty',
-          description: 'Name should not be empty',
+          description: 'Invalid input: expected string, received undefined',
         },
       ],
     );
@@ -58,10 +64,10 @@ describe('toErrorDetailsFromStandardSchemaIssues (Standard Schema pilot: createC
     expect(toErrorDetailsFromStandardSchemaIssues(result.issues ?? [])).toEqual(
       [
         {
-          errCode: 'isString',
+          errCode: ERROR_CODES.VALIDATION.IS_STRING,
           field: 'name',
           message: 'Name must be a string',
-          description: 'Name must be a string',
+          description: 'Invalid input: expected string, received number',
         },
       ],
     );
@@ -72,9 +78,18 @@ describe('toErrorDetailsFromStandardSchemaIssues (migrated schemas)', () => {
   const uuid = '11111111-1111-4111-8111-111111111111';
   const unit = Object.values(ProductUnit)[0];
   const validVariant = { sku: 'S1', weight: 1, unit, price: 2 };
+  const validImages = [
+    { url: 'https://example.com/a.png', isPrimary: true },
+    { url: 'https://example.com/b.png' },
+  ];
   const validProduct = {
     categoryId: uuid,
     name: 'Espresso',
+    roastLevel: RoastLevel.MEDIUM,
+    description: 'A balanced, well-rounded coffee.',
+    origin: 'Ethiopia',
+    processingMethod: 'Washed',
+    images: validImages,
     variants: [validVariant],
   };
   const roastLevels = Object.values(RoastLevel).join(', ');
@@ -104,14 +119,10 @@ describe('toErrorDetailsFromStandardSchemaIssues (migrated schemas)', () => {
       ]);
     });
 
-    it('accepts null for the nullable text columns', async () => {
+    it('accepts null for tastingNotes, the one still-nullable text column', async () => {
       const result = await run(createProductSchema, {
         ...validProduct,
-        description: null,
-        roastLevel: null,
         tastingNotes: null,
-        origin: null,
-        processingMethod: null,
       });
 
       expect(result.issues).toBeUndefined();
@@ -122,7 +133,7 @@ describe('toErrorDetailsFromStandardSchemaIssues (migrated schemas)', () => {
         'a malformed categoryId',
         { ...validProduct, categoryId: 'x' },
         {
-          errCode: 'isUuid',
+          errCode: ERROR_CODES.VALIDATION.IS_UUID,
           field: 'categoryId',
           message: 'CategoryId must be a UUID',
         },
@@ -131,7 +142,7 @@ describe('toErrorDetailsFromStandardSchemaIssues (migrated schemas)', () => {
         'a UUID-shaped categoryId with an invalid version',
         { ...validProduct, categoryId: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' },
         {
-          errCode: 'isUuid',
+          errCode: ERROR_CODES.VALIDATION.IS_UUID,
           field: 'categoryId',
           message: 'CategoryId must be a UUID',
         },
@@ -140,7 +151,7 @@ describe('toErrorDetailsFromStandardSchemaIssues (migrated schemas)', () => {
         'an unknown roastLevel',
         { ...validProduct, roastLevel: 'BURNT' },
         {
-          errCode: 'isEnum',
+          errCode: ERROR_CODES.VALIDATION.IS_ENUM,
           field: 'roastLevel',
           message: `RoastLevel must be one of the following values: ${roastLevels}`,
         },
@@ -149,7 +160,7 @@ describe('toErrorDetailsFromStandardSchemaIssues (migrated schemas)', () => {
         'a non-boolean flag',
         { ...validProduct, isOrganic: 'yes' },
         {
-          errCode: 'isBoolean',
+          errCode: ERROR_CODES.VALIDATION.IS_BOOLEAN,
           field: 'isOrganic',
           message: 'IsOrganic must be a boolean value',
         },
@@ -157,29 +168,48 @@ describe('toErrorDetailsFromStandardSchemaIssues (migrated schemas)', () => {
       [
         'images that are not an array',
         { ...validProduct, images: 'x' },
-        {
-          errCode: 'isArray',
-          field: 'images',
-          message: 'Images must be an array',
-        },
+        [
+          {
+            errCode: ERROR_CODES.VALIDATION.IS_ARRAY,
+            field: 'images',
+            message: 'Images must be an array',
+          },
+          {
+            errCode: ERROR_CODES.VALIDATION.MIN_LENGTH,
+            field: 'images',
+            message: VALIDATION_MESSAGES.minLength(
+              'Images',
+              VALIDATION_RULES.IMAGE.MIN_COUNT,
+            ),
+          },
+        ],
       ],
       [
         'more than six images',
         {
           ...validProduct,
-          images: Array(7).fill({ url: 'https://example.com/a.png' }),
+          images: Array.from({ length: 7 }, (_, i) => ({
+            url: 'https://example.com/a.png',
+            isPrimary: i === 0,
+          })),
         },
         {
-          errCode: 'arrayMaxSize',
+          errCode: ERROR_CODES.VALIDATION.ARRAY_MAX_SIZE,
           field: 'images',
           message: 'Images must contain no more than 6 elements',
         },
       ],
       [
         'an image with a bad url',
-        { ...validProduct, images: [{ url: 'nope' }] },
         {
-          errCode: 'isUrl',
+          ...validProduct,
+          images: [
+            { url: 'nope' },
+            { url: 'https://example.com/ok.png', isPrimary: true },
+          ],
+        },
+        {
+          errCode: ERROR_CODES.VALIDATION.IS_URL,
           field: 'images.0.url',
           message: 'Url must be a URL address',
         },
@@ -188,28 +218,39 @@ describe('toErrorDetailsFromStandardSchemaIssues (migrated schemas)', () => {
         'a negative image sortOrder',
         {
           ...validProduct,
-          images: [{ url: 'https://example.com/a.png', sortOrder: -1 }],
+          images: [
+            {
+              url: 'https://example.com/a.png',
+              sortOrder: VALIDATION_RULES.IMAGE.MIN_SORT_ORDER - 1,
+            },
+            { url: 'https://example.com/b.png', isPrimary: true },
+          ],
         },
         {
-          errCode: 'min',
+          errCode: ERROR_CODES.VALIDATION.MIN,
           field: 'images.0.sortOrder',
-          message: 'SortOrder must not be less than 0',
+          message: `SortOrder must not be less than ${VALIDATION_RULES.IMAGE.MIN_SORT_ORDER}`,
         },
       ],
       [
-        'a zero variant weight',
-        { ...validProduct, variants: [{ ...validVariant, weight: 0 }] },
+        'a variant weight below the minimum',
         {
-          errCode: 'isPositive',
+          ...validProduct,
+          variants: [
+            { ...validVariant, weight: VALIDATION_RULES.WEIGHT.MIN - 1 },
+          ],
+        },
+        {
+          errCode: ERROR_CODES.VALIDATION.MIN,
           field: 'variants.0.weight',
-          message: 'Weight must be a positive number',
+          message: `Weight must not be less than ${VALIDATION_RULES.WEIGHT.MIN}`,
         },
       ],
       [
         'a non-numeric variant price',
         { ...validProduct, variants: [{ ...validVariant, price: 'abc' }] },
         {
-          errCode: 'isNumber',
+          errCode: ERROR_CODES.VALIDATION.IS_NUMBER,
           field: 'variants.0.price',
           message:
             'Price must be a number conforming to the specified constraints',
@@ -219,31 +260,220 @@ describe('toErrorDetailsFromStandardSchemaIssues (migrated schemas)', () => {
         'an unknown variant unit',
         { ...validProduct, variants: [{ ...validVariant, unit: 'XX' }] },
         {
-          errCode: 'isEnum',
+          errCode: ERROR_CODES.VALIDATION.IS_ENUM,
           field: 'variants.0.unit',
           message: `Unit must be one of the following values: ${Object.values(ProductUnit).join(', ')}`,
         },
       ],
       [
         'a name over the max length',
-        { ...validProduct, name: 'a'.repeat(101) },
         {
-          errCode: 'maxLength',
+          ...validProduct,
+          name: 'a'.repeat(VALIDATION_RULES.NAME.MAX_LENGTH + 1),
+        },
+        {
+          errCode: ERROR_CODES.VALIDATION.MAX_LENGTH,
           field: 'name',
-          message: 'Name must be shorter than or equal to 100 characters',
+          message: `Name must be shorter than or equal to ${VALIDATION_RULES.NAME.MAX_LENGTH} characters`,
+        },
+      ],
+      [
+        'fewer than the minimum number of images',
+        { ...validProduct, images: [validImages[0]] },
+        {
+          errCode: ERROR_CODES.VALIDATION.ARRAY_MIN_SIZE,
+          field: 'images',
+          message: VALIDATION_MESSAGES.arrayMinSize(
+            'Images',
+            VALIDATION_RULES.IMAGE.MIN_COUNT,
+          ),
+        },
+      ],
+      [
+        'images entirely missing',
+        {
+          categoryId: validProduct.categoryId,
+          name: validProduct.name,
+          roastLevel: validProduct.roastLevel,
+          description: validProduct.description,
+          origin: validProduct.origin,
+          processingMethod: validProduct.processingMethod,
+          variants: validProduct.variants,
+        },
+        {
+          errCode: ERROR_CODES.VALIDATION.NOT_EMPTY,
+          field: 'images',
+          message: 'Images should not be empty',
+        },
+      ],
+      [
+        'no image marked as primary',
+        {
+          ...validProduct,
+          images: validImages.map((image) => ({
+            ...image,
+            isPrimary: false,
+          })),
+        },
+        {
+          errCode: ERROR_CODES.PRODUCT.PRIMARY_IMAGE_REQUIRED,
+          field: 'images',
+          message: ERROR_MESSAGES.PRODUCT.PRIMARY_IMAGE_REQUIRED,
+        },
+      ],
+      [
+        'a missing variants array',
+        {
+          categoryId: validProduct.categoryId,
+          name: validProduct.name,
+          roastLevel: validProduct.roastLevel,
+          description: validProduct.description,
+          origin: validProduct.origin,
+          processingMethod: validProduct.processingMethod,
+          images: validProduct.images,
+        },
+        {
+          errCode: ERROR_CODES.VALIDATION.NOT_EMPTY,
+          field: 'variants',
+          message: 'Variants should not be empty',
+        },
+      ],
+      [
+        'an empty variants array',
+        { ...validProduct, variants: [] },
+        {
+          errCode: ERROR_CODES.VALIDATION.ARRAY_MIN_SIZE,
+          field: 'variants',
+          message: VALIDATION_MESSAGES.arrayMinSize(
+            'Variants',
+            VALIDATION_RULES.VARIANT.MIN_COUNT,
+          ),
+        },
+      ],
+      [
+        // z.enum() maps a missing value the same way as an invalid one — both
+        // are "not a member of the enum", not a separate "required" check.
+        'a missing roastLevel',
+        {
+          categoryId: validProduct.categoryId,
+          name: validProduct.name,
+          description: validProduct.description,
+          origin: validProduct.origin,
+          processingMethod: validProduct.processingMethod,
+          images: validProduct.images,
+          variants: validProduct.variants,
+        },
+        {
+          errCode: ERROR_CODES.VALIDATION.IS_ENUM,
+          field: 'roastLevel',
+          message: `RoastLevel must be one of the following values: ${roastLevels}`,
+        },
+      ],
+      [
+        // Explicit `null` on a required (non-nullish) string is a type
+        // mismatch, not the "received undefined" case NOT_EMPTY maps.
+        'an explicit null description',
+        { ...validProduct, description: null },
+        {
+          errCode: ERROR_CODES.VALIDATION.IS_STRING,
+          field: 'description',
+          message: 'Description must be a string',
+        },
+      ],
+      [
+        'a missing description key',
+        {
+          categoryId: validProduct.categoryId,
+          name: validProduct.name,
+          roastLevel: validProduct.roastLevel,
+          origin: validProduct.origin,
+          processingMethod: validProduct.processingMethod,
+          images: validProduct.images,
+          variants: validProduct.variants,
+        },
+        {
+          errCode: ERROR_CODES.VALIDATION.NOT_EMPTY,
+          field: 'description',
+          message: 'Description should not be empty',
+        },
+      ],
+      [
+        'an origin shorter than NAME.MIN_LENGTH',
+        { ...validProduct, origin: 'A' },
+        {
+          errCode: ERROR_CODES.VALIDATION.MIN_LENGTH,
+          field: 'origin',
+          message: `Origin must be longer than or equal to ${VALIDATION_RULES.NAME.MIN_LENGTH} characters`,
+        },
+      ],
+      [
+        'a missing origin key',
+        {
+          categoryId: validProduct.categoryId,
+          name: validProduct.name,
+          roastLevel: validProduct.roastLevel,
+          description: validProduct.description,
+          processingMethod: validProduct.processingMethod,
+          images: validProduct.images,
+          variants: validProduct.variants,
+        },
+        {
+          errCode: ERROR_CODES.VALIDATION.NOT_EMPTY,
+          field: 'origin',
+          message: 'Origin should not be empty',
+        },
+      ],
+      [
+        'a missing processingMethod',
+        { ...validProduct, processingMethod: undefined },
+        {
+          errCode: ERROR_CODES.VALIDATION.NOT_EMPTY,
+          field: 'processingMethod',
+          message: 'ProcessingMethod should not be empty',
         },
       ],
     ])('maps %s', async (_name, input, expected) => {
-      expect(await errorsFor(createProductSchema, input)).toEqual([expected]);
+      expect(await errorsFor(createProductSchema, input)).toEqual(
+        Array.isArray(expected) ? expected : [expected],
+      );
+    });
+
+    it('reports both the min-count and primary-image issues for an empty images array', async () => {
+      const result = await errorsFor(createProductSchema, {
+        ...validProduct,
+        images: [],
+      });
+
+      expect(result).toEqual([
+        {
+          errCode: ERROR_CODES.VALIDATION.ARRAY_MIN_SIZE,
+          field: 'images',
+          message: VALIDATION_MESSAGES.arrayMinSize(
+            'Images',
+            VALIDATION_RULES.IMAGE.MIN_COUNT,
+          ),
+        },
+        {
+          errCode: ERROR_CODES.PRODUCT.PRIMARY_IMAGE_REQUIRED,
+          field: 'images',
+          message: ERROR_MESSAGES.PRODUCT.PRIMARY_IMAGE_REQUIRED,
+        },
+      ]);
     });
   });
 
   describe('updateProductSchema', () => {
-    it('accepts an empty body and null to clear a nullable column', async () => {
+    it('accepts an empty body and null to clear the one nullable column', async () => {
       expect((await run(updateProductSchema, {})).issues).toBeUndefined();
       expect(
-        (await run(updateProductSchema, { description: null })).issues,
+        (await run(updateProductSchema, { tastingNotes: null })).issues,
       ).toBeUndefined();
+    });
+
+    it('rejects null for description, now a required (non-nullable) field', async () => {
+      const result = await run(updateProductSchema, { description: null });
+
+      expect(result.issues).not.toBeUndefined();
     });
 
     it('accepts the image change lists', async () => {
@@ -261,7 +491,7 @@ describe('toErrorDetailsFromStandardSchemaIssues (migrated schemas)', () => {
         'a removed image id that is not a UUID',
         { removeImageIds: ['x'] },
         {
-          errCode: 'isUuid',
+          errCode: ERROR_CODES.VALIDATION.IS_UUID,
           field: 'removeImageIds.0',
           message: 'RemoveImageIds must be a UUID',
         },
@@ -270,7 +500,7 @@ describe('toErrorDetailsFromStandardSchemaIssues (migrated schemas)', () => {
         'an image patch without an id',
         { updateImages: [{ isPrimary: true }] },
         {
-          errCode: 'isNotEmpty',
+          errCode: ERROR_CODES.VALIDATION.NOT_EMPTY,
           field: 'updateImages.0.id',
           message: 'Id should not be empty',
         },
@@ -279,7 +509,7 @@ describe('toErrorDetailsFromStandardSchemaIssues (migrated schemas)', () => {
         'an added image with a bad url',
         { addImages: [{ url: 'nope' }] },
         {
-          errCode: 'isUrl',
+          errCode: ERROR_CODES.VALIDATION.IS_URL,
           field: 'addImages.0.url',
           message: 'Url must be a URL address',
         },
@@ -314,19 +544,23 @@ describe('toErrorDetailsFromStandardSchemaIssues (migrated schemas)', () => {
         await errorsFor(productQuerySchema, { roastLevel: 'BURNT' }),
       ).toEqual([
         {
-          errCode: 'isEnum',
+          errCode: ERROR_CODES.VALIDATION.IS_ENUM,
           field: 'roastLevel.0',
           message: `RoastLevel must be one of the following values: ${roastLevels}`,
         },
       ]);
     });
 
-    it('maps a negative minPrice to min', async () => {
-      expect(await errorsFor(productQuerySchema, { minPrice: '-1' })).toEqual([
+    it('maps a minPrice below the minimum to min', async () => {
+      expect(
+        await errorsFor(productQuerySchema, {
+          minPrice: String(VALIDATION_RULES.PRICE.MIN - 1),
+        }),
+      ).toEqual([
         {
-          errCode: 'min',
+          errCode: ERROR_CODES.VALIDATION.MIN,
           field: 'minPrice',
-          message: 'MinPrice must not be less than 0',
+          message: `MinPrice must not be less than ${VALIDATION_RULES.PRICE.MIN}`,
         },
       ]);
     });
@@ -336,29 +570,29 @@ describe('toErrorDetailsFromStandardSchemaIssues (migrated schemas)', () => {
     it.each([
       [
         'page below the minimum',
-        { page: '0' },
-        'min',
+        { page: String(VALIDATION_RULES.PAGINATION.MIN_PAGE - 1) },
+        ERROR_CODES.VALIDATION.MIN,
         'page',
-        'Page must not be less than 1',
+        `Page must not be less than ${VALIDATION_RULES.PAGINATION.MIN_PAGE}`,
       ],
       [
         'limit above the maximum',
-        { limit: '101' },
-        'max',
+        { limit: String(VALIDATION_RULES.PAGINATION.MAX_LIMIT + 1) },
+        ERROR_CODES.VALIDATION.MAX,
         'limit',
-        'Limit must not be greater than 100',
+        `Limit must not be greater than ${VALIDATION_RULES.PAGINATION.MAX_LIMIT}`,
       ],
       [
         'fractional page',
         { page: '1.5' },
-        'isInt',
+        ERROR_CODES.VALIDATION.IS_INT,
         'page',
         'Page must be an integer number',
       ],
       [
         'non-numeric limit',
         { limit: 'abc' },
-        'isNumber',
+        ERROR_CODES.VALIDATION.IS_NUMBER,
         'limit',
         'Limit must be a number conforming to the specified constraints',
       ],
@@ -376,7 +610,11 @@ describe('toErrorDetailsFromStandardSchemaIssues (migrated schemas)', () => {
 
     it('reports a malformed id on the id field', async () => {
       expect(await errorsFor(idParamSchema, { id: 'abc' })).toEqual([
-        { errCode: 'isUuid', field: 'id', message: 'Id must be a UUID' },
+        {
+          errCode: ERROR_CODES.VALIDATION.IS_UUID,
+          field: 'id',
+          message: 'Id must be a UUID',
+        },
       ]);
     });
   });
@@ -428,7 +666,7 @@ describe('toErrorDetailsFromStandardSchemaIssues (spec-compliance edge cases)', 
 
     expect(toErrorDetailsFromStandardSchemaIssues(issues)).toEqual([
       {
-        errCode: 'invalid',
+        errCode: ERROR_CODES.VALIDATION.INVALID,
         field: '',
         message: 'Root-level failure',
         description: 'Root-level failure',

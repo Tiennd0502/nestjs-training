@@ -1,5 +1,7 @@
 import type { StandardSchemaV1 } from '@standard-schema/spec';
 import { ErrorDetailDto } from '../dto/error.dto.js';
+import { VALIDATION_MESSAGES } from '../constants/message.constant.js';
+import { ERROR_CODES } from '../constants/error-code.constant.js';
 
 /**
  * Maps Standard Schema (e.g. Zod) issues to ErrorDetailDto, the shape a
@@ -21,7 +23,7 @@ export const toErrorDetailsFromStandardSchemaIssues = (
 
     const { errCode, message } = describeStandardSchemaIssue(issue, property);
 
-    return { errCode, field, message, description: message };
+    return { errCode, field, message, description: issue.message };
   });
 };
 
@@ -43,6 +45,7 @@ const describeStandardSchemaIssue = (
     maximum,
     inclusive,
     values,
+    params,
   } = issue as {
     code?: string;
     expected?: string;
@@ -52,91 +55,121 @@ const describeStandardSchemaIssue = (
     maximum?: number;
     inclusive?: boolean;
     values?: unknown[];
+    params?: { errCode?: string };
   };
+
   const label = capitalize(subject);
   const isNumeric = origin === 'number' || origin === 'int';
 
   if (code === 'invalid_type') {
     if (issue.message.includes('received undefined')) {
-      return { errCode: 'isNotEmpty', message: `${label} should not be empty` };
+      return {
+        errCode: ERROR_CODES.VALIDATION.NOT_EMPTY,
+        message: VALIDATION_MESSAGES.isNotEmpty(label),
+      };
     }
     if (expected === 'int') {
       return {
-        errCode: 'isInt',
-        message: `${label} must be an integer number`,
+        errCode: ERROR_CODES.VALIDATION.IS_INT,
+        message: VALIDATION_MESSAGES.isInt(label),
       };
     }
     if (expected === 'number') {
       return {
-        errCode: 'isNumber',
-        message: `${label} must be a number conforming to the specified constraints`,
+        errCode: ERROR_CODES.VALIDATION.IS_NUMBER,
+        message: VALIDATION_MESSAGES.isNumber(label),
       };
     }
     if (expected === 'boolean') {
       return {
-        errCode: 'isBoolean',
-        message: `${label} must be a boolean value`,
+        errCode: ERROR_CODES.VALIDATION.IS_BOOLEAN,
+        message: VALIDATION_MESSAGES.isBoolean(label),
       };
     }
     if (expected === 'array') {
-      return { errCode: 'isArray', message: `${label} must be an array` };
+      return {
+        errCode: ERROR_CODES.VALIDATION.IS_ARRAY,
+        message: VALIDATION_MESSAGES.isArray(label),
+      };
     }
-    return { errCode: 'isString', message: `${label} must be a string` };
+    return {
+      errCode: ERROR_CODES.VALIDATION.IS_STRING,
+      message: VALIDATION_MESSAGES.isString(label),
+    };
   }
 
   if (code === 'too_small') {
     if (isNumeric && inclusive === false && minimum === 0) {
       return {
-        errCode: 'isPositive',
-        message: `${label} must be a positive number`,
+        errCode: ERROR_CODES.VALIDATION.IS_POSITIVE,
+        message: VALIDATION_MESSAGES.isPositive(label),
       };
     }
     if (isNumeric) {
       return {
-        errCode: 'min',
-        message: `${label} must not be less than ${minimum}`,
+        errCode: ERROR_CODES.VALIDATION.MIN,
+        message: VALIDATION_MESSAGES.min(label, minimum),
+      };
+    }
+    if (origin === 'array') {
+      return {
+        errCode: ERROR_CODES.VALIDATION.ARRAY_MIN_SIZE,
+        message: VALIDATION_MESSAGES.arrayMinSize(label, minimum),
       };
     }
     return {
-      errCode: 'minLength',
-      message: `${label} must be longer than or equal to ${minimum} characters`,
+      errCode: ERROR_CODES.VALIDATION.MIN_LENGTH,
+      message: VALIDATION_MESSAGES.minLength(label, minimum),
     };
   }
 
   if (code === 'too_big') {
     if (isNumeric) {
       return {
-        errCode: 'max',
-        message: `${label} must not be greater than ${maximum}`,
+        errCode: ERROR_CODES.VALIDATION.MAX,
+        message: VALIDATION_MESSAGES.max(label, maximum),
       };
     }
     if (origin === 'array') {
       return {
-        errCode: 'arrayMaxSize',
-        message: `${label} must contain no more than ${maximum} elements`,
+        errCode: ERROR_CODES.VALIDATION.ARRAY_MAX_SIZE,
+        message: VALIDATION_MESSAGES.arrayMaxSize(label, maximum),
       };
     }
     return {
-      errCode: 'maxLength',
-      message: `${label} must be shorter than or equal to ${maximum} characters`,
+      errCode: ERROR_CODES.VALIDATION.MAX_LENGTH,
+      message: VALIDATION_MESSAGES.maxLength(label, maximum),
     };
   }
 
   if (code === 'invalid_format') {
     if (format === 'uuid') {
-      return { errCode: 'isUuid', message: `${label} must be a UUID` };
+      return {
+        errCode: ERROR_CODES.VALIDATION.IS_UUID,
+        message: VALIDATION_MESSAGES.isUuid(label),
+      };
     }
     if (format === 'url') {
-      return { errCode: 'isUrl', message: `${label} must be a URL address` };
+      return {
+        errCode: ERROR_CODES.VALIDATION.IS_URL,
+        message: VALIDATION_MESSAGES.isUrl(label),
+      };
     }
   }
 
   if (code === 'invalid_value' && values) {
     return {
-      errCode: 'isEnum',
-      message: `${label} must be one of the following values: ${values.join(', ')}`,
+      errCode: ERROR_CODES.VALIDATION.IS_ENUM,
+      message: VALIDATION_MESSAGES.isEnum(label, values),
     };
   }
 
-  return { errCode: code ?? 'invalid', message: issue.message };
+  if (code === 'custom' && params?.errCode) {
+    return { errCode: params.errCode, message: issue.message };
+  }
+
+  return {
+    errCode: code ?? ERROR_CODES.VALIDATION.INVALID,
+    message: issue.message,
+  };
 };

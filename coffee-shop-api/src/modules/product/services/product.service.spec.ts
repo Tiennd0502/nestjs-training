@@ -8,7 +8,8 @@ import { CategoryService } from '../../category/services/category.service.js';
 import { ProductImageService } from '../../product-image/services/product-image.service.js';
 import { ProductVariantService } from '../../product-variant/services/product-variant.service.js';
 import { ProductUnit } from '../../product-variant/enums/product-variant.enum.js';
-import { ProductStatus } from '../enums/product.enum.js';
+import { ProductStatus, RoastLevel } from '../enums/product.enum.js';
+import type { CreateProductInput } from '../dto/product.schema.js';
 import {
   DuplicateResourceException,
   ItemNotFoundException,
@@ -29,6 +30,7 @@ describe('ProductService', () => {
     create: Mock;
     save: Mock;
     softDelete: Mock;
+    transactional: Mock;
   };
   let categoryService: { findOne: Mock };
   let productImageService: { create: Mock };
@@ -62,6 +64,7 @@ describe('ProductService', () => {
       create: vi.fn(),
       save: vi.fn(),
       softDelete: vi.fn(),
+      transactional: vi.fn((callback: () => Promise<unknown>) => callback()),
     };
     categoryService = { findOne: vi.fn() };
     productImageService = { create: vi.fn() };
@@ -84,9 +87,15 @@ describe('ProductService', () => {
     vi.clearAllMocks();
   });
 
-  const createData = {
+  const createData: CreateProductInput = {
     categoryId: 'category-id-1',
     name: 'Espresso Blend',
+    roastLevel: RoastLevel.MEDIUM,
+    description: 'A balanced, well-rounded coffee.',
+    origin: 'Ethiopia',
+    processingMethod: 'Washed',
+    images: [],
+    variants: [],
   };
 
   describe('create', () => {
@@ -118,7 +127,7 @@ describe('ProductService', () => {
 
       const result = await service.create({
         ...createData,
-        images: [{ url: 'https://example.com/a.jpg' }],
+        images: [{ url: 'https://example.com/a.jpg', isPrimary: true }],
         variants: [
           {
             sku: 'SKU-1',
@@ -132,6 +141,7 @@ describe('ProductService', () => {
       expect(productImageService.create).toHaveBeenCalledWith({
         productId: 'product-id-1',
         url: 'https://example.com/a.jpg',
+        isPrimary: true,
       });
       expect(productVariantService.create).toHaveBeenCalledWith({
         productId: 'product-id-1',
@@ -145,6 +155,41 @@ describe('ProductService', () => {
         undefined,
       );
       expect(result).toBe(refetched);
+    });
+
+    it('rejects more than one primary image, without checking the name or persisting', async () => {
+      await expect(
+        service.create({
+          ...createData,
+          images: [
+            { url: 'https://example.com/a.jpg', isPrimary: true },
+            { url: 'https://example.com/b.jpg', isPrimary: true },
+          ],
+        }),
+      ).rejects.toBeInstanceOf(BadRequestException);
+      expect(productRepository.findByName).not.toHaveBeenCalled();
+      expect(productRepository.create).not.toHaveBeenCalled();
+      expect(productImageService.create).not.toHaveBeenCalled();
+    });
+
+    it('allows a single primary image on create', async () => {
+      productRepository.findByName.mockResolvedValue(null);
+      categoryService.findOne.mockResolvedValue({ id: 'category-id-1' });
+      const created = buildProduct();
+      const refetched = buildProduct();
+      productRepository.create.mockResolvedValue(created);
+      productRepository.findById.mockResolvedValue(refetched);
+
+      await service.create({
+        ...createData,
+        images: [{ url: 'https://example.com/a.jpg', isPrimary: true }],
+      });
+
+      expect(productImageService.create).toHaveBeenCalledWith({
+        productId: 'product-id-1',
+        url: 'https://example.com/a.jpg',
+        isPrimary: true,
+      });
     });
 
     it('does not re-fetch the product when no images or variants are supplied', async () => {
@@ -374,7 +419,7 @@ describe('ProductService', () => {
       it('soft-deletes the removed images and saves once', async () => {
         const { images } = productWithImages([
           buildImage(idA),
-          buildImage(idB),
+          buildImage(idB, { isPrimary: true }),
         ]);
 
         await service.update('product-id-1', { removeImageIds: [idA] });
@@ -387,7 +432,7 @@ describe('ProductService', () => {
       it('patches only the supplied fields of an image', async () => {
         const { images } = productWithImages([
           buildImage(idA, { sortOrder: 3 }),
-          buildImage(idB),
+          buildImage(idB, { isPrimary: true }),
         ]);
 
         await service.update('product-id-1', {
@@ -405,6 +450,7 @@ describe('ProductService', () => {
       it('patches the sortOrder field when supplied', async () => {
         const { images } = productWithImages([
           buildImage(idA, { sortOrder: 0 }),
+          buildImage(idB, { isPrimary: true }),
         ]);
 
         await service.update('product-id-1', {
@@ -415,7 +461,9 @@ describe('ProductService', () => {
       });
 
       it('adds new images to the product with defaults', async () => {
-        const { product, add } = productWithImages([buildImage(idA)]);
+        const { product, add } = productWithImages([
+          buildImage(idA, { isPrimary: true }),
+        ]);
 
         await service.update('product-id-1', {
           addImages: [{ url: 'https://example.com/added.png' }],
@@ -481,20 +529,27 @@ describe('ProductService', () => {
 
       it('allows exactly the maximum number of images', async () => {
         const existing = Array.from({ length: 5 }, (_, i) =>
-          buildImage(`00000000-0000-4000-8000-00000000000${i}`),
+          buildImage(`00000000-0000-4000-8000-00000000000${i}`, {
+            isPrimary: i === 0,
+            sortOrder: i,
+          }),
         );
         productWithImages(existing);
 
         await service.update('product-id-1', {
-          addImages: [{ url: 'https://example.com/sixth.png' }],
+          addImages: [{ url: 'https://example.com/sixth.png', sortOrder: 5 }],
         });
 
         expect(productRepository.save).toHaveBeenCalledTimes(1);
       });
 
       it('rejects more than the maximum number of images, counting removals', async () => {
+        // existing[0] is non-primary (will be removed later); existing[1] is primary
         const existing = Array.from({ length: 6 }, (_, i) =>
-          buildImage(`00000000-0000-4000-8000-00000000000${i}`),
+          buildImage(`00000000-0000-4000-8000-00000000000${i}`, {
+            isPrimary: i === 1,
+            sortOrder: i,
+          }),
         );
         const { add } = productWithImages(existing);
 
@@ -535,7 +590,7 @@ describe('ProductService', () => {
       it('allows moving the primary flag to another image', async () => {
         const { images } = productWithImages([
           buildImage(idA, { isPrimary: true }),
-          buildImage(idB),
+          buildImage(idB, { sortOrder: 1 }),
         ]);
 
         await service.update('product-id-1', {
@@ -546,6 +601,65 @@ describe('ProductService', () => {
         });
 
         expect(images.map((image) => image.isPrimary)).toEqual([false, true]);
+      });
+
+      it('rejects removing the primary image when another image remains but has no primary', async () => {
+        // idA is primary, idB is not — removing idA leaves idB with no primary
+        productWithImages([
+          buildImage(idA, { isPrimary: true }),
+          buildImage(idB),
+        ]);
+
+        await expect(
+          service.update('product-id-1', { removeImageIds: [idA] }),
+        ).rejects.toBeInstanceOf(BadRequestException);
+        expect(productRepository.save).not.toHaveBeenCalled();
+      });
+
+      it('rejects a patch that demotes the only primary without promoting another', async () => {
+        productWithImages([
+          buildImage(idA, { isPrimary: true }),
+          buildImage(idB),
+        ]);
+
+        await expect(
+          service.update('product-id-1', {
+            updateImages: [{ id: idA, isPrimary: false }],
+          }),
+        ).rejects.toBeInstanceOf(BadRequestException);
+        expect(productRepository.save).not.toHaveBeenCalled();
+      });
+
+      it('allows removing the primary image when another is promoted via updateImages', async () => {
+        const { images } = productWithImages([
+          buildImage(idA, { isPrimary: true }),
+          buildImage(idB),
+        ]);
+
+        await service.update('product-id-1', {
+          removeImageIds: [idA],
+          updateImages: [{ id: idB, isPrimary: true }],
+        });
+
+        expect(images[0].deletedAt).toBeInstanceOf(Date);
+        expect(images[1].isPrimary).toBe(true);
+        expect(productRepository.save).toHaveBeenCalledTimes(1);
+      });
+
+      it('allows removing the primary image when a new primary is added', async () => {
+        const { images, add } = productWithImages([
+          buildImage(idA, { isPrimary: true }),
+        ]);
+
+        await service.update('product-id-1', {
+          removeImageIds: [idA],
+          addImages: [{ url: 'https://example.com/new.png', isPrimary: true }],
+        });
+
+        expect(images[0].deletedAt).toBeInstanceOf(Date);
+        expect(add).toHaveBeenCalledTimes(1);
+        expect(add.mock.calls[0][0]).toMatchObject({ isPrimary: true });
+        expect(productRepository.save).toHaveBeenCalledTimes(1);
       });
 
       it('does not touch the images when the request has no image changes', async () => {

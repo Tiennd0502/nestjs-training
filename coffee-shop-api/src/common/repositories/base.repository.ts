@@ -36,6 +36,10 @@ export abstract class BaseRepository<T extends BaseEntity> {
     await this.em.persist(entity).flush();
   }
 
+  transactional<R>(callback: () => Promise<R>): Promise<R> {
+    return this.em.transactional(() => callback());
+  }
+
   async softDelete(entity: T): Promise<void> {
     entity.deletedAt = new Date();
     await this.save(entity);

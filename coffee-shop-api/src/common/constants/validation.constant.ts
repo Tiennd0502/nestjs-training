@@ -1,21 +1,38 @@
+const MAX_DECIMAL = 99999999.99;
+
 export const VALIDATION_RULES = {
   NAME: {
     MIN_LENGTH: 2,
-    MAX_LENGTH: 100,
+    MAX_LENGTH: 120,
   },
   SKU: {
     MIN_LENGTH: 1,
-    MAX_LENGTH: 100,
+    MAX_LENGTH: 255,
   },
   IMAGE: {
+    MIN_COUNT: 2,
     MAX_COUNT: 6,
     MIN_SORT_ORDER: 0,
+    MAX_SORT_ORDER: 5,
+  },
+  VARIANT: {
+    MIN_COUNT: 1,
   },
   QUANTITY: {
     MIN: 0,
   },
   PRICE: {
+    MIN: 1,
+    MAX: MAX_DECIMAL,
+  },
+  WEIGHT: {
+    MIN: 1,
+    MAX: MAX_DECIMAL,
+  },
+  DISCOUNT: {
     MIN: 0,
+    MAX: MAX_DECIMAL,
+    PERCENT_MAX: 100,
   },
   PAGINATION: {
     MIN_PAGE: 1,

@@ -39,6 +39,9 @@ export class ProductService {
   async create(data: CreateProductInput): Promise<Product> {
     const { images = [], variants = [], ...productData } = data;
 
+    this.assertExactlyOnePrimary(images);
+    this.assertUniqueSortOrders([], new Map(), images);
+
     const existing = await this.productRepository.findByName(productData.name, {
       includeDeleted: true,
     });
@@ -53,24 +56,28 @@ export class ProductService {
 
     await this.categoryService.findOne(productData.categoryId);
 
-    const product = await this.productRepository.create({
-      ...productData,
-      slug: slugFrom(productData.name),
+    const product = await this.productRepository.transactional(async () => {
+      const created = await this.productRepository.create({
+        ...productData,
+        slug: slugFrom(productData.name),
+      });
+
+      for (const image of images) {
+        await this.productImageService.create({
+          ...image,
+          productId: created.id,
+        });
+      }
+
+      for (const variant of variants) {
+        await this.productVariantService.create({
+          ...variant,
+          productId: created.id,
+        });
+      }
+
+      return created;
     });
-
-    for (const image of images) {
-      await this.productImageService.create({
-        ...image,
-        productId: product.id,
-      });
-    }
-
-    for (const variant of variants) {
-      await this.productVariantService.create({
-        ...variant,
-        productId: product.id,
-      });
-    }
 
     return images.length === 0 && variants.length === 0
       ? product
@@ -100,43 +107,45 @@ export class ProductService {
   }
 
   async update(id: string, data: UpdateProductInput): Promise<Product> {
-    const product = await this.findOne(id);
+    return this.productRepository.transactional(async () => {
+      const product = await this.findOne(id);
 
-    if (data.name !== undefined && data.name !== product.name) {
-      const existing = await this.productRepository.findByName(data.name, {
-        includeDeleted: true,
-      });
-      if (existing && existing.id !== id) {
-        throw new DuplicateResourceException({
-          errCode: ERROR_CODES.PRODUCT.NAME_EXISTS,
-          field: 'name',
-          message: ERROR_MESSAGES.PRODUCT.NAME_EXISTS,
-          description: ERROR_DESCRIPTIONS.PRODUCT.NAME_EXISTS,
+      if (data.name !== undefined && data.name !== product.name) {
+        const existing = await this.productRepository.findByName(data.name, {
+          includeDeleted: true,
         });
+        if (existing && existing.id !== id) {
+          throw new DuplicateResourceException({
+            errCode: ERROR_CODES.PRODUCT.NAME_EXISTS,
+            field: 'name',
+            message: ERROR_MESSAGES.PRODUCT.NAME_EXISTS,
+            description: ERROR_DESCRIPTIONS.PRODUCT.NAME_EXISTS,
+          });
+        }
       }
-    }
 
-    const { categoryId, removeImageIds, updateImages, addImages, ...rest } =
-      data;
+      const { categoryId, removeImageIds, updateImages, addImages, ...rest } =
+        data;
 
-    if (categoryId !== undefined && categoryId !== product.category.id) {
-      product.category = await this.categoryService.findOne(categoryId);
-    }
+      if (categoryId !== undefined && categoryId !== product.category.id) {
+        product.category = await this.categoryService.findOne(categoryId);
+      }
 
-    this.applyImageChanges(product, {
-      removeImageIds,
-      updateImages,
-      addImages,
+      this.applyImageChanges(product, {
+        removeImageIds,
+        updateImages,
+        addImages,
+      });
+
+      assignDefinedFields(product, rest);
+      if (rest.name !== undefined) {
+        product.slug = slugFrom(rest.name);
+      }
+
+      await this.productRepository.save(product);
+
+      return product;
     });
-
-    assignDefinedFields(product, rest);
-    if (rest.name !== undefined) {
-      product.slug = slugFrom(rest.name);
-    }
-
-    await this.productRepository.save(product);
-
-    return product;
   }
 
   async remove(id: string): Promise<void> {
@@ -148,7 +157,7 @@ export class ProductService {
   /**
    * Applies remove, update, then add on the product's images. The resulting
    * set is checked first (ids belong to the product, at most MAX_COUNT images,
-   * at most one primary) and only then are the images changed, so a rejected
+   * exactly one primary) and only then are the images changed, so a rejected
    * request leaves the product untouched. The changes are persisted together
    * with the product by the caller's single save.
    */
@@ -188,15 +197,15 @@ export class ProductService {
       );
     }
 
-    const primaryCount =
-      remaining.filter(
-        (image) => patchById.get(image.id)?.isPrimary ?? image.isPrimary,
-      ).length + addImages.filter((image) => image.isPrimary).length;
-    if (primaryCount > 1) {
-      throw new BadRequestException(
-        ERROR_MESSAGES.PRODUCT.MULTIPLE_PRIMARY_IMAGES,
-      );
-    }
+    const finalImages = [
+      ...remaining.map((image) => ({
+        isPrimary: patchById.get(image.id)?.isPrimary ?? image.isPrimary,
+      })),
+      ...addImages.map((data) => ({ isPrimary: data.isPrimary })),
+    ];
+
+    this.assertExactlyOnePrimary(finalImages);
+    this.assertUniqueSortOrders(remaining, patchById, addImages);
 
     const removedAt = new Date();
     for (const image of current) {
@@ -221,10 +230,56 @@ export class ProductService {
     }
   }
 
+  private assertUniqueSortOrders(
+    remaining: ProductImage[],
+    patchById: Map<string, { sortOrder?: number }>,
+    addImages: Array<{ sortOrder?: number }>,
+  ): void {
+    const seen = new Set<number>();
+
+    for (const image of remaining) {
+      const effective = patchById.get(image.id)?.sortOrder ?? image.sortOrder;
+      if (seen.has(effective)) {
+        throw new BadRequestException(
+          ERROR_MESSAGES.PRODUCT.DUPLICATE_SORT_ORDERS,
+        );
+      }
+      seen.add(effective);
+    }
+
+    for (const data of addImages) {
+      const order = data.sortOrder;
+      if (order !== undefined) {
+        if (seen.has(order)) {
+          throw new BadRequestException(
+            ERROR_MESSAGES.PRODUCT.DUPLICATE_SORT_ORDERS,
+          );
+        }
+        seen.add(order);
+      }
+    }
+  }
+
   private assertImagesBelong(ids: string[], images: ProductImage[]): void {
     const known = new Set(images.map((image) => image.id));
     if (ids.some((id) => !known.has(id))) {
       throw new BadRequestException(ERROR_MESSAGES.PRODUCT.INVALID_IMAGE_IDS);
+    }
+  }
+
+  private assertExactlyOnePrimary(
+    images: Array<{ isPrimary?: boolean }>,
+  ): void {
+    const primaryCount = images.filter((image) => image.isPrimary).length;
+    if (primaryCount > 1) {
+      throw new BadRequestException(
+        ERROR_MESSAGES.PRODUCT.MULTIPLE_PRIMARY_IMAGES,
+      );
+    }
+    if (images.length > 0 && primaryCount === 0) {
+      throw new BadRequestException(
+        ERROR_MESSAGES.PRODUCT.PRIMARY_IMAGE_REQUIRED,
+      );
     }
   }
 }
