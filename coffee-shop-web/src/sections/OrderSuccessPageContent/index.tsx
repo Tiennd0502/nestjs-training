@@ -29,7 +29,7 @@ const OrderSuccessPageContent = () => {
     return (
       <div className="mx-auto max-w-3xl px-4 py-20 text-center md:px-6">
         <h1 className="text-4xl font-semibold text-on-surface">
-          Order Successful
+          Order Summary Unavailable
         </h1>
         <p className="mt-4 text-on-surface-variant">
           We could not find your order summary. Continue shopping to place a new

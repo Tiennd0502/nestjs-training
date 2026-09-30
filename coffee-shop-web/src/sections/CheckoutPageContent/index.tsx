@@ -534,16 +534,16 @@ const CheckoutPageContent = () => {
         data-testid="checkout-empty"
       >
         <h1 className="text-3xl font-semibold text-on-surface">
-          Finalize Your Brew Order
+          Your Cart Is Empty
         </h1>
         <p className="mt-4 text-on-surface-variant">
-          Your cart is empty. Add products before checkout.
+          Add products to your cart before checking out.
         </p>
         <Button
           className="mt-6 w-auto px-8"
-          onClick={() => router.push(ROUTES.CART)}
+          onClick={() => router.push(ROUTES.HOME)}
         >
-          Back to Cart
+          Continue Shopping
         </Button>
       </div>
     )
@@ -631,7 +631,7 @@ const CheckoutPageContent = () => {
                       <button
                         key={suggestion.id}
                         type="button"
-                        className="block w-full border-b border-outline-variant/60 px-4 py-3 text-left transition-colors last:border-b-0 hover:bg-surface-container-low"
+                        className="block w-full cursor-pointer border-b border-outline-variant/60 px-4 py-3 text-left transition-colors last:border-b-0 hover:bg-surface-container-low"
                         onMouseDown={(event) => event.preventDefault()}
                         onClick={() =>
                           handleAddressSuggestionSelect(suggestion)
