@@ -678,7 +678,7 @@ const EditProductForm = ({ product, productId }: EditProductFormProps) => {
             </h2>
             <div className="mt-4 rounded-2xl border border-outline-variant/30 bg-surface-container px-5 py-5">
               <div className="flex flex-wrap items-center gap-2">
-                {Boolean(tastingNotes.length) &&
+                {Boolean(tastingNotes?.length) &&
                   tastingNotes.map((note) => (
                     <Badge
                       key={note}

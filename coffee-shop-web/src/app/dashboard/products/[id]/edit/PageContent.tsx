@@ -146,14 +146,16 @@ const EditProductForm = ({ product, productId }: EditProductFormProps) => {
 
   const roastLevel = watch('roastLevel')
   const isSubmitting = isUpdatePending || isUploadingImages
-  const initialTastingNotes = parseTastingNotesString(product.tastingNotes)
+  const initialTastingNotes = parseTastingNotesString(
+    product?.tastingNotes ?? '',
+  )
   const initialIsListedOnStorefront = product.status === PRODUCT_STATUS.ACTIVE
   const { primaryUrl: initialPrimaryUrl, galleryItems: initialGalleryItems } =
     splitProductImagesForGallery(product)
   const hasStatusChanged = isListedOnStorefront !== initialIsListedOnStorefront
   const hasTastingNotesChanged =
-    tastingNotes.length !== initialTastingNotes.length ||
-    tastingNotes.some((note, index) => note !== initialTastingNotes[index])
+    tastingNotes?.length !== initialTastingNotes?.length ||
+    tastingNotes?.some((note, index) => note !== initialTastingNotes?.[index])
   const hasPrimaryImageChanged =
     avatarImage !== null || serverPrimaryUrl !== initialPrimaryUrl
   const hasGalleryChanged =
@@ -361,7 +363,7 @@ const EditProductForm = ({ product, productId }: EditProductFormProps) => {
       isOrganic: data.isOrganic,
       isFairTrade: data.isFairTrade,
       status: nextStatus,
-      tastingNotes: tastingNotes.join(', '),
+      tastingNotes: tastingNotes?.join(', ') ?? '',
       origin: data.origin.trim(),
       processingMethod: data.processingMethod.trim(),
       addImages,
@@ -691,7 +693,7 @@ const EditProductForm = ({ product, productId }: EditProductFormProps) => {
             </h2>
             <div className="mt-4 rounded-2xl border border-outline-variant/30 bg-surface-container px-5 py-5">
               <div className="flex flex-wrap items-center gap-2">
-                {Boolean(tastingNotes.length) &&
+                {Boolean(tastingNotes?.length) &&
                   tastingNotes.map((note) => (
                     <Badge
                       key={note}

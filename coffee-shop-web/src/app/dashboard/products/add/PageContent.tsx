@@ -310,7 +310,7 @@ const PageContent = () => {
       status: isListedOnStorefront
         ? PRODUCT_STATUS.ACTIVE
         : PRODUCT_STATUS.DRAFT,
-      tastingNotes: tastingNotes.join(', '),
+      tastingNotes: tastingNotes?.join(', ') ?? '',
       origin: data.origin.trim(),
       processingMethod: data.processingMethod.trim(),
       variants: [
@@ -754,7 +754,7 @@ const PageContent = () => {
             </h2>
             <div className="mt-4 rounded-2xl border border-outline-variant/30 bg-surface-container px-5 py-5">
               <div className="flex flex-wrap items-center gap-2">
-                {Boolean(tastingNotes.length) &&
+                {Boolean(tastingNotes?.length) &&
                   tastingNotes.map((note) => (
                     <Badge
                       key={note}
