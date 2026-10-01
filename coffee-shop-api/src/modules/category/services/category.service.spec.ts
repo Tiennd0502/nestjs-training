@@ -6,6 +6,7 @@ import type { Mock } from 'vitest';
 import {
   DuplicateResourceException,
   ItemNotFoundException,
+  ResourceInUseException,
 } from '../../../common/exceptions/base.exception.js';
 
 describe('CategoryService', () => {
@@ -17,6 +18,7 @@ describe('CategoryService', () => {
     create: Mock;
     save: Mock;
     softDelete: Mock;
+    countProducts: Mock;
   };
 
   const buildCategory = (overrides: Partial<Category> = {}): Category => ({
@@ -37,6 +39,7 @@ describe('CategoryService', () => {
       create: vi.fn(),
       save: vi.fn(),
       softDelete: vi.fn(),
+      countProducts: vi.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -191,13 +194,27 @@ describe('CategoryService', () => {
   });
 
   describe('remove', () => {
-    it('soft-deletes the loaded category', async () => {
+    it('soft-deletes the loaded category when it has no products', async () => {
       const category = buildCategory();
       categoryRepository.findById.mockResolvedValue(category);
+      categoryRepository.countProducts.mockResolvedValue(0);
 
       await service.remove('category-id-1');
 
+      expect(categoryRepository.countProducts).toHaveBeenCalledWith(
+        'category-id-1',
+      );
       expect(categoryRepository.softDelete).toHaveBeenCalledWith(category);
+    });
+
+    it('throws ResourceInUseException when the category still has products', async () => {
+      categoryRepository.findById.mockResolvedValue(buildCategory());
+      categoryRepository.countProducts.mockResolvedValue(2);
+
+      await expect(service.remove('category-id-1')).rejects.toBeInstanceOf(
+        ResourceInUseException,
+      );
+      expect(categoryRepository.softDelete).not.toHaveBeenCalled();
     });
 
     it('throws ItemNotFoundException for a missing id', async () => {

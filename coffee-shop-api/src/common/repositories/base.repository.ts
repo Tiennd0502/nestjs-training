@@ -55,6 +55,13 @@ export abstract class BaseRepository<T extends BaseEntity> {
     );
   }
 
+  protected countOf<R extends BaseEntity>(
+    entity: EntityName<R>,
+    where: Criteria<R>,
+  ): Promise<number> {
+    return this.em.count(entity, where as FilterQuery<R>);
+  }
+
   protected findMany(options: ListOptions<T> = {}): Promise<T[]> {
     return this.repository.find(this.buildWhere(options), {
       ...this.buildFindOptions(options),

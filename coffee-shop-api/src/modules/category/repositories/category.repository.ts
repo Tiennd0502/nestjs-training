@@ -5,6 +5,7 @@ import { BaseRepository } from '../../../common/repositories/base.repository.js'
 import { FindOptions } from '../../../common/interfaces/repository-options.interface.js';
 import { PaginatedResult } from '../../../common/dto/pagination.dto.js';
 import { QueryParams } from '../../../common/dto/query-params.dto.js';
+import { Product } from '../../product/entities/product.entity.js';
 
 @Injectable()
 export class CategoryRepository extends BaseRepository<Category> {
@@ -22,6 +23,11 @@ export class CategoryRepository extends BaseRepository<Category> {
       includeDeleted: options?.includeDeleted,
       search: { term: query.search, fields: ['name', 'slug'] },
     });
+  }
+
+  /** Non-deleted products in the category, whatever their status. */
+  countProducts(categoryId: string): Promise<number> {
+    return this.countOf(Product, { category: categoryId });
   }
 
   create(data: CreateCategoryInput & { slug: string }): Promise<Category> {

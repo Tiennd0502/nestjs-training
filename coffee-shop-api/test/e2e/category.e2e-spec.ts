@@ -8,6 +8,9 @@ import type { Mock } from 'vitest';
 import { AppModule } from './../../src/app.module.js';
 import { UserService } from './../../src/modules/user/services/user.service.js';
 import { CategoryService } from './../../src/modules/category/services/category.service.js';
+import { ProductService } from './../../src/modules/product/services/product.service.js';
+import { RoastLevel } from './../../src/modules/product/enums/product.enum.js';
+import { ERROR_CODES } from './../../src/common/constants/error-code.constant.js';
 import { UserRole } from './../../src/common/enums/user.enum.js';
 import type { User } from './../../src/modules/user/entities/user.entity.js';
 import type { Category } from './../../src/modules/category/entities/category.entity.js';
@@ -25,6 +28,7 @@ describe('CategoryController (e2e)', () => {
   let orm: MikroORM;
   let userService: UserService;
   let categoryService: CategoryService;
+  let productService: ProductService;
   const createdUserIds: string[] = [];
   const createdCategoryIds: string[] = [];
 
@@ -38,6 +42,7 @@ describe('CategoryController (e2e)', () => {
     orm = app.get(MikroORM);
     userService = app.get(UserService);
     categoryService = app.get(CategoryService);
+    productService = app.get(ProductService);
   });
 
   afterAll(async () => {
@@ -262,6 +267,39 @@ describe('CategoryController (e2e)', () => {
       await request(app.getHttpServer())
         .get(`${API_BASE_PATH}/categories/${category.id}`)
         .expect(404);
+    });
+
+    it('DELETE /categories/:id responds 409 while the category still has products', async () => {
+      const admin = await createTestUser(UserRole.ADMIN);
+      mockSessionFor(admin.clerkId);
+      const category = await createTestCategory(uniqueName('In Use E2E'));
+      const product = await RequestContext.create(orm.em, () =>
+        productService.create({
+          categoryId: category.id,
+          name: uniqueName('In Use Product E2E'),
+          roastLevel: RoastLevel.MEDIUM,
+          description: 'A balanced, well-rounded coffee.',
+          origin: 'Ethiopia',
+          processingMethod: 'Washed',
+          images: [],
+          variants: [],
+        }),
+      );
+
+      const response = await request(app.getHttpServer())
+        .delete(`${API_BASE_PATH}/categories/${category.id}`)
+        .expect(409);
+
+      const body = response.body as { errors: Array<{ errCode: string }> };
+      expect(body.errors[0].errCode).toBe(ERROR_CODES.CATEGORY.HAS_PRODUCTS);
+
+      await RequestContext.create(orm.em, () =>
+        productService.remove(product.id),
+      );
+
+      await request(app.getHttpServer())
+        .delete(`${API_BASE_PATH}/categories/${category.id}`)
+        .expect(204);
     });
 
     it.each(['patch', 'delete'] as const)(

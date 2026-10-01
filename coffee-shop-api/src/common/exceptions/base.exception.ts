@@ -56,3 +56,9 @@ export class DuplicateResourceException extends SingleErrorDomainException {
     super(HttpStatus.CONFLICT, ERROR_MESSAGES.EXCEPTION.CONFLICT, error);
   }
 }
+
+export class ResourceInUseException extends SingleErrorDomainException {
+  constructor(error: ErrorDetailDto) {
+    super(HttpStatus.CONFLICT, ERROR_MESSAGES.EXCEPTION.CONFLICT, error);
+  }
+}

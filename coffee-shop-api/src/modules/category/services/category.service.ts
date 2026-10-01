@@ -17,6 +17,7 @@ import { slugFrom } from '../../../common/utils/slug.util.js';
 import {
   DuplicateResourceException,
   ItemNotFoundException,
+  ResourceInUseException,
 } from '../../../common/exceptions/base.exception.js';
 
 @Injectable()
@@ -90,6 +91,17 @@ export class CategoryService {
 
   async remove(id: string): Promise<void> {
     const category = await this.findOne(id);
+
+    const productCount = await this.categoryRepository.countProducts(id);
+    if (productCount > 0) {
+      throw new ResourceInUseException({
+        errCode: ERROR_CODES.CATEGORY.HAS_PRODUCTS,
+        field: 'id',
+        message: ERROR_MESSAGES.CATEGORY.HAS_PRODUCTS,
+        description: ERROR_DESCRIPTIONS.CATEGORY.HAS_PRODUCTS,
+      });
+    }
+
     await this.categoryRepository.softDelete(category);
   }
 }
