@@ -406,7 +406,7 @@ const PageContent = () => {
         noValidate
         onSubmit={handleSubmit(onSubmit)}
       >
-        <section className="grid gap-6 lg:grid-cols-[3fr_5fr]">
+        <section className="grid gap-6 lg:grid-cols-[3fr_5fr] [&>*]:min-w-0">
           <article className="rounded-4xl border border-outline-variant/30 bg-surface-container-low p-6">
             <h2 className="text-xl leading-none font-medium text-on-surface-variant">
               Visual Identity
@@ -466,7 +466,7 @@ const PageContent = () => {
               <h2 className="text-xl leading-none font-medium text-on-surface-variant">
                 General Information
               </h2>
-              <div className="mt-5 grid gap-4">
+              <div className="mt-5 grid gap-4 [&>*]:min-w-0">
                 <Input
                   className="h-14"
                   label="Product Name"
@@ -493,7 +493,7 @@ const PageContent = () => {
                     </p>
                   )}
                 </div>
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-4 md:grid-cols-2 [&>*]:min-w-0">
                   <Controller
                     control={control}
                     name="categoryId"
@@ -652,7 +652,7 @@ const PageContent = () => {
               Roast Characteristics
             </h2>
           </div>
-          <div className="mt-5 grid gap-4 lg:grid-cols-[1.2fr_1fr_1fr]">
+          <div className="mt-5 grid gap-4 lg:grid-cols-[1.2fr_1fr_1fr] [&>*]:min-w-0">
             <div className="space-y-3 p-2">
               <Label htmlFor="roast-level">Roast Level</Label>
               <Slider
