@@ -94,6 +94,7 @@ function mockUsersByApiParams(params: UseUsersParams = {}) {
 
   const base = {
     isLoading: false,
+    isFetching: false,
     isError: false,
     errorMessage: null,
     refetch: refetchMock,
@@ -327,6 +328,7 @@ describe('Dashboard users page', () => {
       users: [],
       meta: null,
       isLoading: false,
+      isFetching: false,
       isError: true,
       errorMessage: API_FALLBACK_ERRORS.USERS_LOAD,
       refetch: refetchMock,

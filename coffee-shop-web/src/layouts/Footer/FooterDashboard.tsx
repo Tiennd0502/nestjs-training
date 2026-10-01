@@ -14,7 +14,7 @@ const FooterDashboard = () => {
           CoffeeHub
         </Link>
       </div>
-      <p className="mt-4 text-center text-xs tracking-widest text-on-surface/50 uppercase dark:text-inverse-on-surface/50">
+      <p className="mt-4 text-center text-xs tracking-widest text-on-surface/50 uppercase">
         © 2026 All Rights Reserved.
       </p>
     </div>

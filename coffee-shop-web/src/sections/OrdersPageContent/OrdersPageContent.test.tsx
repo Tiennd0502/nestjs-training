@@ -85,6 +85,7 @@ describe('OrdersPageContent', () => {
     ],
     createdAt: '2026-04-27T00:00:00.000Z',
     updatedAt: '2026-04-27T00:00:00.000Z',
+    deletedAt: null,
   }
 
   beforeEach(() => {

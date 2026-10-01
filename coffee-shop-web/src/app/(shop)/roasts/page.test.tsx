@@ -8,6 +8,7 @@ import { useProducts } from '@/hooks/useProduct'
 import {
   DISCOUNT_TYPE,
   PRODUCT_STATUS,
+  PRODUCT_UNIT,
   ROAST_LEVEL,
   type Product,
 } from '@/types/product'
@@ -55,7 +56,7 @@ const shopProductFixture: Product[] = [
       {
         sku: 'SKU-1',
         weight: 250,
-        unit: 'g',
+        unit: PRODUCT_UNIT.G,
         price: 24,
         discountType: DISCOUNT_TYPE.PERCENT,
         discountValue: 10,
@@ -92,6 +93,7 @@ describe('Roasts route page', () => {
         totalCount: 1,
       },
       isLoading: false,
+      isFetching: false,
       isError: false,
       errorMessage: null,
       refetch: jest.fn(),

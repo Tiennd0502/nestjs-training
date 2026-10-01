@@ -7,9 +7,9 @@ import CopyRight from './CopyRIght'
 
 const Footer = () => {
   return (
-    <footer className="w-full border-t border-on-surface/5 bg-background dark:bg-inverse-surface dark:text-inverse-on-surface">
+    <footer className="w-full border-t border-border bg-background text-on-surface">
       <div className="mx-auto flex max-w-7xl flex-col items-center gap-10 px-8 py-16">
-        <div className="font-headline text-2xl text-on-surface dark:text-inverse-on-surface">
+        <div className="font-headline text-2xl text-on-surface">
           <Logo />
         </div>
         <nav
@@ -27,7 +27,7 @@ const Footer = () => {
               <span
                 key={label}
                 aria-disabled="true"
-                className="cursor-not-allowed text-on-surface/50 opacity-50 dark:text-inverse-on-surface/50"
+                className="cursor-not-allowed text-on-surface/50 opacity-50"
               >
                 {label}
               </span>
@@ -35,7 +35,7 @@ const Footer = () => {
               <Link
                 key={label}
                 href={href}
-                className="text-on-surface/50 transition-opacity hover:text-on-surface dark:text-inverse-on-surface/50 dark:hover:text-inverse-on-surface"
+                className="text-on-surface/50 transition-opacity hover:text-on-surface"
               >
                 {label}
               </Link>
