@@ -26,14 +26,11 @@ import {
 import { Avatar } from '@/components/Avatar'
 import { ChevronIcon } from '../icon/ChevronIcon'
 import AlertDialog from '../AlertDialog'
-import { Button } from '../ui/button'
-import { ROUTES } from '@/constants/routes'
 import { User } from 'lucide-react'
 
 interface UserDropdownProps {
   isAdmin?: boolean
   onChange?: () => void
-  forceDropdown?: boolean
   showChevron?: boolean
   isDashboard?: boolean
 }
@@ -41,14 +38,11 @@ interface UserDropdownProps {
 export const UserDropdown = ({
   isAdmin = false,
   onChange,
-  forceDropdown = false,
   showChevron = true,
   isDashboard = false,
 }: UserDropdownProps) => {
   const router = useRouter()
   const pathname = usePathname()
-
-  const isUserProfile = pathname.startsWith(ROUTES.USER_PROFILE)
   const { user } = useUser()
   const { signOut } = useClerk()
 
@@ -96,81 +90,49 @@ export const UserDropdown = ({
       })
   }
 
-  const accountDropdown = (
-    <DropdownMenu disabled={isLoading}>
-      <DropdownMenuTrigger className="cursor-pointer disabled:cursor-not-allowed disabled:opacity-60">
-        <div
-          data-testid="btn-dropdown"
-          className="flex w-fit items-center gap-3.5"
-        >
-          <Avatar
-            email={email}
-            isDashboard={isDashboard}
-            src={imageUrl || ''}
-            name={displayName ?? ''}
-            size="default"
-            isActive
-          />
-          {showChevron ? <ChevronIcon direction={DIRECTION.DOWN} /> : null}
-        </div>
-      </DropdownMenuTrigger>
-
-      <DropdownMenuContent
-        sideOffset={0}
-        className="mt-2 w-fit rounded-sm p-0 shadow-lg"
-      >
-        {USER_DROPDOWNS(isAdmin, isDashboard).map(
-          ({ text, href, isSignOut = false, Icon = User }, index) => (
-            <DropdownMenuItem
-              data-testid="dropdown-menu-item"
-              key={index}
-              className={cn(
-                'font-primary flex cursor-pointer flex-row items-center justify-star px-5 py-2.5 hover:rounded-none !hover:text-primary',
-                index < USER_DROPDOWNS_LENGTH - 1 && 'rounded-none border-b',
-              )}
-              onClick={() => handleClick(href, isSignOut)}
-            >
-              <Icon />
-              {text}
-            </DropdownMenuItem>
-          ),
-        )}
-      </DropdownMenuContent>
-    </DropdownMenu>
-  )
-
   return (
     <>
-      {forceDropdown ? (
-        accountDropdown
-      ) : (
-        <>
-          <div className="hidden md:block">{accountDropdown}</div>
-          <div className="md:hidden">
-            <div className="flex flex-col items-start gap-2">
-              {USER_DROPDOWNS(isAdmin, isDashboard).map(
-                ({ text = '', href = '', isSignOut = false }, index) => (
-                  <Button
-                    data-testid="menu-item"
-                    variant="ghost"
-                    disabled={isLoading}
-                    key={index}
-                    className={cn(
-                      'h-fit w-full items-start justify-start px-5 py-2 font-bold text-current hover:text-primary hover:no-underline',
-                      isUserProfile &&
-                        href === ROUTES.USER_PROFILE &&
-                        'bg-accent text-primary',
-                    )}
-                    onClick={() => handleClick(href, isSignOut)}
-                  >
-                    {text}
-                  </Button>
-                ),
-              )}
-            </div>
+      <DropdownMenu disabled={isLoading}>
+        <DropdownMenuTrigger className="cursor-pointer disabled:cursor-not-allowed disabled:opacity-60">
+          <div
+            data-testid="btn-dropdown"
+            className="flex w-fit items-center gap-3.5"
+          >
+            <Avatar
+              email={email}
+              isDashboard={isDashboard}
+              src={imageUrl || ''}
+              name={displayName ?? ''}
+              size="default"
+              isActive
+            />
+            {showChevron ? <ChevronIcon direction={DIRECTION.DOWN} /> : null}
           </div>
-        </>
-      )}
+        </DropdownMenuTrigger>
+
+        <DropdownMenuContent
+          sideOffset={0}
+          className="mt-2 w-fit rounded-sm p-0 shadow-lg"
+        >
+          {USER_DROPDOWNS(isAdmin, isDashboard).map(
+            ({ text, href, isSignOut = false, Icon = User }, index) => (
+              <DropdownMenuItem
+                data-testid="dropdown-menu-item"
+                key={index}
+                className={cn(
+                  'font-primary flex cursor-pointer flex-row items-center justify-star px-5 py-2.5 hover:rounded-none !hover:text-primary',
+                  index < USER_DROPDOWNS_LENGTH - 1 && 'rounded-none border-b',
+                )}
+                onClick={() => handleClick(href, isSignOut)}
+              >
+                <Icon />
+                {text}
+              </DropdownMenuItem>
+            ),
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+
       <AlertDialog
         data-testid="modal-confirm"
         open={isOpen}

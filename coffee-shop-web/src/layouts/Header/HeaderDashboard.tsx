@@ -37,7 +37,7 @@ const HeaderDashboard = ({ className }: HeaderDashboardProps) => {
           <ThemeToggle className="h-8 w-8" />
           <SignedIn>
             <div className="flex shrink-0 items-center">
-              <UserDropdown forceDropdown showChevron={false} isDashboard />
+              <UserDropdown showChevron={false} isDashboard />
             </div>
           </SignedIn>
           <SignedOut>

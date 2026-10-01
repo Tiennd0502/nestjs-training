@@ -61,7 +61,7 @@ export const VALIDATION_MESSAGES = {
   minLength: (label: string, minimum?: number) =>
     `${label} must be longer than or equal to ${minimum} characters`,
   max: (label: string, maximum?: number | string) =>
-    `${label} must not be greater than ${maximum}`,
+    `${label} must be less than ${maximum}`,
   arrayMinSize: (label: string, minimum?: number) =>
     `${label} must contain at least ${minimum} elements`,
   arrayMaxSize: (label: string, maximum?: number) =>

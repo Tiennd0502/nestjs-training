@@ -1,8 +1,10 @@
 import { type OptionItem } from '@/types/common'
 import { ROAST_LEVEL } from '@/types/product'
+import { VALIDATION_RULES } from './validation'
 
-export const ROAST_PRICE_MIN = 5
-export const ROAST_PRICE_MAX = 250
+export const ROAST_PRICE_MIN = VALIDATION_RULES.PRICE.MIN
+export const ROAST_PRICE_MAX = VALIDATION_RULES.PRICE.MAX
+
 export const ROAST_DEFAULT_PRICE_RANGE: [number, number] = [
   ROAST_PRICE_MIN,
   ROAST_PRICE_MAX,

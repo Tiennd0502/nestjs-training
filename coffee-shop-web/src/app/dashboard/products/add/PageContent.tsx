@@ -48,6 +48,7 @@ import BrainIcon from '@/components/icon/BrainIcon'
 
 // Utils
 import { normalizeNumericInput } from '@/utils/number'
+import { cn } from '@/utils/styles'
 import { getCategoryOptions, renderProductSku } from '@/utils/common'
 
 const { PRICE } = VALIDATION_RULES
@@ -86,6 +87,9 @@ const PRODUCT_FORM_DEFAULT_VALUES: ProductFormValues = {
   origin: '',
   processingMethod: '',
 }
+
+const ETHICS_TOGGLE_CLASSES =
+  'inline-flex h-12 w-max max-w-full shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-full border px-4 text-xs font-semibold uppercase tracking-wider whitespace-nowrap disabled:pointer-events-none disabled:opacity-50'
 
 const getRoastIndex = (value: ROAST_LEVEL) => {
   const found = roastLevels.indexOf(value)
@@ -148,6 +152,8 @@ const PageContent = () => {
 
   const roastLevel = watch('roastLevel')
   const discountType = watch('discountType')
+  const isOrganic = watch('isOrganic')
+  const isFairTrade = watch('isFairTrade')
   const isPercentDiscount = discountType === DISCOUNT_TYPE.PERCENT
   const isSubmitting = isPending || isUploadingImages
 
@@ -734,40 +740,40 @@ const PageContent = () => {
               <Label className="tracking-wider uppercase">
                 Sourcing Ethics
               </Label>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <button
                   type="button"
-                  className={`inline-flex h-12 min-w-0 flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-full border px-3 text-xs font-semibold uppercase tracking-wider disabled:pointer-events-none disabled:opacity-50 ${
-                    watch('isOrganic')
+                  aria-pressed={isOrganic}
+                  className={cn(
+                    ETHICS_TOGGLE_CLASSES,
+                    isOrganic
                       ? 'border-primary bg-primary/10 text-primary'
-                      : 'border-outline-variant/70 text-on-surface-variant'
-                  }`}
+                      : 'border-outline-variant/70 text-on-surface-variant',
+                  )}
                   disabled={isSubmitting}
                   onClick={() =>
-                    setValue('isOrganic', !watch('isOrganic'), {
-                      shouldDirty: true,
-                    })
+                    setValue('isOrganic', !isOrganic, { shouldDirty: true })
                   }
                 >
                   <Leaf className="size-3.5 shrink-0" aria-hidden />
-                  <span className="truncate">Organic</span>
+                  <span>Organic</span>
                 </button>
                 <button
                   type="button"
-                  className={`inline-flex h-12 min-w-0 flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-full border px-3 text-xs font-semibold uppercase tracking-wider disabled:pointer-events-none disabled:opacity-50 ${
-                    watch('isFairTrade')
+                  aria-pressed={isFairTrade}
+                  className={cn(
+                    ETHICS_TOGGLE_CLASSES,
+                    isFairTrade
                       ? 'border-primary bg-primary/10 text-primary'
-                      : 'border-outline-variant/70 text-on-surface-variant'
-                  }`}
+                      : 'border-outline-variant/70 text-on-surface-variant',
+                  )}
                   disabled={isSubmitting}
                   onClick={() =>
-                    setValue('isFairTrade', !watch('isFairTrade'), {
-                      shouldDirty: true,
-                    })
+                    setValue('isFairTrade', !isFairTrade, { shouldDirty: true })
                   }
                 >
                   <BadgeCheck className="size-3.5 shrink-0" aria-hidden />
-                  <span className="truncate">Fair Trade</span>
+                  <span>Fair Trade</span>
                 </button>
               </div>
             </div>

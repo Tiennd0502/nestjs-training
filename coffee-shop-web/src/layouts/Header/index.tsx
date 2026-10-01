@@ -1,12 +1,11 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { SignedIn, SignedOut } from '@clerk/nextjs'
-import { Menu as MenuIcon, ShoppingCart } from 'lucide-react'
+import { ShoppingCart } from 'lucide-react'
 
 // Constants
-import { MENU, MENU_DISABLED_HINT } from '@/constants/nav'
+import { MENU } from '@/constants/nav'
 import { ROUTES } from '@/constants/routes'
 
 // Types
@@ -15,18 +14,12 @@ import { USER_ROLES } from '@/types/user'
 
 // Components
 import { Menu } from '@/components/Menu'
+import { MobileNav } from '@/components/MobileNav'
 import { SearchInput } from '@/components/SearchInput'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { UserDropdown } from '@/components/UserDropdown'
 import { Badge } from '@/components/ui/badge'
 import { buttonVariants } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 
 // Hooks
 import { useAuth } from '@/hooks/useAuth'
@@ -43,7 +36,6 @@ export interface ShopHeaderProps {
 }
 
 const Header = ({ className, menu = MENU }: ShopHeaderProps) => {
-  const router = useRouter()
   const { user } = useAuth()
   const cartItemCount = useCartStore((s) => s.items?.length ?? 0)
   const cartAriaLabel =
@@ -71,7 +63,7 @@ const Header = ({ className, menu = MENU }: ShopHeaderProps) => {
         <Menu items={menu} />
 
         <div className="flex min-w-0 flex-1 items-center justify-end gap-1 sm:gap-2 md:gap-3">
-          <div className="hidden w-64 md:block">
+          <div className="hidden min-w-0 flex-1 md:block md:max-w-64">
             <SearchInput
               disabled
               aria-label="Search products"
@@ -126,68 +118,12 @@ const Header = ({ className, menu = MENU }: ShopHeaderProps) => {
             <div className="shrink-0">
               <UserDropdown
                 isAdmin={user?.role === USER_ROLES.ADMIN}
-                forceDropdown
                 showChevron={false}
               />
             </div>
           </SignedIn>
 
-          <div className="shrink-0 lg:hidden">
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                type="button"
-                className={cn(
-                  buttonVariants({ variant: 'ghost', size: 'icon' }),
-                  'text-primary',
-                )}
-                aria-label="Open navigation menu"
-              >
-                <MenuIcon className="size-5" aria-hidden />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="min-w-44">
-                {menu.map((item) => {
-                  const isDisabled = Boolean(item.disabled)
-
-                  return (
-                    <DropdownMenuItem
-                      key={item.href + item.label}
-                      className={cn(
-                        isDisabled
-                          ? 'cursor-not-allowed opacity-60'
-                          : 'cursor-pointer',
-                      )}
-                      disabled={isDisabled}
-                      onClick={() => {
-                        if (isDisabled) {
-                          return
-                        }
-                        router.push(item.href)
-                      }}
-                    >
-                      {isDisabled
-                        ? `${item.label} - ${MENU_DISABLED_HINT}`
-                        : item.label}
-                    </DropdownMenuItem>
-                  )
-                })}
-                <SignedOut>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    className="cursor-pointer"
-                    onClick={() => router.push(ROUTES.SIGN_IN)}
-                  >
-                    Sign in
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    className="cursor-pointer"
-                    onClick={() => router.push(ROUTES.SIGN_UP)}
-                  >
-                    Sign up
-                  </DropdownMenuItem>
-                </SignedOut>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+          <MobileNav className="shrink-0 lg:hidden" items={menu} />
         </div>
       </div>
     </header>
