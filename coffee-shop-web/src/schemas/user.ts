@@ -1,8 +1,37 @@
 import { z } from 'zod'
 
-import { ERROR_MESSAGES } from '@/constants/messages'
+import { ERROR_MESSAGES, VALIDATION_MESSAGES } from '@/constants/messages'
+import { VALIDATION_RULES } from '@/constants/validation'
 import { formDataEntryToString } from '@/utils/validation'
 import { USER_ROLES, USER_STATUS } from '@/types/user'
+
+const { NAME } = VALIDATION_RULES
+
+const firstNameSchema = z
+  .string()
+  .trim()
+  .min(1, ERROR_MESSAGES.FIRST_NAME_REQUIRED)
+  .min(
+    NAME.MIN_LENGTH,
+    VALIDATION_MESSAGES.minLength('FirstName', NAME.MIN_LENGTH),
+  )
+  .max(
+    NAME.MAX_LENGTH,
+    VALIDATION_MESSAGES.maxLength('FirstName', NAME.MAX_LENGTH),
+  )
+
+const lastNameSchema = z
+  .string()
+  .trim()
+  .min(1, ERROR_MESSAGES.LAST_NAME_REQUIRED)
+  .min(
+    NAME.MIN_LENGTH,
+    VALIDATION_MESSAGES.minLength('LastName', NAME.MIN_LENGTH),
+  )
+  .max(
+    NAME.MAX_LENGTH,
+    VALIDATION_MESSAGES.maxLength('LastName', NAME.MAX_LENGTH),
+  )
 
 export const signInCredentialsSchema = z.object({
   identifier: z
@@ -22,8 +51,8 @@ export const parseSignInCredentialsForm = (formData: FormData) =>
   })
 
 export const signUpStartSchema = z.object({
-  firstName: z.string().trim().min(1, ERROR_MESSAGES.FIRST_NAME_REQUIRED),
-  lastName: z.string().trim().min(1, ERROR_MESSAGES.LAST_NAME_REQUIRED),
+  firstName: firstNameSchema,
+  lastName: lastNameSchema,
   emailAddress: z
     .string()
     .trim()
@@ -47,15 +76,15 @@ export const parseSignUpStartForm = (formData: FormData) =>
   })
 
 export const updateProfileSchema = z.object({
-  firstName: z.string().trim().min(1, ERROR_MESSAGES.FIRST_NAME_REQUIRED),
-  lastName: z.string().trim().min(1, ERROR_MESSAGES.LAST_NAME_REQUIRED),
+  firstName: firstNameSchema,
+  lastName: lastNameSchema,
 })
 
 export type UpdateProfileValues = z.infer<typeof updateProfileSchema>
 
 export const updateUserFormSchema = z.object({
-  firstName: z.string().trim().min(1, ERROR_MESSAGES.FIRST_NAME_REQUIRED),
-  lastName: z.string().trim().min(1, ERROR_MESSAGES.LAST_NAME_REQUIRED),
+  firstName: firstNameSchema,
+  lastName: lastNameSchema,
   role: z.nativeEnum(USER_ROLES),
   status: z.nativeEnum(USER_STATUS),
 })

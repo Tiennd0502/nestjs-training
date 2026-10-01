@@ -21,7 +21,7 @@ const Footer = () => {
             ['Ethical Sourcing', '#'],
             ['Shipping Policy', '#'],
             ['Privacy', '#'],
-            ['Contact', '/contact'],
+            ['Contact', '#'],
           ].map(([label, href]) =>
             href === '#' ? (
               <span

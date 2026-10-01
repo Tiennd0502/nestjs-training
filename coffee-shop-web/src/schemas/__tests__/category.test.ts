@@ -1,5 +1,8 @@
-import { ERROR_MESSAGES } from '@/constants/messages'
+import { ERROR_MESSAGES, VALIDATION_MESSAGES } from '@/constants/messages'
+import { VALIDATION_RULES } from '@/constants/validation'
 import { parseCreateCategoryForm } from '@/schemas/category'
+
+const { NAME } = VALIDATION_RULES
 
 function formFrom(entries: Record<string, string>): FormData {
   const fd = new FormData()
@@ -33,7 +36,17 @@ describe('parseCreateCategoryForm', () => {
     expect(result.success).toBe(false)
     if (!result.success) {
       expect(result.error.flatten().fieldErrors.name?.[0]).toBe(
-        ERROR_MESSAGES.CATEGORY_NAME_MAX,
+        VALIDATION_MESSAGES.maxLength('Name', NAME.MAX_LENGTH),
+      )
+    }
+  })
+
+  it('rejects name shorter than min', () => {
+    const result = parseCreateCategoryForm(formFrom({ name: 'x' }))
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.flatten().fieldErrors.name?.[0]).toBe(
+        VALIDATION_MESSAGES.minLength('Name', NAME.MIN_LENGTH),
       )
     }
   })

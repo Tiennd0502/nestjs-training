@@ -37,6 +37,8 @@ const EditCategory = () => {
   } = useForm<CategoryPayload>({
     resolver: zodResolver(createCategoryFormSchema),
     defaultValues: { name: category?.name ?? '' },
+    mode: 'onBlur',
+    reValidateMode: 'onChange',
   })
 
   useEffect(() => {

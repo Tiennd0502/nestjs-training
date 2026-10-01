@@ -127,8 +127,8 @@ const EditProductForm = ({ product, productId }: EditProductFormProps) => {
   } = useForm<EditProductFormValues>({
     resolver: zodResolver(editProductFormSchema),
     defaultValues: EDIT_FORM_DEFAULTS,
-    mode: 'onChange',
-    reValidateMode: 'onBlur',
+    mode: 'onBlur',
+    reValidateMode: 'onChange',
   })
 
   useEffect(() => {
@@ -234,6 +234,11 @@ const EditProductForm = ({ product, productId }: EditProductFormProps) => {
     }
     setImageErrors(nextErrors)
     return !nextErrors.avatar && !nextErrors.gallery
+  }
+
+  const handleSaveClick = () => {
+    validateImageInputs()
+    void handleSubmit(onSubmit)()
   }
 
   const handleAddNote = () => {
@@ -435,7 +440,7 @@ const EditProductForm = ({ product, productId }: EditProductFormProps) => {
             className="w-auto px-8"
             disabled={isSubmitting || !hasUnsavedChanges}
             loading={isSubmitting}
-            onClick={handleSubmit(onSubmit)}
+            onClick={handleSaveClick}
           >
             <PublishIcon />
             Save changes
@@ -465,6 +470,7 @@ const EditProductForm = ({ product, productId }: EditProductFormProps) => {
                 buttonText="Browse"
                 onChange={handlePrimaryImageChange}
                 disabled={isSubmitting}
+                invalid={Boolean(imageErrors.avatar)}
                 className="min-h-68"
               />
               {Boolean(imageErrors.avatar) && (
@@ -495,6 +501,7 @@ const EditProductForm = ({ product, productId }: EditProductFormProps) => {
                     handleRemoveGalleryImage(index)
                   }}
                   disabled={isSubmitting}
+                  invalid={Boolean(imageErrors.gallery)}
                 />
                 {Boolean(imageErrors.gallery) && (
                   <p
@@ -649,10 +656,10 @@ const EditProductForm = ({ product, productId }: EditProductFormProps) => {
               <Label className="tracking-wider uppercase">
                 Sourcing Ethics
               </Label>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  className={`inline-flex h-12 cursor-pointer items-center gap-2 rounded-full border px-5 text-xs font-semibold uppercase tracking-wider disabled:pointer-events-none disabled:opacity-50 ${
+                  className={`inline-flex h-12 min-w-0 flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-full border px-3 text-xs font-semibold uppercase tracking-wider disabled:pointer-events-none disabled:opacity-50 ${
                     watch('isOrganic')
                       ? 'border-primary bg-primary/10 text-primary'
                       : 'border-outline-variant/70 text-on-surface-variant'
@@ -664,12 +671,12 @@ const EditProductForm = ({ product, productId }: EditProductFormProps) => {
                     })
                   }
                 >
-                  <Leaf className="size-3.5" aria-hidden />
-                  Organic
+                  <Leaf className="size-3.5 shrink-0" aria-hidden />
+                  <span className="truncate">Organic</span>
                 </button>
                 <button
                   type="button"
-                  className={`inline-flex h-12 cursor-pointer items-center gap-2 rounded-full border px-5 text-xs font-semibold uppercase tracking-wider disabled:pointer-events-none disabled:opacity-50 ${
+                  className={`inline-flex h-12 min-w-0 flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-full border px-3 text-xs font-semibold uppercase tracking-wider disabled:pointer-events-none disabled:opacity-50 ${
                     watch('isFairTrade')
                       ? 'border-primary bg-primary/10 text-primary'
                       : 'border-outline-variant/70 text-on-surface-variant'
@@ -681,8 +688,8 @@ const EditProductForm = ({ product, productId }: EditProductFormProps) => {
                     })
                   }
                 >
-                  <BadgeCheck className="size-3.5" aria-hidden />
-                  Fair Trade
+                  <BadgeCheck className="size-3.5 shrink-0" aria-hidden />
+                  <span className="truncate">Fair Trade</span>
                 </button>
               </div>
             </div>

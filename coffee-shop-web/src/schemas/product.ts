@@ -1,21 +1,56 @@
 import { z } from 'zod'
 
-import { ERROR_MESSAGES } from '@/constants/messages'
+import { ERROR_MESSAGES, VALIDATION_MESSAGES } from '@/constants/messages'
+import { VALIDATION_RULES } from '@/constants/validation'
+import { formatNumberThousands } from '@/utils/number'
 import { DISCOUNT_TYPE, PRODUCT_UNIT, ROAST_LEVEL } from '@/types/product'
 
-const nonNegativeNumber = (field: string) =>
-  z
-    .number({ error: field })
-    .refine((value) => Number.isFinite(value) && value >= 0, {
-      message: field,
-    })
+const { NAME, PRICE, WEIGHT, DISCOUNT, QUANTITY } = VALIDATION_RULES
 
-const greaterThanZeroNumber = (message: string) =>
+// Shows a friendlier rounded number (e.g. 99999999.99 -> "100,000,000")
+// than the raw API cap, which has an unwieldy .99 remainder.
+const numberInRange = (label: string, min: number, max: number) =>
   z
     .number({ error: ERROR_MESSAGES.FIELD_REQUIRED })
-    .refine((value) => Number.isFinite(value) && value > 0, {
-      message,
+    .refine((value) => Number.isFinite(value) && value >= min, {
+      message: VALIDATION_MESSAGES.min(label, formatNumberThousands(min)),
     })
+    .refine((value) => Number.isFinite(value) && value <= max, {
+      message: VALIDATION_MESSAGES.max(label, formatNumberThousands(max)),
+    })
+
+// label matches the API's raw DTO field name (capitalize-first-letter only,
+// e.g. "processingMethod" -> "ProcessingMethod") so the message is identical
+// to what validation-error.util.ts would return for the same constraint.
+const textFieldSchema = (
+  label: string,
+  minLength: number,
+  maxLength?: number,
+) => {
+  let schema = z
+    .string()
+    .trim()
+    .min(1, { message: ERROR_MESSAGES.FIELD_REQUIRED })
+    .min(minLength, {
+      message: VALIDATION_MESSAGES.minLength(label, minLength),
+    })
+
+  if (maxLength !== undefined) {
+    schema = schema.max(maxLength, {
+      message: VALIDATION_MESSAGES.maxLength(label, maxLength),
+    })
+  }
+
+  return schema
+}
+
+const nameSchema = textFieldSchema('Name', NAME.MIN_LENGTH, NAME.MAX_LENGTH)
+const descriptionSchema = textFieldSchema('Description', NAME.MIN_LENGTH)
+const originSchema = textFieldSchema('Origin', NAME.MIN_LENGTH)
+const processingMethodSchema = textFieldSchema(
+  'ProcessingMethod',
+  NAME.MIN_LENGTH,
+)
 
 export const createProductFormSchema = z
   .object({
@@ -23,15 +58,12 @@ export const createProductFormSchema = z
       .string()
       .trim()
       .min(1, { message: ERROR_MESSAGES.FIELD_REQUIRED }),
-    name: z.string().trim().min(1, { message: ERROR_MESSAGES.FIELD_REQUIRED }),
-    description: z
-      .string()
-      .trim()
-      .min(1, { message: ERROR_MESSAGES.FIELD_REQUIRED }),
+    name: nameSchema,
+    description: descriptionSchema,
     roastLevel: z.nativeEnum(ROAST_LEVEL),
     isOrganic: z.boolean(),
     isFairTrade: z.boolean(),
-    weight: greaterThanZeroNumber('Weight must be greater than 0'),
+    weight: numberInRange('Weight', WEIGHT.MIN, WEIGHT.MAX),
     unit: z
       .union([z.literal(''), z.nativeEnum(PRODUCT_UNIT)], {
         error: ERROR_MESSAGES.FIELD_REQUIRED,
@@ -39,26 +71,33 @@ export const createProductFormSchema = z
       .refine((value) => value !== '', {
         message: ERROR_MESSAGES.FIELD_REQUIRED,
       }),
-    price: greaterThanZeroNumber('Base price must be greater than 0'),
+    price: numberInRange('Price', PRICE.MIN, PRICE.MAX),
     discountType: z.nativeEnum(DISCOUNT_TYPE),
-    discountValue: nonNegativeNumber(ERROR_MESSAGES.DISCOUNT_PERCENT_MIN),
+    discountValue: numberInRange('DiscountValue', DISCOUNT.MIN, DISCOUNT.MAX),
     quantity: z
-      .number({ error: ERROR_MESSAGES.FIELD_REQUIRED })
-      .int({ message: 'Quantity must be a whole number' })
-      .min(1, { message: 'Quantity must be at least 1' }),
-    origin: z
-      .string()
-      .trim()
-      .min(1, { message: ERROR_MESSAGES.FIELD_REQUIRED }),
-    processingMethod: z
-      .string()
-      .trim()
-      .min(1, { message: ERROR_MESSAGES.FIELD_REQUIRED }),
+      .union(
+        [
+          z.literal(''),
+          z
+            .number()
+            .int({ message: VALIDATION_MESSAGES.isInt('Quantity') })
+            .min(QUANTITY.MIN, {
+              message: VALIDATION_MESSAGES.min('Quantity', QUANTITY.MIN),
+            }),
+        ],
+        { error: ERROR_MESSAGES.FIELD_REQUIRED },
+      )
+      .refine((value) => value !== '', {
+        message: ERROR_MESSAGES.FIELD_REQUIRED,
+      }),
+    origin: originSchema,
+    processingMethod: processingMethodSchema,
   })
   .superRefine((data, ctx) => {
+    // API requires discountValue strictly < PERCENT_MAX (100), not <=.
     if (
       data.discountType === DISCOUNT_TYPE.PERCENT &&
-      data.discountValue > 100
+      data.discountValue >= DISCOUNT.PERCENT_MAX
     ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -86,19 +125,13 @@ export const editProductFormSchema = z.object({
     .string()
     .trim()
     .min(1, { message: ERROR_MESSAGES.FIELD_REQUIRED }),
-  name: z.string().trim().min(1, { message: ERROR_MESSAGES.FIELD_REQUIRED }),
-  description: z
-    .string()
-    .trim()
-    .min(1, { message: ERROR_MESSAGES.FIELD_REQUIRED }),
+  name: nameSchema,
+  description: descriptionSchema,
   roastLevel: z.nativeEnum(ROAST_LEVEL),
   isOrganic: z.boolean(),
   isFairTrade: z.boolean(),
-  origin: z.string().trim().min(1, { message: ERROR_MESSAGES.FIELD_REQUIRED }),
-  processingMethod: z
-    .string()
-    .trim()
-    .min(1, { message: ERROR_MESSAGES.FIELD_REQUIRED }),
+  origin: originSchema,
+  processingMethod: processingMethodSchema,
 })
 
 export type EditProductFormValues = z.infer<typeof editProductFormSchema>

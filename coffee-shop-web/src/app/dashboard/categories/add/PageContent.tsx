@@ -32,6 +32,8 @@ const PageContent = () => {
   } = useForm<CategoryPayload>({
     resolver: zodResolver(createCategoryFormSchema),
     defaultValues: { name: '' },
+    mode: 'onBlur',
+    reValidateMode: 'onChange',
   })
 
   const onSubmit = (data: CategoryPayload) => {

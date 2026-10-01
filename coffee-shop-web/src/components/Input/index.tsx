@@ -23,6 +23,7 @@ export interface InputProps extends Omit<
   type?: React.HTMLInputTypeAttribute
   wrapperClassName?: string
   errorMessage?: React.ReactNode
+  maxDecimalPlaces?: number
 }
 
 const togglePasswordButtonClassName =
@@ -47,6 +48,7 @@ const InputField = React.forwardRef<HTMLElement, InputProps>(
       onChange,
       value,
       defaultValue,
+      maxDecimalPlaces,
       ...rest
     },
     ref,
@@ -59,12 +61,18 @@ const InputField = React.forwardRef<HTMLElement, InputProps>(
 
     const isPassword = type === 'password'
     const isNumberType = type === 'number'
-    const isControlledNumberInput = isNumberType && value !== undefined
+    // A text input can also opt into the same numeric masking by passing
+    // inputMode="decimal" (e.g. a price field styled as plain text).
+    const isDecimalMasked = isNumberType || rest.inputMode === 'decimal'
+    const isControlledNumberInput = isDecimalMasked && value !== undefined
     const [showPassword, setShowPassword] = React.useState(false)
     const [uncontrolledFormattedNumber, setUncontrolledFormattedNumber] =
       React.useState(() => {
-        if (!isNumberType) return ''
-        const normalized = normalizeNumericInput(String(defaultValue ?? ''))
+        if (!isDecimalMasked) return ''
+        const normalized = normalizeNumericInput(
+          String(defaultValue ?? ''),
+          maxDecimalPlaces,
+        )
         return formatNumericWithThousands(normalized)
       })
 
@@ -79,9 +87,11 @@ const InputField = React.forwardRef<HTMLElement, InputProps>(
       : isPassword && showPassword
         ? 'text'
         : (type ?? 'text')
-    const effectiveNumberValue = isNumberType
+    const effectiveNumberValue = isDecimalMasked
       ? isControlledNumberInput
-        ? formatNumericWithThousands(normalizeNumericInput(String(value ?? '')))
+        ? formatNumericWithThousands(
+            normalizeNumericInput(String(value ?? ''), maxDecimalPlaces),
+          )
         : uncontrolledFormattedNumber
       : undefined
 
@@ -101,7 +111,10 @@ const InputField = React.forwardRef<HTMLElement, InputProps>(
     const handleNumberInputChange = (
       event: React.ChangeEvent<HTMLInputElement>,
     ) => {
-      const normalized = normalizeNumericInput(event.target.value)
+      const normalized = normalizeNumericInput(
+        event.target.value,
+        maxDecimalPlaces,
+      )
       const formatted = formatNumericWithThousands(normalized)
 
       if (!isControlledNumberInput) {
@@ -166,13 +179,13 @@ const InputField = React.forwardRef<HTMLElement, InputProps>(
             id={inputId}
             type={effectiveType}
             disabled={disabled}
-            inputMode={isNumberType ? 'decimal' : rest.inputMode}
+            inputMode={isDecimalMasked ? 'decimal' : rest.inputMode}
             autoComplete={
               autoComplete ?? (isPassword ? 'current-password' : undefined)
             }
-            value={isNumberType ? effectiveNumberValue : value}
-            defaultValue={isNumberType ? undefined : defaultValue}
-            onChange={isNumberType ? handleNumberInputChange : onChange}
+            value={isDecimalMasked ? effectiveNumberValue : value}
+            defaultValue={isDecimalMasked ? undefined : defaultValue}
+            onChange={isDecimalMasked ? handleNumberInputChange : onChange}
             className={cn(
               'peer',
               hasStartIcon && 'pl-12',

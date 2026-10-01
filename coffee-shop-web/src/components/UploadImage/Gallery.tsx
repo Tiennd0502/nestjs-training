@@ -16,6 +16,7 @@ interface UploadImageGalleryProps {
   items?: UploadImageGalleryItem[]
   maxLength?: number
   disabled?: boolean
+  invalid?: boolean
   onAddImages: (files: File[]) => void
   onRemoveItem: (index: number, item?: UploadImageGalleryItem) => void
   itemHelperText?: string
@@ -28,8 +29,9 @@ const UploadImageGallery = ({
   name,
   files,
   items = [],
-  maxLength = 6,
+  maxLength = 5,
   disabled = false,
+  invalid = false,
   onAddImages,
   onRemoveItem,
   itemHelperText = 'Secondary perspective',
@@ -101,6 +103,7 @@ const UploadImageGallery = ({
           onAddImages(incomingFiles.slice(0, remainingSlots))
         }}
         disabled={isUploaderDisabled}
+        invalid={invalid}
       />
     </div>
   )

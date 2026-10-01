@@ -18,6 +18,7 @@ import { DISCOUNT_TYPE, PRODUCT_STATUS, ROAST_LEVEL } from '@/types/product'
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@/constants/messages'
 import { EMPTY_IMAGE } from '@/constants/images'
 import { DISCOUNT_TYPE_OPTIONS, UNIT_OPTIONS } from '@/constants/product'
+import { VALIDATION_RULES } from '@/constants/validation'
 
 // Hooks
 import { useCategories } from '@/hooks/useCategory'
@@ -49,6 +50,8 @@ import BrainIcon from '@/components/icon/BrainIcon'
 import { normalizeNumericInput } from '@/utils/number'
 import { getCategoryOptions, renderProductSku } from '@/utils/common'
 
+const { PRICE } = VALIDATION_RULES
+
 interface LocalImage {
   url: string
   name: string
@@ -79,7 +82,7 @@ const PRODUCT_FORM_DEFAULT_VALUES: ProductFormValues = {
   price: 0,
   discountType: DISCOUNT_TYPE.PERCENT,
   discountValue: 0,
-  quantity: 0,
+  quantity: '',
   origin: '',
   processingMethod: '',
 }
@@ -102,6 +105,9 @@ const parseFormNumber = (value: unknown): number | undefined => {
   const parsed = Number(normalized)
   return Number.isFinite(parsed) ? parsed : undefined
 }
+
+const parseFormQuantity = (value: unknown): number | '' =>
+  parseFormNumber(value) ?? ''
 
 const PageContent = () => {
   const { mutate, isPending } = useCreateProduct()
@@ -131,12 +137,13 @@ const PageContent = () => {
     reset,
     setValue,
     watch,
+    trigger,
     formState: { errors },
   } = useForm<ProductFormValues>({
     resolver: zodResolver(createProductFormSchema),
     defaultValues: PRODUCT_FORM_DEFAULT_VALUES,
-    mode: 'onChange',
-    reValidateMode: 'onBlur',
+    mode: 'onBlur',
+    reValidateMode: 'onChange',
   })
 
   const roastLevel = watch('roastLevel')
@@ -196,6 +203,11 @@ const PageContent = () => {
     setImageErrors(nextErrors)
 
     return !nextErrors.avatar && !nextErrors.gallery
+  }
+
+  const handlePublishClick = () => {
+    validateImageInputs()
+    void handleSubmit(onSubmit)()
   }
 
   const handleAddNote = () => {
@@ -289,6 +301,7 @@ const PageContent = () => {
 
   const onSubmit = async (data: ProductFormValues) => {
     if (data.unit === '') return
+    if (data.quantity === '') return
     if (!validateImageInputs()) return
     clearErrors()
 
@@ -392,7 +405,7 @@ const PageContent = () => {
             className="w-auto px-8"
             disabled={isSubmitting}
             loading={isSubmitting}
-            onClick={handleSubmit(onSubmit)}
+            onClick={handlePublishClick}
           >
             <PublishIcon />
             Publish Product
@@ -422,6 +435,7 @@ const PageContent = () => {
                 buttonText="Browse"
                 onChange={handlePrimaryImageChange}
                 disabled={isSubmitting}
+                invalid={Boolean(imageErrors.avatar)}
                 className="min-h-68"
               />
               {Boolean(imageErrors.avatar) && (
@@ -448,6 +462,7 @@ const PageContent = () => {
                     handleRemoveGalleryImage(index)
                   }}
                   disabled={isSubmitting}
+                  invalid={Boolean(imageErrors.gallery)}
                 />
                 {Boolean(imageErrors.gallery) && (
                   <p
@@ -544,8 +559,9 @@ const PageContent = () => {
                   className="h-14"
                   label="Weight"
                   type="number"
-                  min={0.01}
+                  min={1}
                   step={0.01}
+                  maxDecimalPlaces={2}
                   disabled={isSubmitting}
                   errorMessage={errors.weight?.message}
                   {...register('weight', { setValueAs: parseFormNumber })}
@@ -574,6 +590,9 @@ const PageContent = () => {
                   placeholder="e.g. 24.95"
                   startIcon={<DollarIcon className="size-4" />}
                   disabled={isSubmitting}
+                  min={PRICE.MIN}
+                  max={PRICE.MAX}
+                  maxDecimalPlaces={2}
                   errorMessage={errors.price?.message}
                   {...register('price', { setValueAs: parseFormNumber })}
                 />
@@ -581,11 +600,12 @@ const PageContent = () => {
                   className="h-14"
                   label="Initial Quantity"
                   type="number"
-                  min={1}
+                  min={0}
                   step={1}
+                  maxDecimalPlaces={0}
                   disabled={isSubmitting}
                   errorMessage={errors.quantity?.message}
-                  {...register('quantity', { setValueAs: parseFormNumber })}
+                  {...register('quantity', { setValueAs: parseFormQuantity })}
                 />
                 <div className="md:col-span-2 grid gap-4 md:grid-cols-2">
                   <Controller
@@ -606,7 +626,10 @@ const PageContent = () => {
                                     ? 'border-primary bg-primary/10 text-primary'
                                     : 'border-outline-variant/70 text-on-surface-variant'
                                 }`}
-                                onClick={() => field.onChange(option.value)}
+                                onClick={() => {
+                                  field.onChange(option.value)
+                                  void trigger('discountValue')
+                                }}
                                 disabled={isSubmitting}
                               >
                                 {option.label}
@@ -626,6 +649,7 @@ const PageContent = () => {
                     min={0}
                     max={isPercentDiscount ? 100 : undefined}
                     step={isPercentDiscount ? 1 : 0.01}
+                    maxDecimalPlaces={isPercentDiscount ? 0 : 2}
                     endIcon={
                       isPercentDiscount ? (
                         <span className="text-sm">%</span>
@@ -710,10 +734,10 @@ const PageContent = () => {
               <Label className="tracking-wider uppercase">
                 Sourcing Ethics
               </Label>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  className={`inline-flex h-12 cursor-pointer items-center gap-2 rounded-full border px-5 text-xs font-semibold uppercase tracking-wider disabled:pointer-events-none disabled:opacity-50 ${
+                  className={`inline-flex h-12 min-w-0 flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-full border px-3 text-xs font-semibold uppercase tracking-wider disabled:pointer-events-none disabled:opacity-50 ${
                     watch('isOrganic')
                       ? 'border-primary bg-primary/10 text-primary'
                       : 'border-outline-variant/70 text-on-surface-variant'
@@ -725,12 +749,12 @@ const PageContent = () => {
                     })
                   }
                 >
-                  <Leaf className="size-3.5" aria-hidden />
-                  Organic
+                  <Leaf className="size-3.5 shrink-0" aria-hidden />
+                  <span className="truncate">Organic</span>
                 </button>
                 <button
                   type="button"
-                  className={`inline-flex h-12 cursor-pointer items-center gap-2 rounded-full border px-5 text-xs font-semibold uppercase tracking-wider disabled:pointer-events-none disabled:opacity-50 ${
+                  className={`inline-flex h-12 min-w-0 flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-full border px-3 text-xs font-semibold uppercase tracking-wider disabled:pointer-events-none disabled:opacity-50 ${
                     watch('isFairTrade')
                       ? 'border-primary bg-primary/10 text-primary'
                       : 'border-outline-variant/70 text-on-surface-variant'
@@ -742,8 +766,8 @@ const PageContent = () => {
                     })
                   }
                 >
-                  <BadgeCheck className="size-3.5" aria-hidden />
-                  Fair Trade
+                  <BadgeCheck className="size-3.5 shrink-0" aria-hidden />
+                  <span className="truncate">Fair Trade</span>
                 </button>
               </div>
             </div>

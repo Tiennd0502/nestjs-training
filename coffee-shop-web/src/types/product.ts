@@ -119,7 +119,7 @@ export interface ProductFormValues {
   price: number
   discountType: DISCOUNT_TYPE
   discountValue: number
-  quantity: number
+  quantity: number | ''
   origin: string
   processingMethod: string
 }

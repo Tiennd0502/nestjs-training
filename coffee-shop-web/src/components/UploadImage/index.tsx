@@ -24,6 +24,7 @@ interface UploadImageProps {
   type?: UploadImageType
   multiple?: boolean
   disabled?: boolean
+  invalid?: boolean
   className?: string
 }
 
@@ -39,6 +40,7 @@ const UploadImage = ({
   type = 'primary',
   multiple = false,
   disabled = false,
+  invalid = false,
   className,
 }: UploadImageProps) => {
   const inputRef = useRef<HTMLInputElement>(null)
@@ -114,9 +116,11 @@ const UploadImage = ({
           </div>
         ) : (
           <div
+            data-invalid={invalid || undefined}
             className={cn(
               'box-border grid h-[104px] w-full max-w-full min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-4xl border border-dashed border-outline-variant/70 bg-surface-container px-4 py-4',
               disabled ? 'cursor-not-allowed' : 'cursor-pointer',
+              'data-invalid:border-destructive data-invalid:ring-2 data-invalid:ring-destructive/30 dark:data-invalid:ring-destructive/40',
               className,
             )}
             role="button"
@@ -174,9 +178,11 @@ const UploadImage = ({
         </div>
       ) : (
         <div
+          data-invalid={invalid || undefined}
           className={cn(
             'w-full rounded-4xl border border-dashed border-outline-variant/90 bg-surface-container px-6 py-8 text-center',
             disabled ? 'cursor-not-allowed' : 'cursor-pointer',
+            'data-invalid:border-destructive data-invalid:ring-2 data-invalid:ring-destructive/30 dark:data-invalid:ring-destructive/40',
             className,
           )}
           role="button"
