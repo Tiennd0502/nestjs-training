@@ -63,7 +63,6 @@ export async function fetchProducts(
   | { ok: false; error: string; status?: number }
 > {
   const {
-    getToken,
     page,
     limit,
     search,
@@ -77,7 +76,7 @@ export async function fetchProducts(
   const result = await apiClient.get<ApiResponse<Product[]>>(
     API_ROUTES.PRODUCTS,
     {
-      getToken,
+      skipAuth: true,
       query: {
         page,
         limit,
@@ -136,14 +135,13 @@ function parseProductFromResponse(json: unknown): Product | null {
 
 export async function fetchProductById(
   id: string,
-  options: Pick<ProductOptions, 'getToken'> = {},
 ): Promise<
   { ok: true; product: Product } | { ok: false; error: string; status?: number }
 > {
   const trimmed = id.trim()
   const url = `${API_ROUTES.PRODUCTS}/${encodeURIComponent(trimmed)}`
   const result = await apiClient.get<ApiResponse<Product>>(url, {
-    getToken: options.getToken,
+    skipAuth: true,
     fallbackError: API_FALLBACK_ERRORS.PRODUCT_LOAD,
   })
   if (!result.ok) return result
@@ -183,7 +181,7 @@ export async function updateProduct(
     return { ok: true, product: parsedProduct }
   }
 
-  const refetched = await fetchProductById(trimmed, options)
+  const refetched = await fetchProductById(trimmed)
   if (refetched.ok) {
     return { ok: true, product: refetched.product }
   }

@@ -9,6 +9,11 @@ export interface ApiRequestOptions {
   getToken?: TokenGetter
   query?: Record<string, QueryValue>
   fallbackError: string
+  /**
+   * Public endpoint: never attach Authorization, even when a session exists.
+   * Keeps the user's token off requests the API does not authenticate.
+   */
+  skipAuth?: boolean
 }
 
 /**
@@ -102,13 +107,15 @@ export class ApiClient {
 
   private async createHeaders(
     getToken?: TokenGetter,
-    options?: { jsonBody?: boolean },
+    options?: { jsonBody?: boolean; skipAuth?: boolean },
   ): Promise<Headers> {
     const headers = new Headers({ Accept: 'application/json' })
-    const effectiveGetToken = getToken ?? defaultTokenGetter ?? undefined
-    const token = effectiveGetToken ? await effectiveGetToken() : null
-    if (token) {
-      headers.set('Authorization', `Bearer ${token}`)
+    if (!options?.skipAuth) {
+      const effectiveGetToken = getToken ?? defaultTokenGetter ?? undefined
+      const token = effectiveGetToken ? await effectiveGetToken() : null
+      if (token) {
+        headers.set('Authorization', `Bearer ${token}`)
+      }
     }
     if (options?.jsonBody) {
       headers.set('Content-Type', 'application/json')
@@ -123,6 +130,7 @@ export class ApiClient {
     fallbackError,
     getToken,
     query,
+    skipAuth,
     parseSuccess,
   }: {
     url: string
@@ -131,10 +139,12 @@ export class ApiClient {
     fallbackError: string
     getToken?: TokenGetter
     query?: Record<string, QueryValue>
+    skipAuth?: boolean
     parseSuccess: (response: globalThis.Response) => Promise<TResponse>
   }): Promise<ApiResult<TResponse>> {
     const headers = await this.createHeaders(getToken, {
       jsonBody: body !== undefined,
+      skipAuth,
     })
     const requestUrl = this.buildUrlWithQuery(url, query)
 
@@ -172,12 +182,13 @@ export class ApiClient {
   }
 
   async get<T>(url: string, options: ApiRequestOptions): Promise<ApiResult<T>> {
-    const { getToken, query, fallbackError } = options
+    const { getToken, query, fallbackError, skipAuth } = options
 
     return this.request<T>({
       url,
       getToken,
       query,
+      skipAuth,
       fallbackError,
       parseSuccess: async (response) => (await response.json()) as T,
     })
@@ -188,13 +199,14 @@ export class ApiClient {
     body: unknown,
     options: Omit<ApiRequestOptions, 'query'>,
   ): Promise<ApiResult<TResponse>> {
-    const { getToken, fallbackError } = options
+    const { getToken, fallbackError, skipAuth } = options
 
     return this.request<TResponse>({
       url,
       method: 'POST',
       body,
       getToken,
+      skipAuth,
       fallbackError,
       parseSuccess: async (response) => {
         try {
@@ -211,13 +223,14 @@ export class ApiClient {
     body: unknown,
     options: Omit<ApiRequestOptions, 'query'>,
   ): Promise<ApiResult<TResponse>> {
-    const { getToken, fallbackError } = options
+    const { getToken, fallbackError, skipAuth } = options
 
     return this.request<TResponse>({
       url,
       method: 'PATCH',
       body,
       getToken,
+      skipAuth,
       fallbackError,
       parseSuccess: async (response) => {
         try {
@@ -234,13 +247,14 @@ export class ApiClient {
     body: unknown,
     options: Omit<ApiRequestOptions, 'query'>,
   ): Promise<ApiResult<TResponse>> {
-    const { getToken, fallbackError } = options
+    const { getToken, fallbackError, skipAuth } = options
 
     return this.request<TResponse>({
       url,
       method: 'PUT',
       body,
       getToken,
+      skipAuth,
       fallbackError,
       parseSuccess: async (response) => {
         try {
@@ -256,12 +270,13 @@ export class ApiClient {
     url: string,
     options: Omit<ApiRequestOptions, 'query'>,
   ): Promise<ApiResult<undefined>> {
-    const { getToken, fallbackError } = options
+    const { getToken, fallbackError, skipAuth } = options
 
     return this.request<undefined>({
       url,
       method: 'DELETE',
       getToken,
+      skipAuth,
       fallbackError,
       parseSuccess: async (response) => {
         const raw = await response.text()

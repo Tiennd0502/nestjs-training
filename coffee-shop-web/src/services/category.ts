@@ -74,11 +74,11 @@ export async function fetchCategories(
   | { ok: true; categories: Category[]; meta?: ResponseMeta }
   | { ok: false; error: string; status?: number }
 > {
-  const { getToken, page, limit, search } = options
+  const { page, limit, search } = options
   const result = await apiClient.get<ApiResponse<Category[]>>(
     API_ROUTES.CATEGORIES,
     {
-      getToken,
+      skipAuth: true,
       query: { page, limit, search: search?.trim() },
       fallbackError: API_FALLBACK_ERRORS.CATEGORIES_LOAD,
     },
@@ -91,7 +91,6 @@ export async function fetchCategories(
 
 export async function fetchCategoryById(
   id: string,
-  options: Pick<CategoryOptions, 'getToken'> = {},
 ): Promise<
   | { ok: true; category: Category }
   | { ok: false; error: string; status?: number }
@@ -99,7 +98,7 @@ export async function fetchCategoryById(
   const trimmed = id.trim()
   const url = `${API_ROUTES.CATEGORIES}/${encodeURIComponent(trimmed)}`
   const result = await apiClient.get<ApiResponse<Category>>(url, {
-    getToken: options.getToken,
+    skipAuth: true,
     fallbackError: API_FALLBACK_ERRORS.CATEGORY_LOAD,
   })
   if (!result.ok) return result
@@ -130,7 +129,7 @@ export async function updateCategory(
     return { ok: true, category: parsed.data }
   }
 
-  const refetched = await fetchCategoryById(trimmed, options)
+  const refetched = await fetchCategoryById(trimmed)
   if (refetched.ok) {
     return { ok: true, category: refetched.category }
   }
