@@ -38,7 +38,7 @@ describe('HomePage actions', () => {
     expect(
       screen.queryByRole('link', { name: 'Brew Guides' }),
     ).not.toBeInTheDocument()
-    expect(screen.getByText('Brew Guides - Coming soon')).toHaveAttribute(
+    expect(screen.getByText('Brew Guides')).toHaveAttribute(
       'aria-disabled',
       'true',
     )
@@ -46,9 +46,10 @@ describe('HomePage actions', () => {
     expect(
       screen.queryByRole('link', { name: 'Our Ethical Source' }),
     ).not.toBeInTheDocument()
-    expect(
-      screen.getByText('Our Ethical Source - Coming soon'),
-    ).toHaveAttribute('aria-disabled', 'true')
+    expect(screen.getByText('Our Ethical Source')).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    )
   })
 
   it('keeps valid actions as links', async () => {

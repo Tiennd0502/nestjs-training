@@ -289,6 +289,7 @@ export const PageContent = () => {
             <Table
               columns={PRODUCTS_TABLE_COLUMNS}
               data={products}
+              isStackedOnMobile
               getRowKey={(product, index) => product.id ?? `product-${index}`}
               resolveRowClassName={(product) =>
                 product.status === PRODUCT_STATUS.ARCHIVED

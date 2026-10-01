@@ -18,7 +18,16 @@ export interface TableProps<T> {
   headerClassName?: string
   emptyRowClassName?: string
   resolveRowClassName?: (item: T, index: number) => string
+  /** Below `md`, render each row as a card: one line per cell, labelled by the cell's `data-label`. */
+  isStackedOnMobile?: boolean
 }
+
+const STACKED_ROW_CLASS_NAME = cn(
+  'max-md:flex max-md:flex-col max-md:gap-3 max-md:border-b max-md:border-border max-md:p-4',
+  'max-md:[&>td]:p-0',
+  'max-md:[&>td[data-label]]:flex max-md:[&>td[data-label]]:items-center max-md:[&>td[data-label]]:justify-between max-md:[&>td[data-label]]:gap-4 max-md:[&>td[data-label]]:text-right',
+  'max-md:[&>td[data-label]]:before:shrink-0 max-md:[&>td[data-label]]:before:text-xs max-md:[&>td[data-label]]:before:font-semibold max-md:[&>td[data-label]]:before:tracking-widest max-md:[&>td[data-label]]:before:text-muted-foreground max-md:[&>td[data-label]]:before:uppercase max-md:[&>td[data-label]]:before:content-[attr(data-label)]',
+)
 
 export default function Table<T>({
   columns,
@@ -30,11 +39,16 @@ export default function Table<T>({
   headerClassName = 'bg-surface-container text-xs font-semibold tracking-[0.14em] text-muted-foreground uppercase',
   emptyRowClassName = 'px-6 py-12 text-center text-muted-foreground',
   resolveRowClassName,
+  isStackedOnMobile = false,
 }: TableProps<T>) {
   return (
     <div className="w-full min-w-0">
-      <table className={tableClassName}>
-        <thead className={headerClassName}>
+      <table
+        className={cn(tableClassName, isStackedOnMobile && 'max-md:block')}
+      >
+        <thead
+          className={cn(headerClassName, isStackedOnMobile && 'max-md:hidden')}
+        >
           <tr>
             {columns.map((column) => (
               <th
@@ -46,12 +60,13 @@ export default function Table<T>({
             ))}
           </tr>
         </thead>
-        <tbody>
+        <tbody className={cn(isStackedOnMobile && 'max-md:block')}>
           {data.length > 0 ? (
             data.map((item, index) => (
               <tr
                 className={cn(
                   index % 2 === 0 ? 'bg-card' : 'bg-background',
+                  isStackedOnMobile && STACKED_ROW_CLASS_NAME,
                   resolveRowClassName?.(item, index),
                 )}
                 key={getRowKey(item, index)}

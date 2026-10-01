@@ -29,7 +29,7 @@ export const Avatar = ({
   const inner = (
     <>
       {isDashboard && (
-        <div className="flex flex-col w-fit justify-end items-end">
+        <div className="hidden w-fit flex-col items-end justify-end md:flex">
           <p className="text-sm font-medium text-on-surface-variant">{name}</p>
           <p className="text-xs text-muted-foreground">{email}</p>
         </div>

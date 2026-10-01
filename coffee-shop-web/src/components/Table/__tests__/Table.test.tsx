@@ -113,4 +113,30 @@ describe('Table', () => {
     expect(rows[1]).not.toHaveClass('bg-muted/30')
     expect(rows[2]).toHaveClass('bg-muted/30')
   })
+
+  it('applies mobile stacked layout classes only when isStackedOnMobile is set', () => {
+    const renderTable = (isStackedOnMobile?: boolean) =>
+      render(
+        <Table<Row>
+          columns={columns}
+          data={[{ id: '1', label: 'First' }]}
+          getRowKey={(row) => row.id}
+          isStackedOnMobile={isStackedOnMobile}
+          renderRow={(row) => <td data-label="Label">{row.label}</td>}
+        />,
+      )
+
+    const { container, unmount } = renderTable(true)
+    expect(container.querySelector('thead')).toHaveClass('max-md:hidden')
+    expect(container.querySelector('tbody tr')).toHaveClass('max-md:flex')
+    unmount()
+
+    const { container: defaultContainer } = renderTable()
+    expect(defaultContainer.querySelector('thead')).not.toHaveClass(
+      'max-md:hidden',
+    )
+    expect(defaultContainer.querySelector('tbody tr')).not.toHaveClass(
+      'max-md:flex',
+    )
+  })
 })

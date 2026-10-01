@@ -5,7 +5,7 @@ import { ArrowRight, Quote } from 'lucide-react'
 
 import { buttonVariants } from '@/components/ui/button'
 import { EMPTY_IMAGE } from '@/constants/images'
-import { MENU, MENU_DISABLED_HINT } from '@/constants/nav'
+import { MENU } from '@/constants/nav'
 import { shopRoastDetailPath } from '@/constants/routes'
 import { fetchProducts } from '@/services/product'
 import { PRODUCT_STATUS } from '@/types/product'
@@ -105,7 +105,7 @@ const HomePage = async () => {
                   href="/roasts"
                   className={cn(
                     buttonVariants({ variant: 'default', size: 'xl' }),
-                    'w-auto rounded-full px-10 py-6 text-lg font-bold hover:scale-105',
+                    'w-auto rounded-full px-6 py-6 text-lg font-bold whitespace-normal hover:scale-105 md:px-10',
                   )}
                 >
                   Shop The Collection
@@ -116,18 +116,18 @@ const HomePage = async () => {
                     tabIndex={-1}
                     className={cn(
                       buttonVariants({ variant: 'outline', size: 'xl' }),
-                      'w-auto rounded-full border-0 bg-surface-container-highest px-10 py-6 text-lg font-bold text-primary hover:bg-surface-container-high',
+                      'w-auto rounded-full border-0 bg-surface-container-highest px-6 py-6 text-lg font-bold whitespace-normal text-primary hover:bg-surface-container-high md:px-10',
                       disabledActionClassName,
                     )}
                   >
-                    Brew Guides - {MENU_DISABLED_HINT}
+                    Brew Guides
                   </span>
                 ) : (
                   <Link
                     href="/brew-guides"
                     className={cn(
                       buttonVariants({ variant: 'outline', size: 'xl' }),
-                      'w-auto rounded-full border-0 bg-surface-container-highest px-10 py-6 text-lg font-bold text-primary hover:bg-surface-container-high',
+                      'w-auto rounded-full border-0 bg-surface-container-highest px-6 py-6 text-lg font-bold whitespace-normal text-primary hover:bg-surface-container-high md:px-10',
                     )}
                   >
                     Brew Guides
@@ -277,18 +277,18 @@ const HomePage = async () => {
                     tabIndex={-1}
                     className={cn(
                       buttonVariants({ variant: 'outline', size: 'lg' }),
-                      'w-auto rounded-full border-2 border-primary px-10 py-6 font-bold text-primary hover:bg-primary hover:text-on-primary',
+                      'w-auto rounded-full border-2 border-primary px-6 py-6 font-bold whitespace-normal text-primary hover:bg-primary hover:text-on-primary md:px-10',
                       disabledActionClassName,
                     )}
                   >
-                    Our Ethical Source - {MENU_DISABLED_HINT}
+                    Our Ethical Source
                   </span>
                 ) : (
                   <Link
                     href="/contact"
                     className={cn(
                       buttonVariants({ variant: 'outline', size: 'lg' }),
-                      'w-auto rounded-full border-2 border-primary px-10 py-6 font-bold text-primary hover:bg-primary hover:text-on-primary',
+                      'w-auto rounded-full border-2 border-primary px-6 py-6 font-bold whitespace-normal text-primary hover:bg-primary hover:text-on-primary md:px-10',
                     )}
                   >
                     Our Ethical Source

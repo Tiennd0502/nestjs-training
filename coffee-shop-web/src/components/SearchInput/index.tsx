@@ -27,7 +27,7 @@ export const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
       <label
         data-slot="search-input"
         className={cn(
-          'flex h-10 w-full min-w-0 items-center gap-2 rounded-full bg-input px-4 transition-[box-shadow,opacity] has-[input:disabled]:opacity-60',
+          'flex h-10 w-full min-w-0 items-center gap-2 rounded-full bg-input px-4 transition-shadow',
           'focus-within:ring-2 focus-within:ring-ring/50 focus-within:ring-offset-0 focus-within:outline-none',
           containerClassName,
         )}
@@ -40,13 +40,13 @@ export const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
           placeholder={placeholder}
           className={cn(
             'min-h-0 min-w-0 flex-1 border-0 bg-transparent text-sm leading-normal text-on-surface outline-none placeholder:text-on-surface-variant/80',
-            'focus-visible:outline-none disabled:cursor-not-allowed [&::-webkit-search-cancel-button]:cursor-pointer',
+            'focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60 [&::-webkit-search-cancel-button]:cursor-pointer',
             className,
           )}
           {...props}
         />
         <span
-          className="flex shrink-0 cursor-pointer text-primary in-has-[input:disabled]:cursor-not-allowed [&_svg]:size-5"
+          className="flex shrink-0 cursor-pointer text-primary in-has-[input:disabled]:cursor-not-allowed in-has-[input:disabled]:opacity-60 [&_svg]:size-5"
           aria-hidden
         >
           <Search />

@@ -117,26 +117,29 @@ export function ProductTableRow({
           </div>
         </div>
       </td>
-      <td className="min-w-0 px-6 py-4 align-middle text-center">
+      <td
+        data-label="Category"
+        className="min-w-0 px-6 py-4 align-middle text-center"
+      >
         <Badge
           variant="secondary"
           title={categoryLabel}
-          className="box-border inline-flex h-auto min-h-7 w-full max-w-full flex-wrap justify-center whitespace-normal wrap-break-word rounded-2xl px-4 py-1.5 text-center text-xs lg:text-sm font-semibold leading-snug"
+          className="block h-auto min-h-7 max-w-full truncate rounded-2xl px-4 py-1.5 text-center text-xs font-semibold leading-snug md:w-full lg:text-sm"
         >
           {categoryLabel}
         </Badge>
       </td>
-      <td className="px-6 py-4 align-middle text-center">
+      <td data-label="Price" className="px-6 py-4 align-middle text-center">
         <p className="text-sm font-semibold text-foreground">
           {formatPrice(price, 'en-US', 'USD')}
         </p>
       </td>
-      <td className="px-6 py-4 align-middle">
+      <td data-label="Stock" className="px-6 py-4 align-middle">
         <p className="text-sm text-center font-semibold text-foreground">
           {stock}
         </p>
       </td>
-      <td className="px-6 py-4 align-middle text-center">
+      <td data-label="Status" className="px-6 py-4 align-middle text-center">
         <Badge
           className={cn(
             'h-7 px-3 text-[0.65rem] uppercase',
@@ -146,7 +149,7 @@ export function ProductTableRow({
           {status}
         </Badge>
       </td>
-      <td className="px-6 py-4 align-middle">
+      <td data-label="Actions" className="px-6 py-4 align-middle">
         <div className="flex justify-end gap-1">
           <Link
             href={dashboardProductEditPath(product.id)}

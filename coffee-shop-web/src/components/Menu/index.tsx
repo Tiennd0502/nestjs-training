@@ -8,14 +8,14 @@ import { cn } from '@/utils/styles'
 
 const desktopNavLinkClass = (active: boolean) =>
   cn(
-    'relative whitespace-nowrap pb-1 text-sm font-medium transition-colors px-2.5 py-4',
+    'relative whitespace-nowrap pb-1 text-sm font-medium transition-colors px-2 py-4 xl:px-2.5',
     active
       ? 'font-semibold pb-1.5 mb-2 text-primary after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:rounded-full after:bg-primary'
       : 'text-muted-foreground hover:text-foreground',
   )
 
 const disabledDesktopNavClass = cn(
-  'relative whitespace-nowrap pb-1 text-sm font-medium px-2.5 py-4',
+  'relative whitespace-nowrap pb-1 text-sm font-medium px-2 py-4 xl:px-2.5',
   'cursor-not-allowed text-muted-foreground/60',
 )
 
@@ -56,7 +56,7 @@ export const Menu = ({ className, items }: DesktopMainNavProps) => {
   return (
     <nav
       className={cn(
-        'ml-auto mr-auto hidden items-center gap-8 lg:flex',
+        'ml-auto mr-auto hidden items-center gap-4 lg:flex xl:gap-8',
         className,
       )}
       aria-label="Primary"

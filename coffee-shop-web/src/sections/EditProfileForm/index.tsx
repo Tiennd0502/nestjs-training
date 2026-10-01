@@ -86,6 +86,7 @@ export function EditProfileForm({ open, onOpenChange }: EditProfileFormProps) {
   const { user, isLoaded } = useUser()
   const { refetch: refetchApiUser } = useAuth()
   const submitTokenRef = useRef(0)
+  const isUnmountedRef = useRef(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [avatarFile, setAvatarFile] = useState<File | null>(null)
   const [avatarPreview, setAvatarPreview] = useState('')
@@ -101,6 +102,13 @@ export function EditProfileForm({ open, onOpenChange }: EditProfileFormProps) {
     resolver: zodResolver(updateProfileSchema),
     defaultValues: { firstName: '', lastName: '' },
   })
+
+  useEffect(
+    () => () => {
+      isUnmountedRef.current = true
+    },
+    [],
+  )
 
   useEffect(() => {
     if (!open) return
@@ -160,7 +168,10 @@ export function EditProfileForm({ open, onOpenChange }: EditProfileFormProps) {
       onOpenChange(false)
 
       const token = ++submitTokenRef.current
-      const isStale = () => submitTokenRef.current !== token
+      // Stale once a newer save starts, or once this form is gone — an
+      // unmounted run must not keep refetching or toast onto another page.
+      const isStale = () =>
+        isUnmountedRef.current || submitTokenRef.current !== token
       void verifyBackendSynced(refetchApiUser, savedFields, isStale).then(
         (synced) => {
           if (!synced && !isStale()) {

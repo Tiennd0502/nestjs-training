@@ -215,6 +215,7 @@ export const PageContent = () => {
             )}
             <Table
               columns={CATEGORIES_TABLE_COLUMNS}
+              isStackedOnMobile
               data={categories}
               getRowKey={(row, index) => row.id ?? `category-${index}`}
               resolveRowClassName={(row) =>

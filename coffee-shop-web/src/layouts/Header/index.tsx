@@ -24,6 +24,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 
@@ -57,8 +58,8 @@ const Header = ({ className, menu = MENU }: ShopHeaderProps) => {
         className,
       )}
     >
-      <div className="relative mx-auto flex h-14 max-w-7xl gap-10 items-center justify-between  px-4 md:h-16 md:px-6">
-        <div className="flex ml-0 mr-auto min-w-0 flex-1 max-w-25 items-center">
+      <div className="relative mx-auto flex h-14 max-w-7xl gap-4 xl:gap-10 items-center justify-between  px-4 md:h-16 md:px-6">
+        <div className="flex shrink-0 items-center">
           <Link
             href={ROUTES.HOME}
             className="shrink-0 text-lg font-bold tracking-tight text-foreground"
@@ -69,8 +70,8 @@ const Header = ({ className, menu = MENU }: ShopHeaderProps) => {
 
         <Menu items={menu} />
 
-        <div className="flex ml-auto mr-0 w-fit min-w-0 flex-1 items-center justify-end gap-6 sm:gap-2 md:gap-3">
-          <div className="ml-auto mr-0 w-[256px] items-end justify-end lg:max-w-none lg:flex-none">
+        <div className="flex min-w-0 flex-1 items-center justify-end gap-1 sm:gap-2 md:gap-3">
+          <div className="hidden w-64 md:block">
             <SearchInput
               disabled
               aria-label="Search products"
@@ -102,7 +103,7 @@ const Header = ({ className, menu = MENU }: ShopHeaderProps) => {
           </Link>
 
           <SignedOut>
-            <div className="flex shrink-0 items-center gap-2 text-sm">
+            <div className="hidden shrink-0 items-center gap-2 text-sm lg:flex">
               <Link
                 href={ROUTES.SIGN_IN}
                 className="font-medium text-primary underline-offset-4 hover:underline"
@@ -169,6 +170,21 @@ const Header = ({ className, menu = MENU }: ShopHeaderProps) => {
                     </DropdownMenuItem>
                   )
                 })}
+                <SignedOut>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className="cursor-pointer"
+                    onClick={() => router.push(ROUTES.SIGN_IN)}
+                  >
+                    Sign in
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="cursor-pointer"
+                    onClick={() => router.push(ROUTES.SIGN_UP)}
+                  >
+                    Sign up
+                  </DropdownMenuItem>
+                </SignedOut>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>

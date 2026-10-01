@@ -26,17 +26,17 @@ const HeaderDashboard = ({ className }: HeaderDashboardProps) => {
     >
       <div className="flex min-w-0 w-full items-center justify-between gap-3 sm:gap-2 md:gap-3">
         <div className="flex min-w-0 flex-1 items-center gap-3 sm:gap-6">
-          <SidebarTrigger className="inline-block size-6 shrink-0" />
+          <SidebarTrigger className="size-6 shrink-0" />
           <SearchInput
             disabled
             aria-label="Search products"
             containerClassName="h-9 min-w-0 w-full max-w-md"
           />
         </div>
-        <div className="flex shrink-0 items-end justify-end gap-4 sm:gap-10">
+        <div className="flex shrink-0 items-center justify-end gap-4 sm:gap-10">
           <ThemeToggle className="h-8 w-8" />
           <SignedIn>
-            <div className="shrink-0">
+            <div className="flex shrink-0 items-center">
               <UserDropdown forceDropdown showChevron={false} isDashboard />
             </div>
           </SignedIn>

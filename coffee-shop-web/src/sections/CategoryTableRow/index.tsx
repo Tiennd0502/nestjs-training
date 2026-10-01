@@ -40,7 +40,7 @@ export function CategoryTableRow({
           </div>
         </div>
       </td>
-      <td className="min-w-0 px-6 py-4 align-middle">
+      <td data-label="Slug" className="min-w-0 px-6 py-4 align-middle">
         <code
           title={category.slug?.trim() ? category.slug : undefined}
           className="block max-w-full truncate rounded-md bg-muted px-2 py-0.5 text-sm text-center text-muted-foreground"
@@ -48,13 +48,19 @@ export function CategoryTableRow({
           {category.slug || '—'}
         </code>
       </td>
-      <td className="px-6 py-4 align-middle text-center text-sm text-muted-foreground truncate">
+      <td
+        data-label="Created"
+        className="px-6 py-4 align-middle text-center text-sm text-muted-foreground truncate"
+      >
         {formatTs(category.createdAt)}
       </td>
-      <td className="px-6 py-4 align-middle text-center text-sm text-muted-foreground truncate">
+      <td
+        data-label="Updated"
+        className="px-6 py-4 align-middle text-center text-sm text-muted-foreground truncate"
+      >
         {formatTs(category.updatedAt)}
       </td>
-      <td className="min-w-0 px-6 py-4 align-middle">
+      <td data-label="Actions" className="min-w-0 px-6 py-4 align-middle">
         <div className="flex justify-end gap-1">
           {!isDeleted && category.id ? (
             <Link

@@ -342,6 +342,7 @@ export const PageContent = () => {
             )}
             <Table
               columns={USERS_TABLE_COLUMNS}
+              isStackedOnMobile
               data={users}
               getRowKey={(user, index) => user.id ?? `user-${index}`}
               resolveRowClassName={(user) =>
