@@ -18,6 +18,7 @@ export const ERROR_MESSAGES = {
   CATEGORY: {
     NOT_FOUND: 'Category not found',
     NAME_EXISTS: 'Category name already exists',
+    HAS_PRODUCTS: 'Category still has products',
   },
   PRODUCT_IMAGE: {
     NOT_FOUND: 'Product image not found',
@@ -84,6 +85,8 @@ export const ERROR_DESCRIPTIONS = {
   CATEGORY: {
     NAME_EXISTS: 'A category with this name already exists.',
     NOT_FOUND: 'The category might have been deleted, or the id is incorrect.',
+    HAS_PRODUCTS:
+      'Move or delete the products in this category before deleting it.',
   },
   USER: {
     EMAIL_EXISTS: 'An account with this email already exists.',

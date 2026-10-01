@@ -9,6 +9,7 @@ export const ERROR_CODES = {
   CATEGORY: {
     NAME_EXISTS: 'categoryNameExists',
     NOT_FOUND: 'categoryNotFound',
+    HAS_PRODUCTS: 'categoryHasProducts',
   },
   USER: {
     EMAIL_EXISTS: 'userEmailExists',

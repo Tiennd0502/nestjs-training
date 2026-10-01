@@ -56,6 +56,12 @@ const CATEGORY_NAME_EXISTS_ERROR = {
   description: ERROR_DESCRIPTIONS.CATEGORY.NAME_EXISTS,
 };
 
+const CATEGORY_HAS_PRODUCTS_ERROR = {
+  errCode: ERROR_CODES.CATEGORY.HAS_PRODUCTS,
+  field: 'id',
+  description: ERROR_DESCRIPTIONS.CATEGORY.HAS_PRODUCTS,
+};
+
 @ApiTags('categories')
 @Controller('categories')
 export class CategoryController {
@@ -155,6 +161,11 @@ export class CategoryController {
     HttpStatus.NOT_FOUND,
     ERROR_MESSAGES.CATEGORY.NOT_FOUND,
     CATEGORY_NOT_FOUND_ERROR,
+  )
+  @ApiErrorResponse(
+    HttpStatus.CONFLICT,
+    ERROR_MESSAGES.CATEGORY.HAS_PRODUCTS,
+    CATEGORY_HAS_PRODUCTS_ERROR,
   )
   async remove(
     @Param({ schema: idParamSchema }) { id }: IdParam,
