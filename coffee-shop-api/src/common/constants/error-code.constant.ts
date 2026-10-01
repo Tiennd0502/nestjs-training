@@ -49,6 +49,7 @@ export const ERROR_CODES = {
     IS_UUID: 'isUuid',
     IS_URL: 'isUrl',
     IS_ENUM: 'isEnum',
+    INVALID_FORMAT: 'invalidFormat',
     INVALID: 'invalid',
   },
 } as const;

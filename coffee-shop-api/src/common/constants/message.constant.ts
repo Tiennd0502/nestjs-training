@@ -77,6 +77,7 @@ export const VALIDATION_MESSAGES = {
     `${label} must be shorter than or equal to ${maximum} characters`,
   isUuid: (label: string) => `${label} must be a UUID`,
   isUrl: (label: string) => `${label} must be a URL address`,
+  invalidFormat: (label: string) => `${label} has an invalid format`,
   isEnum: (label: string, values: unknown[]) =>
     `${label} must be one of the following values: ${values.join(', ')}`,
 } as const;

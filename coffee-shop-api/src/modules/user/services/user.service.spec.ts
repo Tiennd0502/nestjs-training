@@ -354,6 +354,26 @@ describe('UserService', () => {
       ).rejects.toBeInstanceOf(ItemNotFoundException);
       expect(authProvider.syncUserStatus).not.toHaveBeenCalled();
     });
+
+    it('looks up a soft-deleted user too, so it can be reactivated', async () => {
+      const user = buildUser({
+        status: UserStatus.INACTIVE,
+        deletedAt: new Date(),
+      });
+      userRepository.findById.mockResolvedValue(user);
+
+      await service.updateByAdmin('user-id-1', {
+        status: UserStatus.ACTIVE,
+      });
+
+      expect(userRepository.findById).toHaveBeenCalledWith('user-id-1', {
+        includeDeleted: true,
+      });
+      expect(authProvider.syncUserStatus).toHaveBeenCalledWith(
+        'clerk-1',
+        UserStatus.ACTIVE,
+      );
+    });
   });
 
   describe('remove', () => {
@@ -365,6 +385,22 @@ describe('UserService', () => {
 
       expect(user.status).toBe(UserStatus.INACTIVE);
       expect(userRepository.softDelete).toHaveBeenCalledWith(user);
+    });
+
+    it('bans the user in Clerk before soft-deleting locally', async () => {
+      const user = buildUser();
+      userRepository.findById.mockResolvedValue(user);
+
+      await service.remove('user-id-1');
+
+      expect(authProvider.syncUserStatus).toHaveBeenCalledWith(
+        user.clerkId,
+        UserStatus.INACTIVE,
+      );
+      const syncOrder = authProvider.syncUserStatus.mock.invocationCallOrder[0];
+      const softDeleteOrder =
+        userRepository.softDelete.mock.invocationCallOrder[0];
+      expect(syncOrder).toBeLessThan(softDeleteOrder);
     });
 
     it('throws ItemNotFoundException for a missing or already-deleted id', async () => {

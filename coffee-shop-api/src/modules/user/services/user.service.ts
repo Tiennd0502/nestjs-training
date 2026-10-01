@@ -4,6 +4,7 @@ import type {
   CreateUserInput,
   UpdateUserInput,
   UserFilters,
+  UserProfileSyncInput,
 } from '../dto/user.schema.js';
 import { UserRepository } from '../repositories/user.repository.js';
 import type { FindOptions } from '../../../common/interfaces/repository-options.interface.js';
@@ -108,7 +109,7 @@ export class UserService {
   }
 
   // Local write only — used by the auth-provider webhook to mirror provider state into the DB.
-  async update(id: string, dto: UpdateUserInput): Promise<User> {
+  async update(id: string, dto: UserProfileSyncInput): Promise<User> {
     const user = await this.findOne(id);
     return this.applyUpdates(user, dto);
   }
@@ -118,7 +119,7 @@ export class UserService {
   // The returned user therefore still holds the previous role/status until the webhook lands.
   async updateByAdmin(id: string, dto: UpdateUserInput): Promise<User> {
     const { role, status, ...profile } = dto;
-    const user = await this.findOne(id);
+    const user = await this.findOne(id, { includeDeleted: true });
 
     if (role !== undefined && role !== (user.role as UserRole)) {
       await this.authProvider.syncUserRole(user.clerkId, role);
@@ -130,7 +131,10 @@ export class UserService {
     return this.applyUpdates(user, profile);
   }
 
-  private async applyUpdates(user: User, dto: UpdateUserInput): Promise<User> {
+  private async applyUpdates(
+    user: User,
+    dto: UserProfileSyncInput,
+  ): Promise<User> {
     if (Object.values(dto).every((value) => value === undefined)) {
       return user;
     }
@@ -143,6 +147,7 @@ export class UserService {
 
   async remove(id: string): Promise<void> {
     const user = await this.findOne(id);
+    await this.authProvider.syncUserStatus(user.clerkId, UserStatus.INACTIVE);
     user.status = UserStatus.INACTIVE;
     await this.userRepository.softDelete(user);
   }
