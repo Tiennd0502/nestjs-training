@@ -623,7 +623,7 @@ describe('toErrorDetailsFromStandardSchemaIssues (migrated schemas)', () => {
     it('falls back to the raw Zod code for a format with no dedicated mapping', async () => {
       expect(
         await errorsFor(createUserSchema, {
-          clerkId: 'clerk-1',
+          clerkId: 'user_clerk1',
           email: 'not-an-email',
           firstName: 'Baseline',
           lastName: 'User',
@@ -633,6 +633,83 @@ describe('toErrorDetailsFromStandardSchemaIssues (migrated schemas)', () => {
           errCode: 'invalid_format',
           field: 'email',
           message: 'Invalid email address',
+        },
+      ]);
+    });
+
+    it('labels a malformed phoneNumber with the invalid-format mapping', async () => {
+      expect(
+        await errorsFor(createUserSchema, {
+          clerkId: 'user_clerk1',
+          email: 'baseline@example.com',
+          firstName: 'Baseline',
+          lastName: 'User',
+          phoneNumber: 'abc',
+        }),
+      ).toEqual([
+        {
+          errCode: ERROR_CODES.VALIDATION.INVALID_FORMAT,
+          field: 'phoneNumber',
+          message: VALIDATION_MESSAGES.invalidFormat('PhoneNumber'),
+        },
+      ]);
+    });
+
+    it('accepts an explicit null for phoneNumber and avatarUrl', async () => {
+      expect(
+        await errorsFor(createUserSchema, {
+          clerkId: 'user_clerk1',
+          email: 'baseline@example.com',
+          firstName: 'Baseline',
+          lastName: 'User',
+          phoneNumber: null,
+          avatarUrl: null,
+        }),
+      ).toEqual([]);
+    });
+
+    it('accepts a valid 10-digit phoneNumber', async () => {
+      expect(
+        await errorsFor(createUserSchema, {
+          clerkId: 'user_clerk1',
+          email: 'baseline@example.com',
+          firstName: 'Baseline',
+          lastName: 'User',
+          phoneNumber: '0987654321',
+        }),
+      ).toEqual([]);
+    });
+
+    it('rejects an empty clerkId', async () => {
+      expect(
+        await errorsFor(createUserSchema, {
+          clerkId: '',
+          email: 'baseline@example.com',
+          firstName: 'Baseline',
+          lastName: 'User',
+        }),
+      ).toEqual([
+        {
+          errCode: ERROR_CODES.VALIDATION.INVALID_FORMAT,
+          field: 'clerkId',
+          message: VALIDATION_MESSAGES.invalidFormat('ClerkId'),
+        },
+      ]);
+    });
+
+    it('rejects a clerkId missing the Clerk "user_" prefix', async () => {
+      expect(
+        await errorsFor(createUserSchema, {
+          clerkId: 'not-a-clerk-id',
+          email: 'baseline@example.com',
+          firstName: 'Baseline',
+          lastName: 'User',
+        }),
+      ).toEqual([
+        {
+          errCode: ERROR_CODES.VALIDATION.INVALID_FORMAT,
+          field: 'clerkId',
+          message: VALIDATION_MESSAGES.invalidFormat('ClerkId'),
         },
       ]);
     });

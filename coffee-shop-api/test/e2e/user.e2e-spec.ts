@@ -7,7 +7,9 @@ import { getAuth } from '@clerk/express';
 import type { Mock } from 'vitest';
 import { AppModule } from './../../src/app.module.js';
 import { UserService } from './../../src/modules/user/services/user.service.js';
+import { AuthProvider } from './../../src/common/providers/auth.provider.js';
 import { UserRole, UserStatus } from './../../src/common/enums/user.enum.js';
+import { VALIDATION_RULES } from './../../src/common/constants/validation.constant.js';
 import { API_BASE_PATH } from './../utils/api-path.util.js';
 import { initTestApp } from './../utils/init-test-app.util.js';
 import type { User } from './../../src/modules/user/entities/user.entity.js';
@@ -32,6 +34,12 @@ describe('UserController auth (e2e)', () => {
 
     orm = app.get(MikroORM);
     userService = app.get(UserService);
+
+    // Role/status syncing is covered in src/common/providers/clerk-auth.provider.spec.ts;
+    // here it would hit the real Clerk API with .env.test's placeholder credentials and fail.
+    const authProvider = app.get(AuthProvider);
+    vi.spyOn(authProvider, 'syncUserRole').mockResolvedValue(undefined);
+    vi.spyOn(authProvider, 'syncUserStatus').mockResolvedValue(undefined);
   });
 
   afterAll(async () => {
@@ -47,11 +55,15 @@ describe('UserController auth (e2e)', () => {
     (getAuth as Mock).mockReturnValue({ userId: null });
   });
 
+  // Matches Clerk's own id shape for a User resource (createUserSchema's clerkId regex).
+  const generateClerkId = (): string =>
+    `user_e2e${Date.now()}${Math.random().toString(36).slice(2)}`;
+
   const createTestUser = async (
     overrides: { role?: UserRole; status?: UserStatus } = {},
   ): Promise<User> =>
     RequestContext.create(orm.em, async () => {
-      const clerkId = `clerk-e2e-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      const clerkId = generateClerkId();
       let user = await userService.create({
         clerkId,
         email: `${clerkId}@example.com`,
@@ -248,6 +260,222 @@ describe('UserController auth (e2e)', () => {
       expect(response.body).toEqual({
         data: expect.objectContaining({ id: deletedUser.id }) as unknown,
       });
+    });
+
+    it('POST /users responds 400 for a firstName over the max length', async () => {
+      const admin = await createTestUser({ role: UserRole.ADMIN });
+      mockSessionFor(admin.clerkId);
+      const clerkId = generateClerkId();
+
+      const response = await request(app.getHttpServer())
+        .post(`${API_BASE_PATH}/users`)
+        .send({
+          clerkId,
+          email: `${clerkId}@example.com`,
+          firstName: 'a'.repeat(VALIDATION_RULES.NAME.MAX_LENGTH + 1),
+          lastName: 'Test',
+        })
+        .expect(400);
+
+      const body = response.body as {
+        statusCode: number;
+        errors: Array<{ errCode: string; field: string }>;
+      };
+      expect(body.statusCode).toBe(400);
+      expect(body.errors.some((error) => error.field === 'firstName')).toBe(
+        true,
+      );
+    });
+
+    it('POST /users responds 400 for an invalid avatarUrl', async () => {
+      const admin = await createTestUser({ role: UserRole.ADMIN });
+      mockSessionFor(admin.clerkId);
+      const clerkId = generateClerkId();
+
+      const response = await request(app.getHttpServer())
+        .post(`${API_BASE_PATH}/users`)
+        .send({
+          clerkId,
+          email: `${clerkId}@example.com`,
+          firstName: 'E2E',
+          lastName: 'Test',
+          avatarUrl: 'not-a-url',
+        })
+        .expect(400);
+
+      const body = response.body as {
+        errors: Array<{ errCode: string; field: string }>;
+      };
+      expect(body.errors.some((error) => error.field === 'avatarUrl')).toBe(
+        true,
+      );
+    });
+
+    it('POST /users accepts an explicit null avatarUrl', async () => {
+      const admin = await createTestUser({ role: UserRole.ADMIN });
+      mockSessionFor(admin.clerkId);
+      const clerkId = generateClerkId();
+
+      const response = await request(app.getHttpServer())
+        .post(`${API_BASE_PATH}/users`)
+        .send({
+          clerkId,
+          email: `${clerkId}@example.com`,
+          firstName: 'E2E',
+          lastName: 'Test',
+          avatarUrl: null,
+        })
+        .expect(201);
+
+      const body = response.body as { data: { id: string } };
+      createdUserIds.push(body.data.id);
+    });
+
+    it('POST /users responds 400 for an empty clerkId', async () => {
+      const admin = await createTestUser({ role: UserRole.ADMIN });
+      mockSessionFor(admin.clerkId);
+
+      const response = await request(app.getHttpServer())
+        .post(`${API_BASE_PATH}/users`)
+        .send({
+          clerkId: '',
+          email: `clerk-e2e-${Date.now()}@example.com`,
+          firstName: 'E2E',
+          lastName: 'Test',
+        })
+        .expect(400);
+
+      const body = response.body as {
+        errors: Array<{ errCode: string; field: string }>;
+      };
+      expect(body.errors.some((error) => error.field === 'clerkId')).toBe(true);
+    });
+
+    it('POST /users responds 400 for a malformed phoneNumber', async () => {
+      const admin = await createTestUser({ role: UserRole.ADMIN });
+      mockSessionFor(admin.clerkId);
+      const clerkId = generateClerkId();
+
+      const response = await request(app.getHttpServer())
+        .post(`${API_BASE_PATH}/users`)
+        .send({
+          clerkId,
+          email: `${clerkId}@example.com`,
+          firstName: 'E2E',
+          lastName: 'Test',
+          phoneNumber: 'abc',
+        })
+        .expect(400);
+
+      const body = response.body as {
+        errors: Array<{ errCode: string; field: string }>;
+      };
+      expect(body.errors.some((error) => error.field === 'phoneNumber')).toBe(
+        true,
+      );
+    });
+
+    it('POST /users accepts an explicit null phoneNumber', async () => {
+      const admin = await createTestUser({ role: UserRole.ADMIN });
+      mockSessionFor(admin.clerkId);
+      const clerkId = generateClerkId();
+
+      const response = await request(app.getHttpServer())
+        .post(`${API_BASE_PATH}/users`)
+        .send({
+          clerkId,
+          email: `${clerkId}@example.com`,
+          firstName: 'E2E',
+          lastName: 'Test',
+          phoneNumber: null,
+        })
+        .expect(201);
+
+      const body = response.body as { data: { id: string } };
+      createdUserIds.push(body.data.id);
+    });
+
+    it('POST /users accepts a valid 10-digit phoneNumber', async () => {
+      const admin = await createTestUser({ role: UserRole.ADMIN });
+      mockSessionFor(admin.clerkId);
+      const clerkId = generateClerkId();
+
+      const response = await request(app.getHttpServer())
+        .post(`${API_BASE_PATH}/users`)
+        .send({
+          clerkId,
+          email: `${clerkId}@example.com`,
+          firstName: 'E2E',
+          lastName: 'Test',
+          phoneNumber: '0987654321',
+        })
+        .expect(201);
+
+      const body = response.body as { data: { id: string } };
+      createdUserIds.push(body.data.id);
+    });
+
+    it('POST /users responds 400 for a phoneNumber over 10 digits', async () => {
+      const admin = await createTestUser({ role: UserRole.ADMIN });
+      mockSessionFor(admin.clerkId);
+      const clerkId = generateClerkId();
+
+      const response = await request(app.getHttpServer())
+        .post(`${API_BASE_PATH}/users`)
+        .send({
+          clerkId,
+          email: `${clerkId}@example.com`,
+          firstName: 'E2E',
+          lastName: 'Test',
+          phoneNumber: '098765432100',
+        })
+        .expect(400);
+
+      const body = response.body as {
+        errors: Array<{ errCode: string; field: string }>;
+      };
+      expect(body.errors.some((error) => error.field === 'phoneNumber')).toBe(
+        true,
+      );
+    });
+
+    it('POST /users responds 400 for a clerkId missing the Clerk "user_" prefix', async () => {
+      const admin = await createTestUser({ role: UserRole.ADMIN });
+      mockSessionFor(admin.clerkId);
+
+      const response = await request(app.getHttpServer())
+        .post(`${API_BASE_PATH}/users`)
+        .send({
+          clerkId: 'not-a-clerk-id',
+          email: `clerk-e2e-${Date.now()}@example.com`,
+          firstName: 'E2E',
+          lastName: 'Test',
+        })
+        .expect(400);
+
+      const body = response.body as {
+        errors: Array<{ errCode: string; field: string }>;
+      };
+      expect(body.errors.some((error) => error.field === 'clerkId')).toBe(true);
+    });
+
+    it('PATCH /users/:id ignores phoneNumber (admin-facing update excludes it)', async () => {
+      const admin = await createTestUser({ role: UserRole.ADMIN });
+      const target = await createTestUser({ role: UserRole.USER });
+      mockSessionFor(admin.clerkId);
+
+      const response = await request(app.getHttpServer())
+        .patch(`${API_BASE_PATH}/users/${target.id}`)
+        .send({ firstName: 'Updated', phoneNumber: '0987654321' })
+        .expect(200);
+
+      const body = response.body as { data: { firstName: string } };
+      expect(body.data.firstName).toBe('Updated');
+
+      const persisted = await RequestContext.create(orm.em, () =>
+        userService.findOne(target.id),
+      );
+      expect(persisted.phoneNumber).toBeNull();
     });
   });
 });

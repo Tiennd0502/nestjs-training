@@ -41,4 +41,11 @@ export const VALIDATION_RULES = {
     DEFAULT_LIMIT: 10,
     MAX_LIMIT: 100,
   },
+  PHONE: {
+    REGEX: /^\d{10}$/,
+  },
+  CLERK_ID: {
+    // Clerk's own id shape for a User resource, e.g. "user_2abc123XYZ...".
+    REGEX: /^user_[a-zA-Z0-9]+$/,
+  },
 } as const;

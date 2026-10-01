@@ -155,6 +155,12 @@ const describeStandardSchemaIssue = (
         message: VALIDATION_MESSAGES.isUrl(label),
       };
     }
+    if (format === 'regex') {
+      return {
+        errCode: ERROR_CODES.VALIDATION.INVALID_FORMAT,
+        message: VALIDATION_MESSAGES.invalidFormat(label),
+      };
+    }
   }
 
   if (code === 'invalid_value' && values) {

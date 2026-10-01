@@ -7,6 +7,7 @@ import { App } from 'supertest/types';
 import { Webhook } from 'svix';
 import { AppModule } from './../../src/app.module.js';
 import { UserService } from './../../src/modules/user/services/user.service.js';
+import { AuthProvider } from './../../src/common/providers/auth.provider.js';
 import { initTestApp } from './../utils/init-test-app.util.js';
 
 describe('WebhookController (e2e)', () => {
@@ -27,6 +28,10 @@ describe('WebhookController (e2e)', () => {
     webhookSecret = app
       .get(ConfigService)
       .getOrThrow<string>('CLERK_WEBHOOK_SECRET');
+
+    const authProvider = app.get(AuthProvider);
+    vi.spyOn(authProvider, 'syncUserRole').mockResolvedValue(undefined);
+    vi.spyOn(authProvider, 'syncUserStatus').mockResolvedValue(undefined);
   });
 
   afterEach(async () => {
