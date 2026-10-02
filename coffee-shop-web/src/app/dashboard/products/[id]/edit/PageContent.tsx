@@ -7,15 +7,10 @@ import { BadgeCheck, Leaf, Plus, X } from 'lucide-react'
 import { Controller, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 
-import type {
-  Product,
-  ProductImagePayload,
-  ProductUpdatePayload,
-} from '@/types/product'
+import type { Product, ProductUpdatePayload } from '@/types/product'
 import { PRODUCT_STATUS, ROAST_LEVEL } from '@/types/product'
 
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@/constants/messages'
-import { EMPTY_IMAGE } from '@/constants/images'
 import { CATEGORY_QUERY_OPTIONS } from '@/constants/category'
 import { ROUTES, dashboardProductEditPath } from '@/constants/routes'
 
@@ -47,6 +42,7 @@ import { Spinner } from '@/components/ui/spinner'
 import { cn } from '@/utils/styles'
 import { getCategoryOptions } from '@/utils/common'
 import {
+  buildProductImagesPayload,
   buildProductUpdateImageDiff,
   mapProductToEditFormValues,
   parseTastingNotesString,
@@ -207,8 +203,14 @@ const EditProductForm = ({ product, productId }: EditProductFormProps) => {
   const handlePrimaryImageChange = (file: File | null) => {
     setImageErrors((prev) => ({ ...prev, avatar: '' }))
     if (!file) {
-      setAvatarImage(null)
-      setServerPrimaryUrl(null)
+      if (avatarImage !== null) {
+        // User is canceling a newly-selected file; revert to the existing server image
+        setAvatarImage(null)
+        // Keep serverPrimaryUrl intact so the existing server image is restored
+      } else {
+        // User is explicitly removing the existing server image
+        setServerPrimaryUrl(null)
+      }
       return
     }
     setAvatarImage({
@@ -253,44 +255,6 @@ const EditProductForm = ({ product, productId }: EditProductFormProps) => {
     if (tastingNotes.includes(next)) return
     setTastingNotes((prev) => [...prev, next])
     setPendingNote('')
-  }
-
-  const buildImagesPayload = ({
-    avatarUrl,
-    galleryUrls,
-  }: {
-    avatarUrl: string | null
-    galleryUrls: string[]
-  }): ProductImagePayload[] => {
-    if (!avatarUrl && galleryUrls.length === 0) {
-      return [
-        {
-          url: EMPTY_IMAGE,
-          isPrimary: true,
-          sortOrder: 0,
-        },
-      ]
-    }
-
-    const payload: ProductImagePayload[] = []
-
-    if (avatarUrl) {
-      payload.push({
-        url: avatarUrl,
-        isPrimary: true,
-        sortOrder: 0,
-      })
-    }
-
-    galleryUrls.forEach((url, index) => {
-      payload.push({
-        url,
-        isPrimary: avatarUrl ? false : index === 0,
-        sortOrder: avatarUrl ? index + 1 : index,
-      })
-    })
-
-    return payload
   }
 
   const uploadSelectedImages = async () => {
@@ -348,7 +312,7 @@ const EditProductForm = ({ product, productId }: EditProductFormProps) => {
       return
     }
 
-    const finalImages = buildImagesPayload({
+    const finalImages = buildProductImagesPayload({
       avatarUrl: uploadedImages.avatarUrl,
       galleryUrls: uploadedImages.galleryUrls,
     })
@@ -377,9 +341,9 @@ const EditProductForm = ({ product, productId }: EditProductFormProps) => {
       tastingNotes: tastingNotes?.join(', ') ?? '',
       origin: data.origin.trim(),
       processingMethod: data.processingMethod.trim(),
-      addImages,
-      removeImageIds,
-      updateImages,
+      ...(Boolean(addImages?.length) && { addImages }),
+      ...(Boolean(removeImageIds?.length) && { removeImageIds }),
+      ...(Boolean(updateImages?.length) && { updateImages }),
     }
 
     const finish = () => setIsUploadingImages(false)

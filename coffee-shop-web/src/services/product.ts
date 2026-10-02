@@ -156,7 +156,7 @@ export async function fetchProductById(
 function isProductUpdatePayload(
   body: ProductPayload | ProductUpdatePayload,
 ): body is ProductUpdatePayload {
-  return 'addImages' in body && !('images' in body)
+  return !('images' in body)
 }
 
 export async function updateProduct(
@@ -186,7 +186,7 @@ export async function updateProduct(
     return { ok: true, product: refetched.product }
   }
 
-  if ('images' in body && !isProductUpdatePayload(body)) {
+  if ('images' in body) {
     return {
       ok: true,
       product: {

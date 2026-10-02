@@ -168,27 +168,42 @@ export interface ProductUpdateImageDiff {
 }
 
 /**
+ * Builds the desired full image list. Only the avatar (UploadImage) is primary;
+ * every gallery image is secondary.
+ */
+export function buildProductImagesPayload({
+  avatarUrl,
+  galleryUrls,
+}: {
+  avatarUrl: string | null
+  galleryUrls: string[]
+}): ProductImagePayload[] {
+  const payload: ProductImagePayload[] = []
+  if (avatarUrl) {
+    payload.push({ url: avatarUrl, isPrimary: true, sortOrder: 0 })
+  }
+  galleryUrls.forEach((url, index) => {
+    payload.push({
+      url,
+      isPrimary: false,
+      sortOrder: avatarUrl ? index + 1 : index,
+    })
+  })
+  return payload
+}
+
+/**
  * Builds addImages / removeImageIds / updateImages from full desired image list vs initial API state.
+ * Matches by URL, consuming each initial image once so duplicate URLs are handled correctly.
  */
 export function buildProductUpdateImageDiff(
   initialImages: ProductImage[],
   finalImages: ProductImagePayload[],
 ): ProductUpdateImageDiff {
-  const finalByUrl = new Map(
-    finalImages.map((img) => [normalizeImageUrl(img.url), img]),
-  )
-  const initialByUrl = new Map(
-    initialImages.map((img) => [normalizeImageUrl(img.url), img]),
-  )
-
-  const removeImageIds: string[] = []
+  const available = new Map<string, ProductImage[]>()
   for (const img of initialImages) {
-    const id = img.id?.trim()
-    if (!id) continue
     const url = normalizeImageUrl(img.url)
-    if (!finalByUrl.has(url)) {
-      removeImageIds.push(id)
-    }
+    available.set(url, [...(available.get(url) ?? []), img])
   }
 
   const addImages: ProductImagePayload[] = []
@@ -196,14 +211,26 @@ export function buildProductUpdateImageDiff(
 
   for (const fin of finalImages) {
     const url = normalizeImageUrl(fin.url)
-    const init = initialByUrl.get(url)
+    const candidates = available.get(url) ?? []
+    // Prefer an unchanged match, then any persisted one.
+    const matchIndex = candidates.findIndex(
+      (c) =>
+        c.id?.trim() &&
+        c.sortOrder === fin.sortOrder &&
+        c.isPrimary === fin.isPrimary,
+    )
+    const index =
+      matchIndex !== -1
+        ? matchIndex
+        : candidates.findIndex((c) => Boolean(c.id?.trim()))
 
-    if (!init) {
+    if (index === -1) {
       addImages.push(fin)
       continue
     }
 
-    const persistedId = init.id?.trim()
+    const [init] = candidates.splice(index, 1)
+    const persistedId = init?.id?.trim()
     if (
       persistedId &&
       (init.sortOrder !== fin.sortOrder || init.isPrimary !== fin.isPrimary)
@@ -213,6 +240,14 @@ export function buildProductUpdateImageDiff(
         sortOrder: fin.sortOrder,
         isPrimary: fin.isPrimary,
       })
+    }
+  }
+
+  const removeImageIds: string[] = []
+  for (const leftovers of available.values()) {
+    for (const img of leftovers) {
+      const id = img.id?.trim()
+      if (id) removeImageIds.push(id)
     }
   }
 

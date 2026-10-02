@@ -84,9 +84,9 @@ export interface ProductUpdatePayload extends Omit<
   ProductPayload,
   'images' | 'variants'
 > {
-  addImages: ProductImagePayload[]
-  removeImageIds: string[]
-  updateImages: ProductImageUpdatePayload[]
+  addImages?: ProductImagePayload[]
+  removeImageIds?: string[]
+  updateImages?: ProductImageUpdatePayload[]
 }
 
 export interface Product {
