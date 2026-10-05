@@ -2,6 +2,7 @@
 
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 
 // Types
@@ -21,6 +22,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/Input'
 
 const PageContent = () => {
+  const router = useRouter()
   const { mutate, isPending } = useCreateCategory()
   const {
     register,
@@ -41,6 +43,7 @@ const PageContent = () => {
       onSuccess: () => {
         toast.success(SUCCESS_MESSAGES.CATEGORY_CREATED)
         reset({ name: '' })
+        router.push(ROUTES.DASHBOARD_CATEGORIES)
       },
       onError: (error) => {
         const message =

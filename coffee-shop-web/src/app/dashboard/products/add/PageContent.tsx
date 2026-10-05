@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { BadgeCheck, Leaf, Plus, X } from 'lucide-react'
 import { Controller, useForm } from 'react-hook-form'
@@ -114,6 +115,7 @@ const parseFormQuantity = (value: unknown): number | '' =>
   parseFormNumber(value) ?? ''
 
 const PageContent = () => {
+  const router = useRouter()
   const { mutate, isPending } = useCreateProduct()
   const { categories, isLoading: isCategoryLoading } = useCategories(
     CATEGORY_QUERY_OPTIONS,
@@ -366,6 +368,7 @@ const PageContent = () => {
         setPendingNote('')
         setTastingNotes([])
         setIsUploadingImages(false)
+        router.push(ROUTES.DASHBOARD_PRODUCTS)
       },
       onError: (error) => {
         const message =

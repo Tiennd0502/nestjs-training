@@ -8,8 +8,11 @@ import AddCategoryPage from './page'
 import { ROUTES } from '@/constants/routes'
 import type { Category } from '@/types/category'
 
+const mockPush = jest.fn()
+
 jest.mock('next/navigation', () => ({
   usePathname: jest.fn(),
+  useRouter: () => ({ push: mockPush }),
 }))
 
 const mockUsePathname = jest.mocked(usePathname)
@@ -74,7 +77,7 @@ describe('AddCategoryPage', () => {
     ).toBeInTheDocument()
   })
 
-  it('submits valid form and resets input after success', async () => {
+  it('submits valid form and navigates to list after success', async () => {
     const user = userEvent.setup()
     ;(global.fetch as jest.Mock).mockResolvedValue({
       ok: true,
@@ -98,9 +101,7 @@ describe('AddCategoryPage', () => {
       )
     })
     await waitFor(() => {
-      expect(
-        screen.getByRole('textbox', { name: /category name/i }),
-      ).toHaveValue('')
+      expect(mockPush).toHaveBeenCalledWith(ROUTES.DASHBOARD_CATEGORIES)
     })
   })
 })
