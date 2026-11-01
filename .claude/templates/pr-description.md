@@ -22,7 +22,7 @@
 
 ## Screenshots
 
-<!-- Only when the PR changes the web UI (apps/web); otherwise delete this section. Images live in docs/images/<feature-name>/ as <screen>-before.png and <screen>-after.png, committed with the code, and are embedded as ![<screen> after](https://github.com/<owner>/<repo>/blob/<commit sha>/docs/images/<feature-name>/<screen>-after.png?raw=true). One row per changed screen. Never use images for test results. -->
+<!-- Only when the PR changes UI files (an app's `ui` globs in .claude/apps.json, test files excluded: `*.test.*`, `*.spec.*` and `**/__tests__/**`); otherwise delete this section. Images live in docs/images/<feature-name>/ as <screen>-before.png and <screen>-after.png, committed with the code, and are embedded as ![<screen> after](https://github.com/<owner>/<repo>/blob/<commit sha>/docs/images/<feature-name>/<screen>-after.png?raw=true). One row per changed screen. Never use images for test results. -->
 
 | Screen | Before | After |
 | --- | --- | --- |
@@ -30,20 +30,33 @@
 
 ## How to test
 
-<!-- Commands a reviewer runs, then the verify result of the last run. When every changed file is Markdown, replace the table with one row: | Verify | Not applicable: Markdown only, no app code changed | -->
+<!-- Commands a reviewer runs, then the verify result of the last run: one table per changed app (.claude/rules/workflow.md rule 0): repeat the table below for each one, replacing {{app}} with the app name, with the gate rows of that app's verify report: drop a row the app's verify skill does not run (Type check). An app with "e2e": false in .claude/apps.json shows E2E tests as n/a. -->
+
+**{{app}}**
 
 | Gate | Result |
 | --- | --- |
 | Lint |  |
 | Format |  |
+| Type check |  |
 | Build |  |
 | Unit tests |  |
 | E2E tests |  |
 
-<!-- Optional, for failing or unusual runs: the vitest summary lines as text.
+<!-- No changed app (only Claude config, Markdown, root config, .github/, docs/ or root files outside `shared` in .claude/apps.json changed): replace the tables with the plan checks from test-report.md:
+
+| Check | Command or steps | Result |
+| --- | --- | --- |
+|  |  |  |
+
+With no spec dir, use one row instead: | Verify | Not applicable: no app code changed |. With a spec dir whose test-report.md has no Plan checks section yet: <TODO: run the plan checks>.
+
+Requirements shown as `PASS (screenshot, manual)` or `PASS (plan check)` in report.md go in their own list here, apart from the test results. -->
+
+<!-- Optional, for failing or unusual runs: the test runner's summary lines as text.
 <details><summary>Test output</summary>
 
-    <vitest summary lines>
+    <test runner summary lines>
 
 </details>
 -->

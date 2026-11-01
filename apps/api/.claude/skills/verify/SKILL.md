@@ -20,7 +20,7 @@ Run from `apps/api/`.
    pnpm run test
    ```
 
-   Inside the `/work-ticket` workflow, replace `pnpm run test` with `pnpm run test:cov --coverage.reporter=json-summary --coverage.reporter=text-summary` and write the test report afterwards (`../../.claude/rules/workflow.md` §7).
+   Inside the `/work-ticket` workflow, replace `pnpm run test` with the app's `coverage` command in `../../.claude/apps.json` and write the test report afterwards (`../../.claude/rules/workflow.md` §7).
 
 2. **E2E.** Run it when the change touches controllers, DTO schemas, guards, middleware, filters, interceptors, repositories, entities, migrations or `test/`.
    - First print the database `pretest:e2e` will truncate. This follows the same load order as `test/reset-test-db.ts`, shell variables included:
@@ -32,7 +32,7 @@ Run from `apps/api/`.
    - If the database name does not end in `_test`, **stop**: `pretest:e2e` truncates every table. Report E2E as `SKIPPED` with the printed value and tell the user. The usual cause is `DB_*` exported in the shell.
    - Otherwise run `pnpm run test:e2e` in the same shell.
 
-3. **Read the diff.** Use `git diff`, or `git diff BASE` if you committed during the task, where `BASE` is the commit before your first one. Run `git status --short` too, and read untracked files in full. Check:
+3. **Read the diff.** Use `git diff BASE`, where `BASE` is the base commit (in `/work-ticket`, the plan's), the commit before your first one, or `HEAD` when nothing is committed: it shows staged and unstaged changes, and the autofix stages the files it touches. Run `git status --short` too, and read untracked files in full. Check:
    - **Scope:** every hunk was requested, and nothing outside the task changed.
    - **Test integrity:**
      - no `.skip`, `.only` or `.todo` added;
