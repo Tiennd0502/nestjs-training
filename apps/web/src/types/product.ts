@@ -63,9 +63,9 @@ export interface ProductFormValues {
   roastLevel: RoastLevel
   isOrganic: boolean
   isFairTrade: boolean
-  weight: number
+  weight: number | ''
   unit: ProductUnit | ''
-  price: number
+  price: number | ''
   discountType: DiscountType
   discountValue: number
   quantity: number | ''

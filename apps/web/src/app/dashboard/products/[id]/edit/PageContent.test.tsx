@@ -447,3 +447,87 @@ describe('EditProductPage access and status', () => {
     expect(screen.queryByLabelText('Product Name')).not.toBeInTheDocument()
   })
 })
+
+describe('EditProductForm shared form', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+    URL.createObjectURL = jest.fn(() => 'blob:new-primary')
+    jest.mocked(useCategories).mockReturnValue({
+      categories: [{ id: 'category-1', name: 'Coffee' }],
+      isLoading: false,
+    } as unknown as ReturnType<typeof useCategories>)
+    jest.mocked(useUpdateProduct).mockReturnValue({
+      mutate: mockMutate,
+      isPending: false,
+    } as unknown as ReturnType<typeof useUpdateProduct>)
+  })
+
+  it('focuses Base Price after a server price error', async () => {
+    // The response arrives after a render, while the form is still disabled.
+    mockMutate.mockImplementation((_input, options: MutateOptions) => {
+      setTimeout(() =>
+        options.onError?.(
+          new ServiceError('Price too high', [
+            {
+              errCode: 'E',
+              field: 'updateVariants.0.price',
+              message: 'Price too high',
+            },
+          ]),
+        ),
+      )
+    })
+    renderPage()
+
+    await replaceValue('Base Price', '120')
+    await save()
+
+    expect(await screen.findByText('Price too high')).toBeInTheDocument()
+    await waitFor(() => expect(field('Base Price')).toHaveFocus())
+  })
+
+  it('does not show Weight or Unit', () => {
+    renderPage()
+
+    expect(screen.queryByLabelText('Weight')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('Unit')).not.toBeInTheDocument()
+  })
+
+  it('keeps typed changes when the page re-renders', async () => {
+    const { rerender } = renderPage()
+
+    await replaceValue('Product Name', 'Cold Brew')
+    rerender(<PageContent />)
+
+    expect(field('Product Name')).toHaveValue('Cold Brew')
+  })
+
+  it('restores the saved primary image when the new pick is removed', async () => {
+    const { container } = renderPage()
+    const avatarInput = container.querySelector('input[name="avatar"]')
+    if (!(avatarInput instanceof HTMLInputElement)) throw new Error('avatar')
+
+    await userEvent.upload(
+      avatarInput,
+      new File(['x'], 'new.png', { type: 'image/png' }),
+    )
+    expect(screen.getByRole('img', { name: 'new.png' })).toBeInTheDocument()
+
+    // The primary image's button comes first; gallery items have their own.
+    await userEvent.click(
+      screen.getAllByRole('button', { name: 'Remove image' })[0],
+    )
+
+    expect(
+      screen.getByRole('img', { name: 'Product image' }).getAttribute('src'),
+    ).toContain(encodeURIComponent('https://example.com/1.jpg'))
+  })
+
+  it('shows the Edit Product heading', () => {
+    renderPage()
+
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'Edit Product' }),
+    ).toBeInTheDocument()
+  })
+})
