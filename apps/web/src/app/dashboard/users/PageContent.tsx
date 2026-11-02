@@ -25,8 +25,8 @@ import { useDebouncedUrlSearch } from '@/hooks/useDebouncedUrlSearch'
 import { usePageClamp } from '@/hooks/usePageClamp'
 
 // Components
-import Breadcrumb from '@/components/Breadcrumb'
 import ConfirmActionDialog from '@/components/ConfirmActionDialog'
+import PageHeader from '@/components/PageHeader'
 import Table from '@/components/Table'
 import { PaginationBar } from '@/components/Pagination'
 import { Select } from '@/components/Select'
@@ -201,35 +201,25 @@ export const PageContent = () => {
         }}
         user={pendingEditUser}
       />
-      <header className="flex flex-wrap items-center justify-between gap-4">
-        <div className="space-y-3">
-          <Breadcrumb
-            items={[
-              { label: 'Dashboard', href: ROUTES.DASHBOARD },
-              { label: 'Users', href: ROUTES.DASHBOARD_USERS },
-            ]}
-          />
-          <div className="space-y-2">
-            <h1 className="text-5xl leading-tight font-bold tracking-tight text-foreground">
-              Manage Users
-            </h1>
-            <p className="text-lg text-muted-foreground">
-              Oversee your users and their roles.
-            </p>
-          </div>
-        </div>
-        <div className="flex w-full justify-end sm:w-auto">
+      <PageHeader
+        breadcrumbItems={[
+          { label: 'Dashboard', href: ROUTES.DASHBOARD },
+          { label: 'Users', href: ROUTES.DASHBOARD_USERS },
+        ]}
+        title="Manage Users"
+        description="Oversee your users and their roles."
+        actions={
           <Button
             variant="default"
             size="default"
             disabled
-            className="w-full gap-2 px-8 sm:w-auto"
+            className="gap-2 px-8"
           >
             <UserPlus className="size-4" aria-hidden />
             Invite User
           </Button>
-        </div>
-      </header>
+        }
+      />
 
       {/* <StatsCards items={USERS_DASHBOARD_STATS} /> */}
 

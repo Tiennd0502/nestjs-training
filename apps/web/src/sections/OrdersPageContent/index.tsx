@@ -5,7 +5,7 @@ import { Download, Printer } from 'lucide-react'
 import { toast } from 'sonner'
 
 import ConfirmActionDialog from '@/components/ConfirmActionDialog'
-import Breadcrumb from '@/components/Breadcrumb'
+import PageHeader from '@/components/PageHeader'
 import Table from '@/components/Table'
 import { PaginationBar } from '@/components/Pagination'
 import { SearchInput } from '@/components/SearchInput'
@@ -186,24 +186,14 @@ export default function OrdersPageContent() {
         textAction="Delete"
       />
 
-      <header className="flex flex-wrap items-center justify-between gap-4">
-        <div className="space-y-3">
-          <Breadcrumb
-            items={[
-              { label: 'Dashboard', href: ROUTES.DASHBOARD },
-              { label: 'Orders', href: ROUTES.DASHBOARD_ORDERS },
-            ]}
-          />
-          <div className="space-y-2">
-            <h1 className="text-5xl leading-tight font-bold tracking-tight text-foreground">
-              Orders
-            </h1>
-            <p className="text-lg text-muted-foreground">
-              Track fulfillment, payments, and customer deliveries.
-            </p>
-          </div>
-        </div>
-      </header>
+      <PageHeader
+        breadcrumbItems={[
+          { label: 'Dashboard', href: ROUTES.DASHBOARD },
+          { label: 'Orders', href: ROUTES.DASHBOARD_ORDERS },
+        ]}
+        title="Orders"
+        description="Track fulfillment, payments, and customer deliveries."
+      />
 
       <StatsCards items={statsItems} />
 

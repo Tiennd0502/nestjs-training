@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import {
   DiscountType,
@@ -396,6 +396,36 @@ describe('EditProductPage access and status', () => {
     expect(useProductById).toHaveBeenCalledWith('product-1', {
       asAdmin: true,
     })
+  })
+
+  it('renders the header with PageHeader', () => {
+    renderProduct(product())
+
+    const header = screen.getByRole('banner')
+    expect(within(header).getByRole('navigation', { name: 'breadcrumb' })).toBe(
+      header.firstElementChild,
+    )
+    const view = within(header)
+    expect(view.getByRole('link', { name: 'Dashboard' })).toHaveAttribute(
+      'href',
+      ROUTES.DASHBOARD,
+    )
+    expect(view.getByRole('link', { name: 'Products' })).toHaveAttribute(
+      'href',
+      ROUTES.DASHBOARD_PRODUCTS,
+    )
+    const title = view.getByRole('heading', { level: 1, name: 'Edit Product' })
+    expect(title).toHaveClass('text-4xl', 'font-semibold')
+    expect(title).not.toHaveClass('text-5xl')
+    expect(view.getByRole('paragraph')).toHaveTextContent(
+      'Update this entry in your sensory collection.',
+    )
+    expect(
+      view.getByRole('button', { name: /reset changes/i }),
+    ).toBeInTheDocument()
+    expect(
+      view.getByRole('button', { name: /save changes/i }),
+    ).toBeInTheDocument()
   })
 
   it('prefills the form for a DRAFT product', () => {

@@ -384,7 +384,7 @@ const ProductForm = ({
             <Button
               type="button"
               variant="ghost"
-              className="w-auto px-4 text-muted-foreground"
+              className="px-4 text-muted-foreground"
               disabled={isActionBlocked}
               onClick={handleReset}
             >
@@ -392,7 +392,7 @@ const ProductForm = ({
             </Button>
             <Button
               type="button"
-              className="w-auto px-8"
+              className="px-8"
               disabled={isActionBlocked}
               loading={isSubmitting}
               onClick={handleSubmitClick}

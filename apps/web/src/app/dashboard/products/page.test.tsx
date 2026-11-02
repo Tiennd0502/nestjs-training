@@ -1,4 +1,10 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
 import { PageContent } from '@/app/dashboard/products/PageContent'
@@ -283,6 +289,38 @@ describe('Dashboard products page', () => {
     expect(screen.getByText('Ethiopian Yirgacheffe')).toBeInTheDocument()
     expect(screen.getByText('The Chemist Brewer')).toBeInTheDocument()
     expect(screen.queryByText('Midnight Blend')).not.toBeInTheDocument()
+  })
+
+  it('renders the header with PageHeader', () => {
+    renderProductsPage()
+
+    const header = screen.getByRole('banner')
+    expect(within(header).getByRole('navigation', { name: 'breadcrumb' })).toBe(
+      header.firstElementChild,
+    )
+    const view = within(header)
+    expect(view.getByRole('link', { name: 'Dashboard' })).toHaveAttribute(
+      'href',
+      ROUTES.DASHBOARD,
+    )
+    const title = view.getByRole('heading', {
+      level: 1,
+      name: 'Manage Products',
+    })
+    expect(title).toHaveClass('text-4xl', 'font-semibold')
+    expect(title).not.toHaveClass('text-5xl')
+    expect(view.getByRole('paragraph')).toHaveTextContent(
+      'Oversee your products and inventory',
+    )
+    const action = view.getByRole('link', { name: /add product/i })
+    expect(action).toHaveAttribute('href', ROUTES.DASHBOARD_PRODUCTS_ADD)
+    expect(action.parentElement).toHaveClass(
+      'flex-wrap',
+      'gap-3',
+      'w-full',
+      'justify-end',
+      'sm:w-auto',
+    )
   })
 
   it('requests products as admin', () => {
