@@ -4,6 +4,7 @@ import { ProductUnit } from '@repo/constants'
 import { toast } from 'sonner'
 
 import PageContent from './PageContent'
+import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@/constants/messages'
 import { useCategories } from '@/hooks/useCategory'
 import { useCreateProduct } from '@/hooks/useProduct'
 import { uploadImageToImgBB } from '@/services/image'
@@ -81,9 +82,11 @@ const category: Category = {
 
 const image = (name: string) => new File(['x'], name, { type: 'image/png' })
 
-const submitValidForm = async (
-  beforeSubmit?: (user: ReturnType<typeof userEvent.setup>) => Promise<void>,
-) => {
+type User = ReturnType<typeof userEvent.setup>
+
+// Renders the page, uploads both images and fills every field except the
+// ones in skip.
+const fillValidForm = async (skip: string[] = []) => {
   const user = userEvent.setup()
   const { container } = render(<PageContent />)
 
@@ -95,6 +98,7 @@ const submitValidForm = async (
   await user.upload(galleryInput, image('gallery.png'))
 
   const fill = async (label: string, value: string) => {
+    if (skip.includes(label)) return
     await user.click(screen.getByLabelText(label))
     await user.paste(value)
   }
@@ -107,9 +111,19 @@ const submitValidForm = async (
   await fill('Initial Quantity', '5')
   await fill('Origin', 'Ethiopia')
   await fill('Processing Method', 'Washed')
+  return user
+}
+
+const clickPublish = (user: User) =>
+  user.click(screen.getByRole('button', { name: /publish product/i }))
+
+const submitValidForm = async (
+  beforeSubmit?: (user: User) => Promise<void>,
+) => {
+  const user = await fillValidForm()
   await beforeSubmit?.(user)
 
-  await user.click(screen.getByRole('button', { name: /publish product/i }))
+  await clickPublish(user)
   await waitFor(() => expect(mockMutate).toHaveBeenCalledTimes(1))
 }
 
@@ -126,28 +140,28 @@ const failWith = (field: string, message: string) => {
 // pre-push run that can pass Jest's 5 s default.
 jest.setTimeout(15_000)
 
+beforeAll(() => {
+  URL.createObjectURL = jest.fn(() => 'blob:preview')
+  URL.revokeObjectURL = jest.fn()
+})
+
+beforeEach(() => {
+  jest.clearAllMocks()
+  jest.mocked(useCreateProduct).mockReturnValue({
+    mutate: mockMutate,
+    isPending: false,
+  } as unknown as ReturnType<typeof useCreateProduct>)
+  jest.mocked(useCategories).mockReturnValue({
+    categories: [category],
+    isLoading: false,
+  } as unknown as ReturnType<typeof useCategories>)
+  jest.mocked(uploadImageToImgBB).mockImplementation(async (file: File) => ({
+    ok: true,
+    url: `https://img.example.com/${file.name}`,
+  }))
+})
+
 describe('Add product API errors', () => {
-  beforeAll(() => {
-    URL.createObjectURL = jest.fn(() => 'blob:preview')
-    URL.revokeObjectURL = jest.fn()
-  })
-
-  beforeEach(() => {
-    jest.clearAllMocks()
-    jest.mocked(useCreateProduct).mockReturnValue({
-      mutate: mockMutate,
-      isPending: false,
-    } as unknown as ReturnType<typeof useCreateProduct>)
-    jest.mocked(useCategories).mockReturnValue({
-      categories: [category],
-      isLoading: false,
-    } as unknown as ReturnType<typeof useCategories>)
-    jest.mocked(uploadImageToImgBB).mockImplementation(async (file: File) => ({
-      ok: true,
-      url: `https://img.example.com/${file.name}`,
-    }))
-  })
-
   it('shows a duplicate-name API error under Product name', async () => {
     await submitValidForm()
 
@@ -236,5 +250,161 @@ describe('Add product API errors', () => {
     await user.type(screen.getByLabelText('Initial Quantity'), '501')
 
     expect(screen.getByLabelText('Initial Quantity')).toHaveValue('50')
+  })
+})
+
+describe('Add product shared form', () => {
+  const isBefore = (first: HTMLElement, second: HTMLElement) =>
+    Boolean(
+      first.compareDocumentPosition(second) & Node.DOCUMENT_POSITION_FOLLOWING,
+    )
+
+  it('starts Weight and Base Price empty and Discount (%) at 0', () => {
+    render(<PageContent />)
+
+    expect(screen.getByLabelText('Weight')).toHaveValue('')
+    expect(screen.getByLabelText('Base Price')).toHaveValue('')
+    expect(screen.getByLabelText('Discount (%)')).toHaveValue('0')
+  })
+
+  it('shows required under Weight and Base Price when left empty', async () => {
+    const user = await fillValidForm(['Weight', 'Base Price'])
+
+    await clickPublish(user)
+
+    expect(
+      await screen.findAllByText(ERROR_MESSAGES.FIELD_REQUIRED),
+    ).toHaveLength(2)
+    expect(screen.getByLabelText('Weight')).toHaveAttribute(
+      'aria-invalid',
+      'true',
+    )
+    expect(screen.getByLabelText('Base Price')).toHaveAttribute(
+      'aria-invalid',
+      'true',
+    )
+    expect(mockMutate).not.toHaveBeenCalled()
+  })
+
+  it('focuses Weight after a duplicate-SKU error', async () => {
+    await submitValidForm()
+
+    failWith(
+      'sku',
+      'A variant with this SKU already exists. Please choose a different SKU.',
+    )
+
+    await waitFor(() => expect(screen.getByLabelText('Weight')).toHaveFocus())
+  })
+
+  it('sends the primary image first and the gallery image after it', async () => {
+    jest.mocked(uploadImageToImgBB).mockImplementation(async (file: File) => ({
+      ok: true,
+      url: `https://img/${file.name}`,
+    }))
+
+    await submitValidForm()
+
+    const [payload] = mockMutate.mock.calls[0] as [{ images: unknown[] }]
+    expect(payload.images).toEqual([
+      { url: 'https://img/avatar.png', isPrimary: true, sortOrder: 0 },
+      { url: 'https://img/gallery.png', isPrimary: false, sortOrder: 1 },
+    ])
+  })
+
+  it('shows Weight and Unit before Base Price', () => {
+    render(<PageContent />)
+
+    const weight = screen.getByLabelText('Weight')
+    const unit = screen.getByLabelText('Unit')
+    const price = screen.getByLabelText('Base Price')
+    const quantity = screen.getByLabelText('Initial Quantity')
+    expect(isBefore(weight, unit)).toBe(true)
+    expect(isBefore(unit, price)).toBe(true)
+    expect(isBefore(price, quantity)).toBe(true)
+  })
+
+  it('marks the selected Discount Type with aria-pressed', async () => {
+    const user = userEvent.setup()
+    render(<PageContent />)
+
+    const percent = screen.getByRole('button', { name: 'Percent' })
+    const fixed = screen.getByRole('button', { name: 'Fixed' })
+    expect(percent).toHaveAttribute('aria-pressed', 'true')
+    expect(fixed).toHaveAttribute('aria-pressed', 'false')
+
+    await user.click(fixed)
+
+    expect(percent).toHaveAttribute('aria-pressed', 'false')
+    expect(fixed).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('starts with no tasting notes', () => {
+    render(<PageContent />)
+
+    expect(
+      screen.queryAllByRole('button', { name: /^Remove (?!image$)/ }),
+    ).toHaveLength(0)
+  })
+
+  it('clears the form and tasting notes on Discard Draft', async () => {
+    const user = userEvent.setup()
+    render(<PageContent />)
+
+    await user.type(screen.getByLabelText('Product Name'), 'Single Origin')
+    await user.type(
+      screen.getByPlaceholderText(/add a new flavor note/i),
+      'Cocoa',
+    )
+    await user.click(screen.getByRole('button', { name: /add note/i }))
+    expect(
+      screen.getByRole('button', { name: 'Remove Cocoa' }),
+    ).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /discard draft/i }))
+
+    expect(screen.getByLabelText('Product Name')).toHaveValue('')
+    expect(
+      screen.queryByRole('button', { name: 'Remove Cocoa' }),
+    ).not.toBeInTheDocument()
+    expect(toast.success).toHaveBeenCalledWith(SUCCESS_MESSAGES.DRAFT_DISCARDED)
+  })
+
+  it('clears text that is not a number from Base Price on Discard Draft', async () => {
+    const user = userEvent.setup()
+    render(<PageContent />)
+
+    await user.type(screen.getByLabelText('Base Price'), '.')
+    expect(screen.getByLabelText('Base Price')).toHaveValue('.')
+
+    await user.click(screen.getByRole('button', { name: /discard draft/i }))
+
+    expect(screen.getByLabelText('Base Price')).toHaveValue('')
+  })
+
+  it('shows an upload error as a toast and enables Publish again', async () => {
+    jest.mocked(uploadImageToImgBB).mockResolvedValue({
+      ok: false,
+      error: 'Upload failed',
+    })
+    const user = await fillValidForm()
+
+    await clickPublish(user)
+
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith('Upload failed'),
+    )
+    expect(
+      screen.getByRole('button', { name: /publish product/i }),
+    ).toBeEnabled()
+    expect(mockMutate).not.toHaveBeenCalled()
+  })
+
+  it('shows the Add New Product heading', () => {
+    render(<PageContent />)
+
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'Add New Product' }),
+    ).toBeInTheDocument()
   })
 })
