@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { toast } from 'sonner'
 
@@ -58,6 +58,20 @@ describe('CategoryForm', () => {
     )
     expect(submitButton()).toBeInTheDocument()
     expect(container.querySelector('form')).toHaveAttribute('id', 'test-form')
+  })
+
+  it('lays out the submit button like every PageHeader page', () => {
+    renderForm()
+
+    const header = screen.getByRole('banner')
+    expect(within(header).getByRole('navigation', { name: 'breadcrumb' })).toBe(
+      header.firstElementChild,
+    )
+    expect(submitButton().parentElement).toHaveClass(
+      'w-full',
+      'justify-end',
+      'sm:w-auto',
+    )
   })
 
   it('shows a required error and does not submit when the name is empty', async () => {

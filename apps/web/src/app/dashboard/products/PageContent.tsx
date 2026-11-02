@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { Download, Plus, Printer } from 'lucide-react'
 
 import ConfirmActionDialog from '@/components/ConfirmActionDialog'
-import Breadcrumb from '@/components/Breadcrumb'
+import PageHeader from '@/components/PageHeader'
 import { PaginationBar } from '@/components/Pagination'
 import { SearchInput } from '@/components/SearchInput'
 import Table from '@/components/Table'
@@ -136,36 +136,26 @@ export const PageContent = () => {
         )}
       </ConfirmActionDialog>
 
-      <header className="flex flex-wrap items-center justify-between gap-4">
-        <div className="space-y-3">
-          <Breadcrumb
-            items={[
-              { label: 'Dashboard', href: ROUTES.DASHBOARD },
-              { label: 'Products', href: ROUTES.DASHBOARD_PRODUCTS },
-            ]}
-          />
-          <div className="space-y-2">
-            <h1 className="text-5xl leading-tight font-bold tracking-tight text-foreground">
-              Manage Products
-            </h1>
-            <p className="text-lg text-muted-foreground">
-              Oversee your products and inventory
-            </p>
-          </div>
-        </div>
-        <div className="flex w-full justify-end sm:w-auto">
+      <PageHeader
+        breadcrumbItems={[
+          { label: 'Dashboard', href: ROUTES.DASHBOARD },
+          { label: 'Products', href: ROUTES.DASHBOARD_PRODUCTS },
+        ]}
+        title="Manage Products"
+        description="Oversee your products and inventory"
+        actions={
           <Link
             href={ROUTES.DASHBOARD_PRODUCTS_ADD}
             className={cn(
               buttonVariants({ variant: 'default', size: 'default' }),
-              'inline-flex w-full gap-2 px-8 sm:w-auto',
+              'inline-flex gap-2 px-8',
             )}
           >
             <Plus className="size-4" aria-hidden />
             Add product
           </Link>
-        </div>
-      </header>
+        }
+      />
 
       <section className="overflow-hidden rounded-3xl border border-outline-variant/40 bg-card">
         <div className="flex min-w-0 flex-col gap-3 border-b border-outline-variant/30 p-4 md:flex-row md:flex-wrap md:items-center md:gap-3">

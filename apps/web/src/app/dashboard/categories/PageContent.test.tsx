@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { toast } from 'sonner'
 
@@ -91,6 +91,38 @@ describe('Categories PageContent', () => {
     expect(screen.getByRole('link', { name: /add category/i })).toHaveAttribute(
       'href',
       ROUTES.DASHBOARD_CATEGORIES_ADD,
+    )
+  })
+
+  it('renders the header with PageHeader', () => {
+    render(<PageContent />)
+
+    const header = screen.getByRole('banner')
+    expect(within(header).getByRole('navigation', { name: 'breadcrumb' })).toBe(
+      header.firstElementChild,
+    )
+    const view = within(header)
+    expect(view.getByRole('link', { name: 'Dashboard' })).toHaveAttribute(
+      'href',
+      ROUTES.DASHBOARD,
+    )
+    const title = view.getByRole('heading', {
+      level: 1,
+      name: 'Manage Categories',
+    })
+    expect(title).toHaveClass('text-4xl', 'font-semibold')
+    expect(title).not.toHaveClass('text-5xl')
+    expect(view.getByRole('paragraph')).toHaveTextContent(
+      'Organize product taxonomy, and editorial groupings.',
+    )
+    const action = view.getByRole('link', { name: /add category/i })
+    expect(action).toHaveAttribute('href', ROUTES.DASHBOARD_CATEGORIES_ADD)
+    expect(action.parentElement).toHaveClass(
+      'flex-wrap',
+      'gap-3',
+      'w-full',
+      'justify-end',
+      'sm:w-auto',
     )
   })
 

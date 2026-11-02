@@ -1,8 +1,15 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
 import { PageContent } from '@/app/dashboard/users/PageContent'
 import { PAGE_SIZE } from '@/constants/common'
+import { ROUTES } from '@/constants/routes'
 import {
   API_FALLBACK_ERRORS,
   ERROR_MESSAGES,
@@ -254,6 +261,35 @@ describe('Dashboard users page', () => {
     expect(
       screen.queryByText('l.carter@sensorybrew.com'),
     ).not.toBeInTheDocument()
+  })
+
+  it('renders the header with PageHeader', () => {
+    renderUsersPage()
+
+    const header = screen.getByRole('banner')
+    expect(within(header).getByRole('navigation', { name: 'breadcrumb' })).toBe(
+      header.firstElementChild,
+    )
+    const view = within(header)
+    expect(view.getByRole('link', { name: 'Dashboard' })).toHaveAttribute(
+      'href',
+      ROUTES.DASHBOARD,
+    )
+    const title = view.getByRole('heading', { level: 1, name: 'Manage Users' })
+    expect(title).toHaveClass('text-4xl', 'font-semibold')
+    expect(title).not.toHaveClass('text-5xl')
+    expect(view.getByRole('paragraph')).toHaveTextContent(
+      'Oversee your users and their roles.',
+    )
+    const action = view.getByRole('button', { name: /invite user/i })
+    expect(action).toBeDisabled()
+    expect(action.parentElement).toHaveClass(
+      'flex-wrap',
+      'gap-3',
+      'w-full',
+      'justify-end',
+      'sm:w-auto',
+    )
   })
 
   it('filters users by keyword via API params', async () => {

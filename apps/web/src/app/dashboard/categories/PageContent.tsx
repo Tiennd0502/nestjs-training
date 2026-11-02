@@ -21,7 +21,7 @@ import { usePageClamp } from '@/hooks/usePageClamp'
 
 // Components
 import ConfirmActionDialog from '@/components/ConfirmActionDialog'
-import Breadcrumb from '@/components/Breadcrumb'
+import PageHeader from '@/components/PageHeader'
 import Table from '@/components/Table'
 import { PaginationBar } from '@/components/Pagination'
 import { SearchInput } from '@/components/SearchInput'
@@ -117,36 +117,26 @@ export const PageContent = () => {
         actionVariant="default"
       />
 
-      <header className="flex flex-wrap items-center justify-between gap-4">
-        <div className="space-y-3">
-          <Breadcrumb
-            items={[
-              { label: 'Dashboard', href: ROUTES.DASHBOARD },
-              { label: 'Categories', href: ROUTES.DASHBOARD_CATEGORIES },
-            ]}
-          />
-          <div className="space-y-2">
-            <h1 className="text-5xl leading-tight font-bold tracking-tight text-foreground">
-              Manage Categories
-            </h1>
-            <p className="text-lg text-muted-foreground">
-              Organize product taxonomy, and editorial groupings.
-            </p>
-          </div>
-        </div>
-        <div className="flex w-full justify-end sm:w-auto">
+      <PageHeader
+        breadcrumbItems={[
+          { label: 'Dashboard', href: ROUTES.DASHBOARD },
+          { label: 'Categories', href: ROUTES.DASHBOARD_CATEGORIES },
+        ]}
+        title="Manage Categories"
+        description="Organize product taxonomy, and editorial groupings."
+        actions={
           <Link
             href={ROUTES.DASHBOARD_CATEGORIES_ADD}
             className={cn(
               buttonVariants({ variant: 'default', size: 'default' }),
-              'inline-flex w-full gap-2 px-8 sm:w-auto',
+              'inline-flex gap-2 px-8',
             )}
           >
             <Tag className="size-4" aria-hidden />
             Add category
           </Link>
-        </div>
-      </header>
+        }
+      />
 
       <section className="overflow-hidden rounded-3xl border border-outline-variant/40 bg-card">
         <div className="flex min-w-0 flex-col gap-3 border-b border-outline-variant/30 p-4 md:flex-row md:flex-wrap md:items-center md:gap-3 lg:justify-between">

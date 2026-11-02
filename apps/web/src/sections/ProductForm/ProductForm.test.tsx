@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { DiscountType, RoastLevel } from '@repo/constants'
 import { toast } from 'sonner'
@@ -92,6 +92,20 @@ describe('ProductForm', () => {
       categories: [{ id: 'category-1', name: 'Coffee' }],
       isLoading: false,
     } as unknown as ReturnType<typeof useCategories>)
+  })
+
+  it('lays out the header actions like every PageHeader page', () => {
+    renderForm()
+
+    const header = screen.getByRole('banner')
+    expect(within(header).getByRole('navigation', { name: 'breadcrumb' })).toBe(
+      header.firstElementChild,
+    )
+    expect(submitButton().parentElement).toHaveClass(
+      'w-full',
+      'justify-end',
+      'sm:w-auto',
+    )
   })
 
   it('keeps Reset and Submit disabled until something changes', async () => {

@@ -1,5 +1,6 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 
+import { ROUTES } from '@/constants/routes'
 import OrdersPageContent from '@/sections/OrdersPageContent'
 import { PAYMENT_METHOD } from '@/types/checkout'
 import { ORDER_STATUS, SHIPPING_STATUS, type Order } from '@/types/order'
@@ -108,5 +109,23 @@ describe('OrdersPageContent', () => {
     expect(
       screen.getByRole('button', { name: /View order #OD-1001/i }),
     ).toBeDisabled()
+  })
+
+  it('renders the header with PageHeader', () => {
+    render(<OrdersPageContent />)
+
+    const header = screen.getByRole('banner')
+    const view = within(header)
+    expect(view.getByRole('link', { name: 'Dashboard' })).toHaveAttribute(
+      'href',
+      ROUTES.DASHBOARD,
+    )
+    const title = view.getByRole('heading', { level: 1, name: 'Orders' })
+    expect(title).toHaveClass('text-4xl', 'font-semibold')
+    expect(title).not.toHaveClass('text-5xl')
+    expect(view.getByRole('paragraph')).toHaveTextContent(
+      'Track fulfillment, payments, and customer deliveries.',
+    )
+    expect(view.queryByRole('button')).toBeNull()
   })
 })
