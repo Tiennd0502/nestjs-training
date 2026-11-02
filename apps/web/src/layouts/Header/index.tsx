@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { SignedIn, SignedOut } from '@clerk/nextjs'
+import { SignedIn, SignedOut, useAuth as useClerkAuth } from '@clerk/nextjs'
 import { ShoppingCart } from 'lucide-react'
 
 // Constants
@@ -28,6 +28,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useCartStore } from '@/store/useCartStore'
 
 // Utils
+import { getSessionPublicRole } from '@/utils/session'
 import { cn } from '@/utils/styles'
 
 export interface ShopHeaderProps {
@@ -36,7 +37,10 @@ export interface ShopHeaderProps {
 }
 
 const Header = ({ className, menu = MENU }: ShopHeaderProps) => {
-  const { user } = useAuth()
+  // Loads the profile and clears it from the store on sign-out
+  useAuth()
+  const { sessionClaims } = useClerkAuth()
+  const isAdmin = getSessionPublicRole(sessionClaims) === UserRole.ADMIN
   const cartItemCount = useCartStore((s) => s.items?.length ?? 0)
   const cartAriaLabel =
     cartItemCount > 0
@@ -116,10 +120,7 @@ const Header = ({ className, menu = MENU }: ShopHeaderProps) => {
 
           <SignedIn>
             <div className="shrink-0">
-              <UserDropdown
-                isAdmin={user?.role === UserRole.ADMIN}
-                showChevron={false}
-              />
+              <UserDropdown isAdmin={isAdmin} showChevron={false} />
             </div>
           </SignedIn>
 

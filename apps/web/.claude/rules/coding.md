@@ -68,7 +68,7 @@ The layering and conventions the code actually follows. Plans, code reviews and 
 
 ## Auth
 
-- Route protection lives in `src/middleware.ts`, whose admin check uses `getSessionPublicRole` (`src/utils/session.ts`); the header's admin menu reads the API user's `role`.
+- Route protection lives in `src/middleware.ts`, whose admin check uses `getSessionPublicRole` (`src/utils/session.ts`); the shop header's admin menu (`src/layouts/Header/index.tsx`) uses the same `getSessionPublicRole` on Clerk's client `useAuth().sessionClaims`, not the API user's `role`.
 - API tokens use the `CLERK_SESSION_TEMPLATE` template (`src/providers/AuthTokenBridge.tsx`).
 - Only `NEXT_PUBLIC_*` variables reach the client; add no secret to one (`NEXT_PUBLIC_IMAGE_KEY`, the ImgBB key in `src/services/image.ts`, is a known exception).
 
