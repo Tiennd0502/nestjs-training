@@ -22,7 +22,7 @@
 
 ## Screenshots
 
-<!-- Only when the PR changes UI files (an app's `ui` globs in .claude/apps.json, test files excluded: `*.test.*`, `*.spec.*` and `**/__tests__/**`); otherwise delete this section. Images live in docs/images/<feature-name>/ as <screen>-before.png and <screen>-after.png, committed with the code, and are embedded as ![<screen> after](https://github.com/<owner>/<repo>/blob/<commit sha>/docs/images/<feature-name>/<screen>-after.png?raw=true). One row per changed screen. Never use images for test results. -->
+<!-- Only when the PR changes UI files (an app's `ui` globs in .claude/apps.json, test files excluded: `*.test.*`, `*.spec.*` and `**/__tests__/**`); otherwise delete this section. Images live in screenshot.dir of .claude/apps.json (default docs/images/<feature-name>/) as <screen>-before.<ext> and <screen>-after.<ext>, committed with the code, and are embedded as ![<screen> after](https://github.com/<owner>/<repo>/blob/<commit sha>/<screenshot dir>/<screen>-after.<ext>?raw=true). One row per changed screen. Never use images for test results. -->
 
 | Screen | Before | After |
 | --- | --- | --- |

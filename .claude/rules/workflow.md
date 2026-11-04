@@ -10,7 +10,7 @@ The changed apps decide which rules, `verify` skill, coverage baseline and secur
 {"apps":["api","web"],"rebuild":true,"noApp":false}
 ```
 
-- `.claude/apps.json` is the one project-specific file of this workflow. It lists each app (`dir`, test `runner`, `coverage` command, `e2e`, `planChanges`, `security`, `ui`) and the `shared` paths: the packages every app uses and files such as the pnpm catalog. The script reads it; the rules below refer to its fields instead of naming apps. `apps/<app>/` in these rules means the app's `dir`, and the paths in `security` and `ui` are relative to it.
+- `.claude/apps.json` is the one project-specific file of this workflow. It lists each app (`dir`, test `runner`, `coverage` command, `e2e`, `planChanges`, `security`, `ui`, and for an app with a UI, `screenshot`: folder, image format and theme storage key) and the `shared` paths: the packages every app uses and files such as the pnpm catalog. The script reads it; the rules below refer to its fields instead of naming apps. `apps/<app>/` in these rules means the app's `dir`, and the paths in `security` and `ui` are relative to it.
 - The script diffs from `git merge-base <base> HEAD`, so a base branch such as `origin/develop` works too: commits the base gained after the branch point are not counted.
 - Before code exists (planning at step 3, the baseline at step 5), run it with `--files <every file the plan creates or modifies>`.
 - Only code or app-config files count: anything under an app's `dir` except `<dir>/.claude/**` and `*.md`. A change only to Claude config or Markdown has no changed app.
@@ -27,7 +27,7 @@ The changed apps decide which rules, `verify` skill, coverage baseline and secur
 - Test report (every verify run): `docs/specs/YYYY-MM-DD/<feature-name>/test-report.md`
 - Coverage baseline (before any code change): `docs/specs/YYYY-MM-DD/<feature-name>/coverage-baseline-<app>.json`, one per changed app (rule 0), none with no changed app. A spec started before per-app baselines may hold `coverage-baseline.json`: it is the API baseline.
 - PR description (Gate 3): `docs/specs/YYYY-MM-DD/<feature-name>/pr-description.md`
-- Screenshots (UI changes only: a file matching a changed app's `ui` globs in `.claude/apps.json`, test files excluded: `*.test.*`, `*.spec.*` and `**/__tests__/**`): `docs/images/<feature-name>/<screen>-before.png` and `<screen>-after.png`. Unlike `docs/specs/`, they are committed with the code and embedded in the PR description.
+- Screenshots (UI changes only: a file in a changed app's `ui` globs, test files excluded: `*.test.*`, `*.spec.*`, `**/__tests__/**`): `<screen>-before.<ext>` and `<screen>-after.<ext>` in `screenshot.dir` of `.claude/apps.json` (default `docs/images/<feature-name>/`). They are committed with the code and embedded in the PR description. The `ui-screenshot` skill takes them.
 - `test-report.md` has Overview rows and a Coverage block per changed app, or a "Plan checks" section with no changed app (rule 7, `.claude/templates/test-report.md`); `report.md` has one `verify` table per changed app (rule 9).
 - Paths are relative to the repo root.
 - `<feature-name>` is a kebab-case slug, identical to the part after `<type>/` in the branch name.
@@ -126,6 +126,18 @@ Right after `## Card requirements`, list what could go wrong while building the 
 - Rejected approaches come from the design's decisions and from planning; "none" if only one approach was considered.
 - No risk found → the table becomes one line `None found: <what was checked>`; the two bullets stay.
 
+When the plan changes UI files (a changed app's `ui` globs, test files excluded), add `## Screens` after `## Risks` (and `## Deviations`), before the first task: one row per page or state the change alters. `/work-ticket` briefs the `ui-screenshotter` agent from these rows at steps 5 and 8:
+
+```markdown
+## Screens
+
+| Screen | Path | Steps | Must show (after) | Writes data |
+| --- | --- | --- | --- | --- |
+| `<area>-<page>[-<state>]` | `/<path>` | <actions that reach the state, or "none"> | <what the after proves> | no \| yes: <what> |
+```
+
+Gate 1 approves a `yes` in Writes data. Each `PASS (screenshot, manual)` row of rule 9 names its screen here.
+
 When the plan's files give no changed app (rule 0, `--files`), add `## Plan checks` after `## Risks` (and `## Deviations`, once it exists), before the first task. Each check `M<n>` has its command or steps and the expected result, and every R's Test cell in `## Card requirements` names the checks that prove it. Step 8 runs them in place of `verify` (rule 7), and rule 9 records them as `PASS (plan check)`. An approved deviation that changes the changed apps updates the plan with it (rule 6): `## Plan checks` and the Test cells when the change now has no changed app, the tests when it gains one (the report then notes "no clean baseline" for that app, rule 7).
 
 ## 5. Global Constraints
@@ -154,7 +166,7 @@ Tasks end at "run the tests, expect PASS". Commits happen only after the user ap
   - Anything else (an internal name, a helper split out, the order of steps inside a task) → no question; add the entry to `## Deviations` (task, what changed, why) before dispatching `plan-reviewer`.
   - Either way, also write the `Ruling:` line in the `executing-plans` ledger: a task brief copies only its own `### Task N` section, so the ledger is how later tasks learn the decision.
   - `## Deviations` sits right after `## Risks`, before the first task; at the end of the plan, the brief of the last task would include it.
-  - Not deviations: files the workflow itself creates (`docs/images/<feature-name>/` screenshots) and the lockfile change of an approved dependency.
+  - Not deviations: files the workflow itself creates (screenshots in `screenshot.dir` of `.claude/apps.json`) and the lockfile change of an approved dependency.
   - A deviation that `plan-reviewer` reports as already in the diff gets the same question, with B meaning revert it.
 - `subagent-driven-development` (not used by `/work-ticket`):
   - implementers do not commit;
@@ -228,7 +240,7 @@ Before asking to commit, write `report.md` with:
 - a link to `test-report.md` and one `verify` table per changed app (with no changed app, the plan checks);
 - an `R → test → result` table from the final verify run. Each row has one evidence type:
   - `PASS`: a test passed in the final verify run;
-  - `PASS (screenshot, manual)`: a UI requirement (an app's `ui` globs) shown by the `docs/images/<feature-name>/<screen>-after.png` the row links. These rows are listed apart from the test PASS rows, never counted with them, and confirmed by the user at Gate 2;
+  - `PASS (screenshot, manual)`: a UI requirement (an app's `ui` globs) shown by the after screenshot the row links. These rows are listed apart from the test PASS rows, never counted with them, and confirmed by the user at Gate 2;
   - `PASS (plan check)`: a check from the plan's `## Plan checks`, with its command or steps and the observed result. Only when there is no changed app;
   - `Not verified`, with the reason, for the user to check, never PASS: an AC with no test, a test in a SKIPPED gate (e.g. e2e skipped by the database guard), or a test that only a package runs ("package tests run only in pre-push");
 - the code-review result: findings fixed, and findings left with their reason (cleanup or false positive);
@@ -242,12 +254,12 @@ No `superpowers:finishing-a-development-branch`, and no verify rerun: the last v
 
 - Run the `pr-description` skill, which saves the draft to `<spec dir>/pr-description.md`. Show the title, the body and its TODOs.
 - Then ask A "Push and create the PR with this description" (Recommended) or B "Keep the branch as-is". There is no local merge option: this repo merges through GitHub PRs with a merge commit. Nothing is pushed before the user picks A.
-- To change the draft, the user answers in D (Other); edit `pr-description.md`, show it again and ask again. Every `<TODO>` is resolved before A runs; a missing screenshot is added under `docs/images/<feature-name>/` and the commit amended once the user approves.
+- To change the draft, the user answers in D (Other); edit `pr-description.md`, show it again and ask again. Every `<TODO>` is resolved before A runs; a missing screenshot is added under `screenshot.dir` of `.claude/apps.json` and the commit amended once the user approves.
 - Option A: `git push -u origin <branch>`, then `gh pr create --base <PR target> --head <branch> --title "<title>" --body-file <spec dir>/pr-description.md`. The base branch and the PR target come from the plan's Git section. In `/work-ticket`, step 12 then moves the card to REVIEW; `.github/workflows/trello.yml` moves the card on the description's `**Ticket:**` line to DONE when the PR is merged.
 
 ## 11. Commit
 
-- One commit for the code, the tests and any screenshots in `docs/images/`.
+- One commit for the code, the tests and any screenshots in `screenshot.dir` of `.claude/apps.json`.
 - The message is one Conventional Commits subject (`feat`, `fix` or `refactor`): no body, no `Co-Authored-By` or other trailer.
 - The commit uses the user's git identity.
 - `docs/specs/` is not part of it.
