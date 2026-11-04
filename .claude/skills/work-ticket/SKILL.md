@@ -56,7 +56,7 @@ Follow `.claude/rules/workflow.md` for every superpowers step; it overrides thei
    - `git checkout --no-track -b <feature branch> origin/<base>`
    - Update the Git section's Base commit from `HEAD` (rule 4).
    - Before touching code, run `node .claude/scripts/changed-apps.mjs --files <the plan's files>` (workflow rule 0) and capture one `coverage-baseline-<app>.json` per changed app (rule 7). No changed app → no baseline.
-   - If the plan changes UI files (an app's `ui` globs in `.claude/apps.json`, test files excluded as in workflow rule 1), save a before screenshot of each affected screen to `docs/images/<feature-name>/<screen>-before.png` (Playwright on localhost, or the user adds it).
+   - If the plan has `## Screens`, dispatch the `ui-screenshotter` agent for the before shots now, without asking and before any UI edit. Brief it with phase `before` and every `## Screens` row: `<screen>=<path>`, steps, what it must show, and whether it writes data (approved at Gate 1). Handle its report as in **Screenshot report**.
 6. **Implement.** Invoke `superpowers:executing-plans` with the rule 6 overrides; never `subagent-driven-development` here. For each task:
    - TDD: write the AC's test, watch it fail, implement, watch it pass.
    - Dispatch the `plan-reviewer` subagent with the plan path and the task number. It checks that task against its acceptance criteria and that each test the plan names for it asserts the AC.
@@ -77,7 +77,12 @@ Follow `.claude/rules/workflow.md` for every superpowers step; it overrides thei
      - every row has one evidence type from workflow rule 9: `PASS`, `PASS (screenshot, manual)`, `PASS (plan check)` or `Not verified`. An AC without a test, or whose test is in a SKIPPED gate (e.g. the API's e2e skipped by the database guard), is Not verified with the reason, never PASS, and does not send you back to step 6;
      - anything open → back to step 6.
    - Tick each `R<n>` in the design's `## Requirements from card` whose row is `PASS`, `PASS (screenshot, manual)` or `PASS (plan check)`; a Not verified `R<n>` stays unticked. Then write `report.md` (rule 9) with `Security: pending`. A rerun from step 10 keeps the existing Security line and its findings.
-   - If the plan changes UI files, save the after screenshots to `docs/images/<feature-name>/<screen>-after.png`, after verify.
+   - If the plan has `## Screens`, dispatch the `ui-screenshotter` agent for the after shots once verify passes, without asking, with phase `after` and the same rows. Handle its report as in **Screenshot report**.
+   - **Screenshot report** (steps 5 and 8). The agent retries each screen up to 3 times.
+     - `DONE` → read the saved files and go on.
+     - `FAILED` → notify, show each failed screen with the cause of each try, and ask: A "Try again" (Recommended; the user's fix in D); B "Go on without this screenshot": its R row becomes `Not verified` (no screenshot) and is unticked, and the PR description gets a `<TODO: screenshot>`; C "Stop here".
+     - `BLOCKED` → relay what it needs to the user, then continue the same agent with SendMessage.
+     - `PARTIAL` → continue it with SendMessage for what is left.
 9. 🛑 **Gate 2: commit.** Run `git add -A`, then show `git diff --cached --stat`, the R coverage, the plan's `## Deviations` (or "none"), a short verify / code-review summary, the after screenshots of every `PASS (screenshot, manual)` row, and one commit message per workflow rule 11. Approving the commit confirms those screenshots. A screenshot the user reports wrong in D goes back to step 7 for its fix, then step 8, and Gate 2 asks again (workflow rule 8 round limit). Nothing is ticked on Trello. After approval, commit. If the user declines, run `git reset` to unstage (the changes stay in the working tree) and stop. If a hook fails, fix the cause; never use `--no-verify`.
 10. **Security review.** Check `<base commit>..HEAD` against the areas listed in workflow rule 8 (access control, config or secrets, dependencies, and the paths in each app's `security` list in `.claude/apps.json`). None touched → replace `Security: pending` in `report.md` with `Security: skipped, no security-relevant change` and go to step 11. Otherwise invoke the `security-review` skill:
     - No finding → `Security: no findings`.

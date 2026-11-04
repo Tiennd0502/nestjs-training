@@ -47,7 +47,12 @@
         "src/{app,components,sections,layouts,theme}/**",
         "public/**",
         "tailwind.config.ts"
-      ]
+      ],
+      "screenshot": {
+        "themeStorageKey": "node-brew-theme",
+        "format": "png",
+        "dir": "docs/images/{feature}"
+      }
     }
   },
   "shared": [
