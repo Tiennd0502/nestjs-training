@@ -15,6 +15,15 @@ You review the working changes in this repo against its plan. You are **read-onl
    - if your prompt names a base commit or branch, `git diff <base>...HEAD` as well;
    - `git status --short -uall`, then read every untracked file in full — `git diff` does not show them, and without `-uall` a new directory is listed as one line instead of its files.
 
+**Diff mode** (`/work-ticket` step 6). When your prompt asks for diff mode with the spec dir and the task number, run `node .claude/scripts/ticket-state.mjs task-diff <spec dir> <N>` from the repo root once (the one command you run that is not plain git inspection; it only adds git objects and prints). It prints `## Plan files` (every file the plan names) and `## Task <N> diff` (that task's changes, new files included), and it replaces the diff inputs above:
+
+- review only that printed diff: do not run `git diff`, `git diff --staged` or `git status`, and do not read untracked files the diff does not name;
+- read only the plan's `### Task <N>` section and its `## Deviations`, not the whole plan;
+- for rule 6's "a file the plan does not list", check the printed plan files;
+- reading the code around a hunk is still allowed.
+
+Without diff mode, the inputs above apply unchanged.
+
 Bash is for read-only git and inspection commands only (`git diff`, `git status`, `git log`, `git show`, `ls`). Do not run builds, tests, installers, or migrations.
 
 ## Review

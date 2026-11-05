@@ -32,6 +32,15 @@ Follow `.claude/rules/workflow.md` for every superpowers step; it overrides thei
 - At every gate, and whenever a step fails and you stop, call `PushNotification` first with one line saying what is needed: `work-ticket #<card no>: <step>: <what you need>` (under 200 chars). On completion, send one with the PR and card result. No notifications for other questions or routine progress.
 - All Trello work goes through the `trello-manager` subagent. Pass write approvals to it explicitly: card + target list.
 
+## Saved status
+
+From step 2 on, the card's status lives in `<spec dir>/state.json` (workflow rule 1), and only `node .claude/scripts/ticket-state.mjs <command> <spec dir> …` writes it (usage in the script's header). A resume reads it instead of the spec files.
+
+- Bookkeeping rides along with work: chain each command onto the step's own Bash call (`… && node .claude/scripts/ticket-state.mjs at <spec dir> 3 2`); give it a call of its own only when the step has no command.
+- `flow <step>` at the start of each step and gate (`2 3 gate1 5 6 7 8 gate2 10 gate3 12`).
+- Before every AskUserQuestion once `state.json` exists: pipe the exact tool input as JSON into `await <spec dir> <gate>` (a heredoc: `await` saves it), ask, then `answered` right after the answer.
+- With no `state.json` (a spec started before it existed), every command does nothing and exits 0.
+
 ## Steps
 
 0. **Pre-flight.** Run the card lookup. Found → go to Resume. Not found: if `git status --short` shows changes, stop and report them; otherwise `git checkout <base> && git pull`.
@@ -40,7 +49,7 @@ Follow `.claude/rules/workflow.md` for every superpowers step; it overrides thei
    - Pick the branch name `<type>/<feature-name>` from the card (workflow rule 4). Run `git fetch origin`, then `git branch -a --list '<branch>' 'origin/<branch>'`. Any output → ask for another name.
    - Then, if the card is in **TODO**, dispatch `trello-manager` with the card URL, the source list `TODO` and the target list `IN PROGRESS`, without asking. It re-reads the card and moves it only if it is still in TODO; otherwise it reports the current list and you stop and ask. State that the move is the workflow's own, approved by invoking `/work-ticket`. Continue only after its report lists the move as done; if the move fails, stop and notify. A card already in IN PROGRESS is not moved.
 2. **Discuss → `design.md`.** Invoke `superpowers:brainstorming` with the card as the request, applying workflow rules 1–3 and the rule 6 overrides: always a written design, no commit.
-   - Save under `docs/specs/<today>/<feature-name>/`, with the Card and Branch header lines.
+   - Save under `docs/specs/<today>/<feature-name>/`, with the Card and Branch header lines. Right after `design.md` is first written, run `node .claude/scripts/ticket-state.mjs init <spec dir> <card URL> <branch>`.
    - Turn the card's description and checklists into `## Requirements from card` (R1…).
    - Discussion table; builder check after every playback.
    - When the user approves the design, add the `**Design approved:**` line.
@@ -50,27 +59,28 @@ Follow `.claude/rules/workflow.md` for every superpowers step; it overrides thei
    - Options:
      - A "Approve and start" (Recommended): add the Gate 1 row to the Git section (rule 4), then go to step 5. If C changed the design, also set the design's `**Design approved:**` line to today.
      - B "Stop here": nothing else is created; `/work-ticket <card URL>` later resumes at Gate 1.
-     - C "Request changes", with the change in the answer's notes or in D (Other): a change to the plan, the scope, the design or the branch name. Edit `plan.md` (a scope, requirement or design change also updates `design.md` and its Discussion table), show what changed and ask again. A new branch name reruns the step 1 name check, then renames the spec dir and updates the branch and spec-dir paths in the design and plan headers (`**Branch:**`, `**Spec:**`) and the Git section.
+     - C "Request changes", with the change in the answer's notes or in D (Other): a change to the plan, the scope, the design or the branch name. Edit `plan.md` (a scope, requirement or design change also updates `design.md` and its Discussion table), show what changed and ask again. A new branch name reruns the step 1 name check, then renames the spec dir and updates the branch and spec-dir paths in the design and plan headers (`**Branch:**`, `**Spec:**`) and the Git section. Run `rename <old spec dir> <new spec dir> <new branch>` before moving the dir.
 5. **Branch + coverage baseline.** Using the plan's Git section:
    - `git fetch origin <base>`
    - `git checkout --no-track -b <feature branch> origin/<base>`
-   - Update the Git section's Base commit from `HEAD` (rule 4).
+   - Update the Git section's Base commit from `HEAD` (rule 4), and record it with `base <spec dir> <commit> <base branch>`.
    - Before touching code, run `node .claude/scripts/changed-apps.mjs --files <the plan's files>` (workflow rule 0) and capture one `coverage-baseline-<app>.json` per changed app (rule 7). No changed app → no baseline.
    - If the plan has `## Screens`, dispatch the `ui-screenshotter` agent for the before shots now, without asking and before any UI edit. Brief it with phase `before` and every `## Screens` row: `<screen>=<path>`, steps, what it must show, and whether it writes data (approved at Gate 1). Handle its report as in **Screenshot report**.
 6. **Implement.** Invoke `superpowers:executing-plans` with the rule 6 overrides; never `subagent-driven-development` here. For each task:
-   - TDD: write the AC's test, watch it fail, implement, watch it pass.
-   - Dispatch the `plan-reviewer` subagent with the plan path and the task number. It checks that task against its acceptance criteria and that each test the plan names for it asserts the AC.
-   - A gap → fix it before the next task. Then tick the task's checkbox.
+   - TDD: write the AC's test, watch it fail, implement, watch it pass. Run `at <task> <step>` at each step boundary (the script ticks the done steps' checkboxes), chained into the step's command when it has one.
+   - Tests pass → `tests-pass`. Then dispatch the `plan-reviewer` subagent in diff mode with the plan path, the spec dir and the task number; it runs `task-diff` itself. It checks that task against its acceptance criteria and that each test the plan names for it asserts the AC.
+   - A gap → `review <task> gap <text>`, fix it, and review again before the next task.
+   - No gap → `review pass` and the plugin's `task-done` in one Bash call (workflow rule 6: `task-done` only after the review).
    - A deviation from the plan → workflow rule 6. One that changes what Gate 1 approved is a 🛑 **plan-change gate**: stop before making it and ask with the options in rule 6. An "unapproved deviation" from `plan-reviewer` goes to the same gate. Any other deviation is only recorded, in the plan's `## Deviations` before `plan-reviewer` runs, and in the ledger.
-   After the last task, run the autofix on the whole change (workflow rule 7: `lint-staged --diff=<base commit> --no-hide-partially-staged`), run the rebuild precondition (workflow rule 7), then, for each changed app (workflow rule 0), from `apps/<app>/`, run `pnpm run build` and `pnpm run test`; both must pass before step 7. No changed app → only the autofix runs here.
-7. **Code review.** Run the autofix (workflow rule 7; it includes `git add -N` on the untracked files), then invoke the `code-review` skill at `medium`. Per workflow rule 8, name the target (the working tree against the base commit) and the rules files. Handle findings per rule 8:
+   After the last task, run the autofix on the whole change (workflow rule 7: `lint-staged --diff=<base commit> --no-hide-partially-staged`, with `boundary` after every autofix in the same call), run the rebuild precondition (workflow rule 7), then, for each changed app (workflow rule 0), from `apps/<app>/`, run `pnpm run build` and `pnpm run test`; both must pass before step 7. No changed app → only the autofix runs here.
+7. **Code review.** Run the autofix (workflow rule 7; it includes `git add -N` on the untracked files), then invoke the `code-review` skill at `medium`. Per workflow rule 8, name the target (the working tree against the base commit) and the rules files. When it returns, save its findings with `findings <spec dir>`, JSON on stdin (`[{ "id", "summary" }]`, `[]` for none), then `finding fixed|left <id>` as each one is handled, and `round pre` for each round. Handle findings per rule 8:
    - A bug or a rules violation → fix, run the related tests and the autofix, then `code-review` on the fix. Round limit: workflow rule 8.
    - A fix that deviates from the plan (workflow rule 6) goes through the plan-change gate first. This also covers the fixes that step 8 and step 10 send back here.
    - A cleanup or a false positive → do not fix; keep one line for `report.md`.
 8. **Verify + test report + `report.md`.** Run the autofix again and the rebuild precondition (workflow rule 7), then, for each changed app (workflow rule 0), from `apps/<app>/`, read and run `apps/<app>/.claude/skills/verify/SKILL.md` with the unit gate on `test:cov`, and write `test-report.md` from `.claude/templates/test-report.md`, with each app's rows and Coverage block. Every gate must PASS, or be SKIPPED or n/a with a reason. No changed app → run the plan's `## Plan checks` instead and write their results in the report's "Plan checks" section.
    - Verify runs before the after screenshots: a verify build can overwrite the dev server's output (`next build` rewrites `.next`), so start the dev server again for the screenshots.
    - On a failure, the notification names `test-report.md`. A fix that changes logic in `src/` goes back to step 7 for that fix; a test, lint or format fix reruns this step. This overrides the `verify` skill's step 4 ("Fix and rerun") for logic fixes.
-   - Round limit: workflow rule 8 (shared with step 7 before the commit).
+   - Round limit: workflow rule 8 (shared with step 7 before the commit); each rerun is a `round pre`.
    - When it passes:
      - every plan checkbox is `[x]`;
      - every `R<n>` in the design's `## Requirements from card` has a row in the plan's `## Card requirements` table;
@@ -88,7 +98,7 @@ Follow `.claude/rules/workflow.md` for every superpowers step; it overrides thei
     - No finding → `Security: no findings`.
     - A finding → fix it, then `code-review` on the fix (step 7), then step 8; that rerun keeps the Security line.
     - Then 🛑 Gate 2 again: `git add -A`, show `git diff --cached --stat`, and after approval `git commit --amend --no-edit`.
-    - Then rerun `security-review`. Round limit: workflow rule 8 (2 rounds after the commit).
+    - Then rerun `security-review`. Round limit: workflow rule 8 (2 rounds after the commit); each round is a `round post`.
     - When it is clean, write `Security: findings fixed` with each finding and its fix.
 11. 🛑 **Gate 3: push + open PR.** Follow workflow rule 10:
     - The `pr-description` skill drafts `pr-description.md`; show its title, body and TODOs.
@@ -96,12 +106,25 @@ Follow `.claude/rules/workflow.md` for every superpowers step; it overrides thei
     - Nothing is pushed before the user picks A.
     - A → push and `gh pr create`, per rule 10.
     - B → report the branch name and stop: skip steps 12 and 13.
-12. **Card → REVIEW.** No gate: right after `gh pr create` succeeds, dispatch `trello-manager` with the card URL, the source list `IN PROGRESS` and the target list `REVIEW` (skip if B was chosen at step 1). State that the move is the workflow's own, approved by invoking `/work-ticket`. If the move fails, stop and notify.
+12. **Card → REVIEW.** No gate: right after `gh pr create` succeeds, dispatch `trello-manager` with the card URL, the source list `IN PROGRESS` and the target list `REVIEW` (skip if B was chosen at step 1). State that the move is the workflow's own, approved by invoking `/work-ticket`. If the move fails, stop and notify. After the move, run `close <spec dir>`.
 13. **Report.** Send the completion notification, then a short summary with the PR link, the card link (in REVIEW; `.github/workflows/trello.yml` moves it to DONE when the PR is merged, and if that run fails, `/work-ticket <card URL> done` is the fallback), and the local paths of `report.md`, `test-report.md`, `pr-description.md`, `design.md` and `plan.md`. The details live in `report.md`; do not repeat them.
 
 ## Resume
 
-The spec dir is the directory of the matched `design.md`; every later file is read from and written to it. Re-read the spec files in it: `design.md`, `plan.md`, `report.md`, `test-report.md` and `pr-description.md`. Do not redo finished steps.
+The spec dir is the directory of the matched `design.md`; every later file is read from and written to it.
+
+**With a saved status** (`state.json` in the spec dir):
+1. If its branch is known, `gh pr view <branch> --json state`: `MERGED` → the card is finished; report it, suggest `<card URL> done`, and stop. A `gh` error (no GitHub remote, offline) counts as not merged.
+2. Run `node .claude/scripts/ticket-state.mjs status <spec dir>`. It prints the resume brief (Global Constraints, `## Deviations`, the ledger's rulings, the code review findings and the current task's section), then the status, ending with one `Next:` line.
+3. Use only that output and do what `Next:` says. Do not re-read `design.md`, the whole `plan.md` or the report files. At step 6, `executing-plans` resumes as workflow rule 6 says.
+   - `ask again: <gate>` → `PushNotification` as at every gate, then ask the saved `awaiting.payload` from `state.json` unchanged.
+   - `ask the user: …` → show what differs and ask: A "Continue: the change goes through the plan-change gate" (Recommended) or B "Stop: I sort the changes out myself".
+   - `check out <branch>` → `git checkout <branch>`, then run `status` again.
+   - `stop: …` → report it and stop.
+   - `check the PR …` → `gh pr view <branch>`; a PR exists → step 12 (its `trello-manager` move only happens from IN PROGRESS), then `close`; none → ask the saved Gate 3 payload again when `state.json` has one (`ask again: gate3`), otherwise run Gate 3.
+4. Exit 3 (`No saved status`) → use the table below.
+
+**Without a saved status:** re-read the spec files: `design.md`, `plan.md`, `report.md`, `test-report.md` and `pr-description.md`. Do not redo finished steps.
 
 The feature branch is the design's `**Branch:**` line; an older design without `**Branch:**` uses the plan's Feature branch row.
 
@@ -139,3 +162,4 @@ Before continuing, act on git:
    - On the merged branch with a clean tree: `git checkout <base> && git pull && git branch -d <branch>`.
    - On any other branch: `git branch -d <branch>`, without leaving the current branch. It checks the branch against its upstream (`origin/<branch>`), so no fetch is needed.
 5. A command that refuses → report its output, name the command that would finish the step, and stop; never run a forced command yourself.
+6. Run `node .claude/scripts/ticket-state.mjs close <spec dir>` (nothing happens for a spec without `state.json`).
